@@ -1,0 +1,108 @@
+{
+  "splits": [
+    {
+      "id": "5_day_illustrated",
+      "name": "5 Day Illustrated",
+      "dayCount": 5,
+      "days": [
+        {
+          "id": "5di_day1",
+          "dayNumber": 1,
+          "name": "Upper Body",
+          "muscleGroups": ["Back", "Chest", "Shoulders", "Arms"],
+          "exercises": [
+            { "exerciseId": "wide_grip_pulldown", "orderIndex": 0, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "incline_smith_press", "orderIndex": 1, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "t_bar_row", "orderIndex": 2, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "lateral_raise", "orderIndex": 3, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "close_grip_bench", "orderIndex": 4, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "barbell_curl", "orderIndex": 5, "sets": 3, "repsLow": 6, "repsHigh": 8 }
+          ]
+        },
+        {
+          "id": "5di_day2",
+          "dayNumber": 2,
+          "name": "Lower Body",
+          "muscleGroups": ["Posterior Chain", "Quads", "Hamstrings", "Calves", "Abs"],
+          "exercises": [
+            { "exerciseId": "deadlift", "orderIndex": 0, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "leg_extension", "orderIndex": 1, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "seated_ham_curl", "orderIndex": 2, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "seated_calf_raise", "orderIndex": 3, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "decline_crunch", "orderIndex": 4, "sets": 3, "repsLow": 6, "repsHigh": 8 }
+          ]
+        },
+        {
+          "id": "5di_day3",
+          "dayNumber": 3,
+          "name": "Shoulders & Arms",
+          "muscleGroups": ["Shoulders", "Triceps", "Biceps"],
+          "exercises": [
+            { "exerciseId": "db_shoulder_press", "orderIndex": 0, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "cable_lateral", "orderIndex": 1, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "reverse_fly", "orderIndex": 2, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "jm_press", "orderIndex": 3, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "cable_tri_ext", "orderIndex": 4, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "bayesian_curl", "orderIndex": 5, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "preacher_curl", "orderIndex": 6, "sets": 3, "repsLow": 8, "repsHigh": 12 }
+          ]
+        },
+        {
+          "id": "5di_day4",
+          "dayNumber": 4,
+          "name": "Legs (Quad)",
+          "muscleGroups": ["Quads", "Hamstrings", "Adductors", "Calves", "Abs"],
+          "exercises": [
+            { "exerciseId": "barbell_squat", "orderIndex": 0, "sets": 3, "repsLow": 6, "repsHigh": 8 },
+            { "exerciseId": "lying_ham_curl", "orderIndex": 1, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "leg_extension", "orderIndex": 2, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "adductor_machine", "orderIndex": 3, "sets": 2, "repsLow": 10, "repsHigh": 15 },
+            { "exerciseId": "standing_calf", "orderIndex": 4, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "decline_crunch", "orderIndex": 5, "sets": 3, "repsLow": 8, "repsHigh": 12 }
+          ]
+        },
+        {
+          "id": "5di_day5",
+          "dayNumber": 5,
+          "name": "Back & Chest",
+          "muscleGroups": ["Back", "Chest"],
+          "exercises": [
+            { "exerciseId": "single_cable_row", "orderIndex": 0, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "incline_db_row", "orderIndex": 1, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "wide_grip_pulldown", "orderIndex": 2, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "dumbbell_press", "orderIndex": 3, "sets": 3, "repsLow": 8, "repsHigh": 12 },
+            { "exerciseId": "incline_cable_fly", "orderIndex": 4, "sets": 3, "repsLow": 8, "repsHigh": 12 }
+          ]
+        }
+      ]
+    }
+  ],
+  "exercises": [
+    { "id": "wide_grip_pulldown", "name": "Wide Grip Pulldown", "primaryMuscle": "Lats", "secondaryMuscles": ["Biceps", "Rear Delts"], "illustrationFilename": "wide_grip_pulldown.png", "formCues": ["Slight lean back", "Pull bar to upper chest", "Drive elbows down", "Chest lifted"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 6, "defaultRepsHigh": 8 },
+    { "id": "incline_smith_press", "name": "Incline Smith Press", "primaryMuscle": "Upper Chest", "secondaryMuscles": ["Front Delts", "Triceps"], "illustrationFilename": "incline_smith_press.png", "formCues": ["Bench 30–45°", "Bar toward upper chest", "Shoulder blades retracted", "Feet planted"], "equipment": "Smith Machine", "defaultSets": 3, "defaultRepsLow": 6, "defaultRepsHigh": 8 },
+    { "id": "t_bar_row", "name": "Chest-Supported T-Bar Row", "primaryMuscle": "Mid Back", "secondaryMuscles": ["Lats", "Rear Delts"], "illustrationFilename": "t_bar_row.png", "formCues": ["Chest on pad", "Pull elbows back", "Neutral spine", "Controlled lowering"], "equipment": "T-Bar", "defaultSets": 3, "defaultRepsLow": 6, "defaultRepsHigh": 8 },
+    { "id": "lateral_raise", "name": "Dumbbell Lateral Raise", "primaryMuscle": "Side Delts", "secondaryMuscles": [], "illustrationFilename": "lateral_raise.png", "formCues": ["Slight elbow bend", "Raise to shoulder height", "Lead with elbows", "Avoid swinging"], "equipment": "Dumbbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "close_grip_bench", "name": "Close Grip Bench Press", "primaryMuscle": "Triceps", "secondaryMuscles": ["Chest", "Front Delts"], "illustrationFilename": "close_grip_bench.png", "formCues": ["Hands shoulder width", "Elbows tucked", "Bar to lower chest", "Wrists stacked"], "equipment": "Barbell", "defaultSets": 3, "defaultRepsLow": 6, "defaultRepsHigh": 8 },
+    { "id": "barbell_curl", "name": "Barbell Curl", "primaryMuscle": "Biceps", "secondaryMuscles": ["Forearms"], "illustrationFilename": "barbell_curl.png", "formCues": ["Elbows near torso", "No swinging", "Full extension", "Squeeze at top"], "equipment": "Barbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "deadlift", "name": "Deadlift", "primaryMuscle": "Posterior Chain", "secondaryMuscles": ["Glutes", "Hamstrings", "Back"], "illustrationFilename": "deadlift.png", "formCues": ["Neutral spine", "Bar close to shins", "Push through heels", "Hips drive forward"], "equipment": "Barbell", "defaultSets": 3, "defaultRepsLow": 5, "defaultRepsHigh": 8 },
+    { "id": "leg_extension", "name": "Leg Extension", "primaryMuscle": "Quads", "secondaryMuscles": [], "illustrationFilename": "leg_extension.png", "formCues": ["Knees align with pivot", "Extend fully", "Avoid locking knees", "Controlled descent"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "seated_ham_curl", "name": "Seated Hamstring Curl", "primaryMuscle": "Hamstrings", "secondaryMuscles": [], "illustrationFilename": "seated_ham_curl.png", "formCues": ["Back against pad", "Ankles under roller", "Curl through heels", "Slow return"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 12 },
+    { "id": "seated_calf_raise", "name": "Seated Calf Raise", "primaryMuscle": "Calves", "secondaryMuscles": [], "illustrationFilename": "seated_calf_raise.png", "formCues": ["Full stretch", "Push through toes", "Pause at top"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "decline_crunch", "name": "Machine / Decline Crunch", "primaryMuscle": "Abs", "secondaryMuscles": [], "illustrationFilename": "decline_crunch.png", "formCues": ["Curl spine", "Exhale on contraction", "Slow negative"], "equipment": "Bodyweight", "defaultSets": 3, "defaultRepsLow": 12, "defaultRepsHigh": 20 },
+    { "id": "db_shoulder_press", "name": "Dumbbell Shoulder Press", "primaryMuscle": "Shoulders", "secondaryMuscles": ["Triceps"], "illustrationFilename": "db_shoulder_press.png", "formCues": ["Core tight", "Dumbbells near shoulders", "Press vertically"], "equipment": "Dumbbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "cable_lateral", "name": "Cable Lateral Raise", "primaryMuscle": "Side Delts", "secondaryMuscles": [], "illustrationFilename": "cable_lateral.png", "formCues": ["Raise slightly forward", "Small elbow bend", "Avoid shrugging"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "reverse_fly", "name": "Reverse Fly", "primaryMuscle": "Rear Delts", "secondaryMuscles": ["Mid Back"], "illustrationFilename": "reverse_fly.png", "formCues": ["Neutral spine", "Pull arms wide", "Focus rear delts"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "jm_press", "name": "JM Press", "primaryMuscle": "Triceps", "secondaryMuscles": [], "illustrationFilename": "jm_press.png", "formCues": ["Bar toward upper chest", "Elbows forward", "Partial press path"], "equipment": "Barbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "cable_tri_ext", "name": "Cable Tricep Extension", "primaryMuscle": "Triceps", "secondaryMuscles": [], "illustrationFilename": "cable_tri_ext.png", "formCues": ["Elbows pinned", "Full lockout", "Separate rope"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "bayesian_curl", "name": "Bayesian Curl", "primaryMuscle": "Biceps", "secondaryMuscles": [], "illustrationFilename": "bayesian_curl.png", "formCues": ["Stand forward of cable", "Arm behind torso", "Curl without elbow moving"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "preacher_curl", "name": "Dumbbell Preacher Curl", "primaryMuscle": "Biceps", "secondaryMuscles": [], "illustrationFilename": "preacher_curl.png", "formCues": ["Arm on pad", "Full stretch", "Controlled lift"], "equipment": "Dumbbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "barbell_squat", "name": "Barbell Squat", "primaryMuscle": "Quads", "secondaryMuscles": ["Glutes", "Adductors"], "illustrationFilename": "barbell_squat.png", "formCues": ["Chest up", "Knees track toes", "Depth parallel"], "equipment": "Barbell", "defaultSets": 3, "defaultRepsLow": 5, "defaultRepsHigh": 8 },
+    { "id": "lying_ham_curl", "name": "Lying Hamstring Curl", "primaryMuscle": "Hamstrings", "secondaryMuscles": [], "illustrationFilename": "lying_ham_curl.png", "formCues": ["Hips on bench", "Curl through heels", "Controlled lowering"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 12 },
+    { "id": "adductor_machine", "name": "Adductor Machine", "primaryMuscle": "Adductors", "secondaryMuscles": [], "illustrationFilename": "adductor_machine.png", "formCues": ["Back against pad", "Controlled squeeze", "Slow return"], "equipment": "Machine", "defaultSets": 2, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "standing_calf", "name": "Standing Calf Raise", "primaryMuscle": "Calves", "secondaryMuscles": [], "illustrationFilename": "standing_calf.png", "formCues": ["Heels drop fully", "Push through big toe", "Pause at top"], "equipment": "Machine", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 },
+    { "id": "single_cable_row", "name": "Single Arm Cable Row", "primaryMuscle": "Lats", "secondaryMuscles": ["Mid Back", "Biceps"], "illustrationFilename": "single_cable_row.png", "formCues": ["Pull elbow to hip", "Chest up", "Avoid twisting"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "incline_db_row", "name": "Incline Dumbbell Row", "primaryMuscle": "Mid Back", "secondaryMuscles": ["Lats"], "illustrationFilename": "incline_db_row.png", "formCues": ["Chest on bench", "Neutral neck", "Elbows toward hips"], "equipment": "Dumbbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "dumbbell_press", "name": "Dumbbell Press", "primaryMuscle": "Chest", "secondaryMuscles": ["Front Delts", "Triceps"], "illustrationFilename": "dumbbell_press.png", "formCues": ["Slight arch", "Elbows 45°", "Press above chest"], "equipment": "Dumbbell", "defaultSets": 3, "defaultRepsLow": 8, "defaultRepsHigh": 12 },
+    { "id": "incline_cable_fly", "name": "Incline Cable Fly", "primaryMuscle": "Upper Chest", "secondaryMuscles": [], "illustrationFilename": "incline_cable_fly.png", "formCues": ["Slight elbow bend", "Arc motion", "Stretch at bottom"], "equipment": "Cable", "defaultSets": 3, "defaultRepsLow": 10, "defaultRepsHigh": 15 }
+  ]
+}

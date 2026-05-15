@@ -1,0 +1,12 @@
+.gradle/
+.idea/
+.kotlin/
+build/
+captures/
+local.properties
+*.iml
+*.hprof
+.cxx/
+.externalNativeBuild/
+.DS_Store
+gradle-wrapper.jar.lock
