@@ -68,6 +68,8 @@ fun AppNavigation() {
         composable<Route.PickSplit> {
             PickSplitScreen(
                 onPicked = { splitId -> nav.navigate(Route.RoutineMethod(splitId)) },
+                onPickCustom = { nav.navigate(Route.CustomizeRoutine(seedSplitId = null)) },
+                onBack = { if (!nav.popBackStack()) nav.navigate(Route.Splash) },
             )
         }
 
@@ -80,19 +82,20 @@ fun AppNavigation() {
                         popUpTo(Route.Splash) { inclusive = true }
                     }
                 },
-                onBuildMyOwn = { nav.navigate(Route.CustomizeRoutine(args.splitId)) },
+                onBuildMyOwn = { nav.navigate(Route.CustomizeRoutine(seedSplitId = args.splitId)) },
             )
         }
 
         composable<Route.CustomizeRoutine> { entry ->
             val args: Route.CustomizeRoutine = entry.toRoute()
             CustomizeRoutineScreen(
-                splitId = args.splitId,
+                seedSplitId = args.seedSplitId,
                 onDone = {
                     nav.navigate(Route.Home) {
                         popUpTo(Route.Splash) { inclusive = true }
                     }
                 },
+                onBack = { nav.popBackStack() },
             )
         }
 
@@ -114,7 +117,16 @@ fun AppNavigation() {
             ProfileScreen(onBack = { nav.popBackStack() })
         }
         composable<Route.Settings> {
-            SettingsScreen(onBack = { nav.popBackStack() })
+            SettingsScreen(
+                onBack = { nav.popBackStack() },
+                onResetRoutine = {
+                    // Clear Settings + Home from the stack so PickSplit becomes the new root.
+                    // The completion path (RoutineMethod → Home) then rebuilds Home cleanly.
+                    nav.navigate(Route.PickSplit) {
+                        popUpTo(Route.Home) { inclusive = true }
+                    }
+                },
+            )
         }
 
         composable<Route.DayOverview> { entry ->

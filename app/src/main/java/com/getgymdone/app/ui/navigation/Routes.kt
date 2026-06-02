@@ -12,7 +12,14 @@ sealed interface Route {
     @Serializable data object Splash : Route
     @Serializable data object PickSplit : Route
     @Serializable data class RoutineMethod(val splitId: String) : Route
-    @Serializable data class CustomizeRoutine(val splitId: String) : Route
+
+    /**
+     * Builder for a new user-defined split. [seedSplitId] is optional — when present, the
+     * builder pre-loads that preset's day/exercise structure for editing (the "Build my own"
+     * path from RoutineMethod). When null, the builder starts blank (the "Custom" entry on
+     * Pick Split).
+     */
+    @Serializable data class CustomizeRoutine(val seedSplitId: String? = null) : Route
 
     // ── Main shell (bottom tabs) ──────────────────────────────────
     @Serializable data object Home : Route

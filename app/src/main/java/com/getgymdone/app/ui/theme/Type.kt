@@ -8,6 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.getgymdone.app.R
+import androidx.compose.ui.text.googlefonts.Font as GoogleFontResource
 
 private val googleFontProvider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
@@ -15,20 +16,23 @@ private val googleFontProvider = GoogleFont.Provider(
     certificates = R.array.com_google_android_gms_fonts_certs,
 )
 
+// Anton is bundled as an asset so the heavy condensed display face renders even when the
+// emulator/device can't reach Google Fonts. It only ships as a single weight (400), but
+// Compose can synthesize bold from it when `FontSynthesis.Weight` is set on a TextStyle.
 val AntonFamily = FontFamily(
-    Font(googleFont = GoogleFont("Anton"), fontProvider = googleFontProvider, weight = FontWeight.Normal),
+    Font(resId = R.font.anton_regular, weight = FontWeight.Normal),
 )
 
 val InterFamily = FontFamily(
-    Font(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Normal),
-    Font(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Medium),
-    Font(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.SemiBold),
-    Font(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Bold),
+    GoogleFontResource(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Normal),
+    GoogleFontResource(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Medium),
+    GoogleFontResource(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.SemiBold),
+    GoogleFontResource(googleFont = GoogleFont("Inter"), fontProvider = googleFontProvider, weight = FontWeight.Bold),
 )
 
 val JetBrainsMonoFamily = FontFamily(
-    Font(googleFont = GoogleFont("JetBrains Mono"), fontProvider = googleFontProvider, weight = FontWeight.Medium),
-    Font(googleFont = GoogleFont("JetBrains Mono"), fontProvider = googleFontProvider, weight = FontWeight.Bold),
+    GoogleFontResource(googleFont = GoogleFont("JetBrains Mono"), fontProvider = googleFontProvider, weight = FontWeight.Medium),
+    GoogleFontResource(googleFont = GoogleFont("JetBrains Mono"), fontProvider = googleFontProvider, weight = FontWeight.Bold),
 )
 
 // Material 3 Typography — sport-magazine treatment: Anton condensed for display + numerals,

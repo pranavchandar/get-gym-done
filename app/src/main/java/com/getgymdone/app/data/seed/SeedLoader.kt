@@ -6,6 +6,7 @@ import com.getgymdone.app.data.db.AppDatabase
 import com.getgymdone.app.data.db.entities.DayExercise
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.Split
+import com.getgymdone.app.data.db.entities.UserPrefs
 import com.getgymdone.app.data.db.entities.WorkoutDay
 import kotlinx.serialization.json.Json
 
@@ -16,6 +17,17 @@ class SeedLoader(
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     suspend fun seedIfEmpty() {
+        // Seed-version migration: if the user has any splits but is missing a required
+        // marker id, wipe and reload the catalog. Using "missing marker" rather than
+        // "legacy id present" lets us add a split back to the catalog without causing a
+        // perpetual migration loop (a legacy-id trigger would re-fire after the reload
+        // re-inserted the legacy id). FK CASCADE on workout_day/day_exercise wipes too.
+        val ids = db.splitDao().getAll().map { it.id }.toSet()
+        if (ids.isNotEmpty() && SEED_MARKERS.any { it !in ids }) {
+            db.splitDao().clear()
+            db.exerciseDao().clear()
+            db.userPrefsDao().upsert(UserPrefs())
+        }
         if (db.exerciseDao().getAll().isNotEmpty()) return
         val text = context.resources.openRawResource(R.raw.seed_data).bufferedReader().use { it.readText() }
         val seed = json.decodeFromString(SeedFile.serializer(), text)
@@ -50,6 +62,18 @@ class SeedLoader(
             }
             db.dayExerciseDao().upsertAll(items)
         }
+    }
+
+    companion object {
+        // Split ids that MUST be present after seeding. Bump this set whenever the
+        // catalog grows: existing installs auto-reseed on next launch because they're
+        // missing the new marker, then settle (no further triggers fire).
+        private val SEED_MARKERS = setOf(
+            "5day_illustrated",
+            "arnold_6day",
+            "phul_4day",
+            "glute_focused_5day",
+        )
     }
 }
 

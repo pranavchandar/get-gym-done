@@ -56,7 +56,7 @@ class SettingsViewModel @Inject constructor(
 }
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onResetRoutine: () -> Unit) {
     val vm: SettingsViewModel = hiltViewModel()
     val p by vm.prefsFlow.collectAsState()
 
@@ -85,6 +85,18 @@ fun SettingsScreen(onBack: () -> Unit) {
 
         SettingsGroup("Workout") {
             ChoiceRow("Units", p.units, listOf("kg", "lbs"), vm::setUnits)
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        SettingsGroup("Routine") {
+            Text(
+                text = "Pick a different split. Your workout logs stay put.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+            GhostCta(label = "Reset routine", onClick = onResetRoutine)
         }
 
         Spacer(Modifier.height(14.dp))

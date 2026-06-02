@@ -23,4 +23,7 @@ interface SplitDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(item: Split)
+
+    @Query("DELETE FROM split")
+    suspend fun clear()
 }

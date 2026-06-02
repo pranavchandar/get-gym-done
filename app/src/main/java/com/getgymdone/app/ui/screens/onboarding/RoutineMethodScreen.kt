@@ -69,7 +69,7 @@ fun RoutineMethodScreen(
 
         MethodCard(
             title = "Curate for me",
-            body = "Load the 26 exercises from your PDF split. Ready in one tap.",
+            body = "Use the preset exercises and rep ranges. Ready in one tap.",
             badge = "Recommended",
             onClick = {
                 vm.confirmCurated(splitId)
@@ -79,9 +79,8 @@ fun RoutineMethodScreen(
         Spacer(Modifier.height(14.dp))
         MethodCard(
             title = "Build my own",
-            body = "Pick your own exercises per day. Coming in v1.1.",
-            badge = "Soon",
-            enabled = false,
+            body = "Start from this split's template and swap exercises day by day.",
+            badge = "Customize",
             onClick = onBuildMyOwn,
         )
     }
