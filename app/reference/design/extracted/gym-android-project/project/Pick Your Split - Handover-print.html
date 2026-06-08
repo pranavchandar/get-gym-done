@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pick Your Split — Engineering Handover</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --paper: #ffffff;
+    --ink: #14130f;
+    --ink-2: #5a564a;
+    --ink-3: #908a78;
+    --line: #d6d2c4;
+    --line-2: #ebe8e0;
+    --accent: oklch(0.88 0.22 125);
+    --accent-fg: #0a0a09;
+    --dark: #0a0a09;
+    --dark-surface: #16140f;
+    --dark-surface-2: #1f1c14;
+    --dark-line: #2e2b22;
+    --dark-fg: #f7f5f0;
+    --dark-fg-2: #a8a59a;
+    --dark-fg-3: #696657;
+    --rule-w: 1.5px;
+  }
+
+  @page { size: A4; margin: 1.2cm; }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 64px 80px;
+    background: var(--paper);
+  }
+  @media screen {
+    body { padding: 24px 0; }
+    .doc { box-shadow: 0 8px 60px rgba(0,0,0,0.08); }
+  }
+
+  /* ─── Typography ─── */
+  h1, h2, h3, h4 {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.015em;
+    line-height: 0.94;
+    margin: 0;
+  }
+  h1 { font-size: 72px; }
+  h2 { font-size: 36px; margin-top: 64px; }
+  h3 { font-size: 22px; margin-top: 28px; letter-spacing: 0.025em; }
+  h4 {
+    font-family: 'Inter';
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    margin: 22px 0 8px;
+  }
+  p { margin: 0 0 12px; }
+  p + p { margin-top: 0; }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .lede {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 720px;
+    margin-top: 16px;
+  }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--line-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  pre {
+    background: var(--dark);
+    color: var(--dark-fg);
+    padding: 18px 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    margin: 12px 0 24px;
+    border: 1px solid var(--dark-line);
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  pre .kw { color: #ff8a65; }
+  pre .str { color: oklch(0.85 0.18 125); }
+  pre .num { color: #e6c97a; }
+  pre .com { color: #6b6450; font-style: italic; }
+  pre .tag { color: #9fcfff; }
+  pre .attr { color: #f7a8c5; }
+  pre .key { color: #b388ff; }
+
+  /* ─── Hero ─── */
+  .hero {
+    border-bottom: 2.5px solid var(--ink);
+    padding-bottom: 36px;
+  }
+  .hero .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    margin-top: 28px;
+  }
+  .hero-meta .col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hero-meta .lbl {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    font-weight: 700;
+  }
+  .hero-meta .val {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  /* ─── Section markers ─── */
+  .section-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-top: 72px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-mark .num {
+    font-family: 'Anton', sans-serif;
+    font-size: 48px;
+    color: var(--accent);
+    line-height: 0.9;
+    text-shadow: 0 0 0 #000;
+    letter-spacing: 0.02em;
+  }
+  .section-mark h2 { margin-top: 0; flex: 1; }
+
+  /* ─── Hero showcase — actual screen rendered at scale ─── */
+  .showcase {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 36px;
+    align-items: center;
+    margin: 28px 0 12px;
+    background: var(--dark);
+    color: var(--dark-fg);
+    border-radius: 18px;
+    padding: 32px;
+    overflow: hidden;
+    position: relative;
+  }
+  .showcase-bg {
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 80%;
+    height: 200%;
+    background:
+      radial-gradient(circle at 20% 50%, oklch(0.88 0.22 125 / 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .showcase .left { position: relative; z-index: 1; }
+  .showcase h3 {
+    font-size: 40px;
+    color: var(--dark-fg);
+    margin-bottom: 14px;
+  }
+  .showcase p {
+    color: var(--dark-fg-2);
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+  .showcase .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 100px;
+    margin-bottom: 14px;
+  }
+  .showcase .right {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ─── Phone frame (live renders) ─── */
+  .phone {
+    width: 412px;
+    height: 892px;
+    background: var(--dark);
+    color: var(--dark-fg);
+    border-radius: 44px;
+    border: 8px solid #1a1813;
+    box-shadow:
+      0 40px 80px -20px rgba(0,0,0,0.6),
+      inset 0 0 0 2px rgba(255,255,255,0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+  }
+  .phone-half {
+    transform: scale(0.55);
+    transform-origin: center top;
+    margin-bottom: -402px; /* compensate for half-scale */
+  }
+  .phone-third {
+    transform: scale(0.36);
+    transform-origin: center top;
+    margin-bottom: -570px;
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dark-fg);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .statusbar .punch {
+    position: absolute;
+    left: 50%;
+    top: 9px;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 100px;
+    background: #000;
+  }
+  .gesture-nav {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .gesture-nav .bar {
+    width: 132px;
+    height: 5px;
+    border-radius: 100px;
+    background: var(--dark-fg);
+    opacity: 0.6;
+  }
+
+  /* SplitSelect screen recreation ─── */
+  .topbar {
+    padding: 20px 22px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .iconbtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--dark-surface-2);
+    color: var(--dark-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .iconbtn svg { width: 20px; height: 20px; }
+  .topbar .titleblock { flex: 1; padding-top: 4px; }
+  .topbar .sub {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dark-fg-2);
+    margin-bottom: 4px;
+  }
+  .topbar .ttl {
+    font-family: 'Anton', sans-serif;
+    font-size: 36px;
+    color: var(--dark-fg);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .progress {
+    height: 6px;
+    background: var(--dark-surface-2);
+    border-radius: 100px;
+    overflow: hidden;
+    margin: 0 20px 14px;
+  }
+  .progress > div {
+    height: 100%;
+    background: var(--accent);
+    width: 33%;
+    border-radius: 100px;
+  }
+  .intro {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    color: var(--dark-fg-2);
+    margin: 0;
+    line-height: 1.45;
+  }
+  .options {
+    padding: 0 20px 20px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .opt {
+    background: var(--dark-surface);
+    border: 1.5px solid var(--dark-line);
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+  }
+  .opt.selected {
+    background: color-mix(in oklch, var(--accent) 12%, var(--dark-surface));
+    border-color: var(--accent);
+  }
+  .opt .recommended {
+    position: absolute;
+    top: -8px;
+    right: 14px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .opt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .opt-name {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: var(--dark-fg);
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .opt-sub {
+    font-size: 12px;
+    color: var(--dark-fg-2);
+    margin-top: 4px;
+  }
+  .radio {
+    width: 22px;
+    height: 22px;
+    border-radius: 100px;
+    border: 2px solid var(--dark-fg-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .opt.selected .radio { border-color: var(--accent); }
+  .radio-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 100px;
+    background: var(--accent);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--dark-surface-2);
+    color: var(--dark-fg-2);
+    padding: 6px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .hint {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--dark-fg-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* ─── Anatomy callouts ─── */
+  .anatomy {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 32px;
+    margin: 24px 0;
+    align-items: flex-start;
+  }
+  .anatomy .phone-wrap {
+    display: flex;
+    justify-content: center;
+    background: var(--dark);
+    border-radius: 24px;
+    padding: 16px;
+  }
+  .anatomy-list { padding: 0; margin: 0; list-style: none; }
+  .anatomy-list li {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .anatomy-list li:last-child { border-bottom: none; }
+  .anatomy-list .num {
+    width: 26px;
+    height: 26px;
+    border-radius: 100px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  .anatomy-list .name {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .anatomy-list .desc {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+
+  /* Numbered overlay on rendered phone */
+  .phone-overlay-host {
+    position: relative;
+    display: inline-block;
+  }
+  .ovl {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 100px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 12px;
+    box-shadow: 0 0 0 3px var(--dark), 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 10;
+    transform: scale(1.6);
+    transform-origin: center;
+  }
+  /* Positions when phone is scaled 0.55 */
+  .phone-overlay-host .o1 { top: 28px; left: 30px; }
+  .phone-overlay-host .o2 { top: 50px; left: 90px; }
+  .phone-overlay-host .o3 { top: 100px; left: 80px; }
+  .phone-overlay-host .o4 { top: 140px; left: 80px; }
+  .phone-overlay-host .o5 { top: 198px; left: 80px; }
+  .phone-overlay-host .o6 { top: 218px; right: 60px; }
+  .phone-overlay-host .o7 { top: 235px; right: 60px; }
+  .phone-overlay-host .o8 { top: 268px; left: 100px; }
+  .phone-overlay-host .o9 { bottom: 60px; left: 50%; transform: translateX(-50%) scale(1.6); }
+
+  /* ─── Tokens grid ─── */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 14px 0 8px;
+  }
+  .token {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .token .chip {
+    height: 56px;
+  }
+  .token .meta {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+  .token .name { font-weight: 700; color: var(--ink); }
+  .token .val {
+    color: var(--ink-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  .token .use {
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  /* ─── Spec table ─── */
+  table.spec {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 12px 0 24px;
+  }
+  table.spec th, table.spec td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.spec th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    font-weight: 700;
+    border-bottom: 1.5px solid var(--ink);
+    background: var(--line-2);
+  }
+  table.spec td.k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink);
+    width: 200px;
+    background: var(--bg);
+  }
+  table.spec tr:nth-child(even) td:not(.k) { background: var(--bg); }
+
+  /* ─── Component anatomy: blueprint-style ─── */
+  .blueprint {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: center;
+  }
+  .blueprint .render {
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    position: relative;
+  }
+  .blueprint .specs {
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .blueprint .specs h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .blueprint .specs ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .blueprint .specs li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+  }
+  .blueprint .specs li code { font-size: 11px; }
+
+  /* States grid */
+  .states-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 18px 0 24px;
+  }
+  .state-card {
+    background: var(--dark);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--dark-fg);
+  }
+  .state-card .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  /* Tag */
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: var(--ink);
+    color: var(--paper);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 6px;
+  }
+  .pill.accent { background: var(--accent); color: var(--accent-fg); }
+  .pill.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); padding: 2px 7px; }
+
+  /* Callout */
+  .callout {
+    background: var(--dark);
+    color: var(--dark-fg);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .callout .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .callout p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+  .callout strong { color: var(--accent); font-weight: 600; }
+  .callout.warn .label { color: oklch(0.78 0.18 60); }
+  .callout.warn strong { color: oklch(0.78 0.18 60); }
+
+  ul.tight { margin: 8px 0 14px; padding-left: 20px; }
+  ul.tight li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+
+  /* dimension lines */
+  .dim {
+    position: absolute;
+    border: 1px dashed oklch(0.88 0.22 125 / 0.5);
+    pointer-events: none;
+  }
+  .dim-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--accent);
+    background: var(--dark);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* Two col grid */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 16px 0;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  /* ─── footer ─── */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  footer .signoff {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  /* Checklist */
+  ol.checklist {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0;
+    counter-reset: ch;
+  }
+  ol.checklist li {
+    counter-increment: ch;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  ol.checklist li::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+    margin-top: 1px;
+  }
+  ol.checklist li:last-child { border-bottom: none; }
+  ol.checklist .t { font-weight: 700; margin-bottom: 2px; }
+  ol.checklist .d { color: var(--ink-2); font-size: 12px; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .doc { box-shadow: none; max-width: none; padding: 0; }
+    h2, h3 { page-break-after: avoid; }
+    .blueprint, .anatomy, .showcase, table.spec, pre, .callout { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ════════════ HERO ════════════ -->
+  <section class="hero">
+    <div class="top">
+      <div>
+        <div class="eyebrow">Engineering handover · Single-screen spec · v1.0</div>
+        <h1 style="margin-top: 14px;">
+          Pick<br/>Your<br/><span style="color: var(--accent);">Split.</span>
+        </h1>
+      </div>
+      <div style="text-align: right; padding-top: 8px;">
+        <div class="eyebrow">For</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px; letter-spacing: 0.02em;">Claude Code</div>
+        <div class="eyebrow" style="margin-top: 14px;">From</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px; letter-spacing: 0.02em;">Design</div>
+      </div>
+    </div>
+    <p class="lede">
+      A complete spec for the "Pick your split" onboarding screen of Get Gym Done. Everything
+      here — colors, type, spacing, interaction, motion, edge cases, accessibility — is
+      sufficient to recreate the screen pixel-for-pixel and behaviour-for-behaviour without
+      referring to source files. Read it linearly.
+    </p>
+    <div class="hero-meta">
+      <div class="col"><span class="lbl">Screen</span><span class="val">02 / 17</span></div>
+      <div class="col"><span class="lbl">Flow</span><span class="val">Onboarding 1/3</span></div>
+      <div class="col"><span class="lbl">Viewport</span><span class="val">412 × 892</span></div>
+      <div class="col"><span class="lbl">Density</span><span class="val">xxhdpi · 1×</span></div>
+      <div class="col"><span class="lbl">Theme</span><span class="val">Dark default</span></div>
+    </div>
+  </section>
+
+  <!-- ════════════ 01 PURPOSE & SHOWCASE ════════════ -->
+  <div class="section-mark"><span class="num">01</span><h2>Purpose</h2></div>
+
+  <p style="margin-top: 16px;">
+    The user has just completed account/skip on the splash. This screen asks them to choose
+    a <em>training split</em> — the recurring weekly structure for their workouts. The chosen
+    split determines which exercises live on which day and seeds every subsequent screen.
+  </p>
+
+  <div class="showcase">
+    <div class="showcase-bg"></div>
+    <div class="left">
+      <span class="tag">Single-tap commit</span>
+      <h3>One tap.<br/>No "Continue."</h3>
+      <p>
+        Tapping any option <strong style="color: var(--accent);">immediately selects and advances</strong>.
+        There is no separate Continue button — a 180&nbsp;ms hold on the lime outline confirms
+        the choice to the user before the screen transitions out.
+      </p>
+      <p style="margin-top: 18px;">
+        The user's prior data (a PDF workout split) is surfaced as the recommended option,
+        with a "From your PDF" badge. The other five options are popular, well-known programs
+        for users without prior data.
+      </p>
+    </div>
+    <div class="right">
+      <div class="phone phone-half">
+        <div class="statusbar">
+          <span style="width: 60px;">9:30</span>
+          <div class="punch"></div>
+          <div style="display: flex; gap: 6px;">
+            <svg width="14" height="11" viewBox="0 0 14 11"><path d="M0 9.5L1 8c2.5-2.5 6.5-2.5 9 0l1 1.5L7 13zM3 6l1-1c1.7-1.7 4.3-1.7 6 0l1 1L7 10z" fill="#f7f5f0"/></svg>
+            <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="1" width="18" height="9" rx="2" stroke="#f7f5f0" fill="none" opacity="0.5"/><rect x="2" y="2.5" width="13" height="6" rx="0.5" fill="#f7f5f0"/></svg>
+          </div>
+        </div>
+        <div class="topbar">
+          <div class="iconbtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </div>
+          <div class="titleblock">
+            <div class="sub">Step 1 of 3</div>
+            <div class="ttl">Pick your<br/>split</div>
+          </div>
+        </div>
+        <div class="progress"><div></div></div>
+        <p class="intro">The split decides what muscles you train on which day. You can change this anytime.</p>
+        <div class="options">
+          <div class="opt selected">
+            <div class="recommended">From your PDF</div>
+            <div class="opt-head">
+              <div>
+                <div class="opt-name">5 Day Illustrated</div>
+                <div class="opt-sub">Your PDF split</div>
+              </div>
+              <div class="radio"><div class="radio-dot"></div></div>
+            </div>
+            <div class="chips">
+              <span class="chip">D1 · Upper</span>
+              <span class="chip">D2 · Lower</span>
+              <span class="chip">D3 · Shoulders & Arms</span>
+              <span class="chip">D4 · Legs (Quad)</span>
+              <span class="chip">D5 · Back & Chest</span>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-head">
+              <div>
+                <div class="opt-name">Push Pull Legs</div>
+                <div class="opt-sub">3 or 6 day variants</div>
+              </div>
+              <div class="radio"></div>
+            </div>
+            <div class="chips">
+              <span class="chip">D1 · Push</span>
+              <span class="chip">D2 · Pull</span>
+              <span class="chip">D3 · Legs</span>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-head">
+              <div>
+                <div class="opt-name">Upper / Lower</div>
+                <div class="opt-sub">4 day classic</div>
+              </div>
+              <div class="radio"></div>
+            </div>
+            <div class="chips">
+              <span class="chip">D1 · Upper</span>
+              <span class="chip">D2 · Lower</span>
+              <span class="chip">D3 · Upper</span>
+              <span class="chip">D4 · Lower</span>
+            </div>
+          </div>
+          <div class="opt">
+            <div class="opt-head">
+              <div>
+                <div class="opt-name">Bro Split</div>
+                <div class="opt-sub">One muscle a day</div>
+              </div>
+              <div class="radio"></div>
+            </div>
+            <div class="chips">
+              <span class="chip">D1 · Chest</span>
+              <span class="chip">D2 · Back</span>
+              <span class="chip">D3 · Shoulders</span>
+              <span class="chip">D4 · Arms</span>
+              <span class="chip">D5 · Legs</span>
+            </div>
+          </div>
+          <div class="hint">Tap a split to continue</div>
+        </div>
+        <div class="gesture-nav"><div class="bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ 02 ANATOMY ════════════ -->
+  <div class="section-mark"><span class="num">02</span><h2>Anatomy</h2></div>
+  <p style="margin-top: 14px;">
+    Nine distinct UI elements compose the screen, in DOM order from top to bottom. Each is
+    treated in detail in §07–§13 with code, dimensions, and states.
+  </p>
+
+  <table class="spec">
+    <thead>
+      <tr><th style="width: 40px;">#</th><th>Element</th><th>Component</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>System status bar</td><td><code>StatusBar</code></td><td>Time, signal, battery — passive Android chrome.</td></tr>
+      <tr><td><strong>2</strong></td><td>Top bar with back button + step counter + title</td><td><code>TopBar</code> + <code>IconBtn</code></td><td>Lets the user retreat one step, anchors the screen.</td></tr>
+      <tr><td><strong>3</strong></td><td>Progress bar (33%)</td><td><code>ProgressBar</code></td><td>Communicates onboarding position.</td></tr>
+      <tr><td><strong>4</strong></td><td>Intro paragraph</td><td>Plain <code>&lt;p&gt;</code></td><td>Single sentence explaining what a split is and the reversibility.</td></tr>
+      <tr><td><strong>5</strong></td><td>Split option card (×5)</td><td><code>SplitCard</code></td><td>Tappable container holding name, sub, radio, and day chips.</td></tr>
+      <tr><td><strong>6</strong></td><td>"From your PDF" recommended badge</td><td><code>RecommendedBadge</code></td><td>Highlights the user's pre-existing data as the optimal pick.</td></tr>
+      <tr><td><strong>7</strong></td><td>Radio dot (right edge of each card)</td><td><code>RadioDot</code></td><td>Visual confirmation of selection state.</td></tr>
+      <tr><td><strong>8</strong></td><td>Day-preview chips</td><td><code>DayChip</code></td><td>Quick glance at what each day of the program looks like.</td></tr>
+      <tr><td><strong>9</strong></td><td>Hint line "Tap a split to continue"</td><td>Plain <code>&lt;div&gt;</code></td><td>Replaces the removed Continue button — affords the gesture.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ════════════ 03 LAYOUT & GRID ════════════ -->
+  <div class="section-mark"><span class="num">03</span><h2>Layout &amp; grid</h2></div>
+
+  <h3>Vertical structure</h3>
+  <p>The screen is a vertical flex column with a fixed-height header, a scrollable body, and a fixed-height footer chrome (gesture nav). The phone frame itself is <code>412 × 892 px</code>.</p>
+
+  <table class="spec">
+    <thead><tr><th>Region</th><th>Height</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Status bar</td><td><code>38 px</code> fixed</td><td>Belongs to the device chrome, not to the screen itself.</td></tr>
+      <tr><td>Top bar (back btn + title block)</td><td><code>~104 px</code> auto</td><td>Padding <code>20px 22px 12px</code>. Title is 36px Anton, two lines.</td></tr>
+      <tr><td>Progress bar</td><td><code>6 px</code> high, in <code>0 20px 14px</code> padding</td><td>Lime fill 33% of track width.</td></tr>
+      <tr><td>Intro paragraph</td><td>auto, <code>~36 px</code></td><td>Padding <code>0 20px 16px</code>. Max two lines.</td></tr>
+      <tr><td>Options scroll body</td><td>fills remaining</td><td>Padding <code>0 20px 20px</code>. <code>overflow-y: auto</code>, scrollbar hidden.</td></tr>
+      <tr><td>Hint line</td><td>auto, <code>~30 px</code></td><td>Inside the scroll container, after the option list.</td></tr>
+      <tr><td>Gesture nav</td><td><code>24 px</code> fixed</td><td>Device chrome.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Horizontal grid</h3>
+  <p>
+    Two horizontal padding values are in use: <code>22 px</code> for the top bar, and
+    <code>20 px</code> for everything below. This 2px difference is intentional — the IconBtn
+    has internal padding that visually aligns its content with the 20px column.
+  </p>
+  <p>
+    All cards span <code>372 px</code> wide (412 phone − 2×20 padding). Inter-card gap is
+    <code>10 px</code>. Cards are not full-bleed.
+  </p>
+
+  <h3>Safe areas</h3>
+  <p>The status bar (38px) and gesture nav (24px) are inviolable. No content should overlap either.</p>
+
+  <!-- ════════════ 04 DESIGN TOKENS ════════════ -->
+  <div class="section-mark"><span class="num">04</span><h2>Design tokens</h2></div>
+
+  <h3>Color</h3>
+  <p>All colors are CSS custom properties on <code>:root</code> so a single <code>data-theme="dark"</code> swap inverts the palette.</p>
+
+  <div class="token-grid">
+    <div class="token"><div class="chip" style="background: #0a0a09;"></div><div class="meta"><div class="name">--bg</div><div class="val">#0a0a09</div><div class="use">Screen background</div></div></div>
+    <div class="token"><div class="chip" style="background: #16140f;"></div><div class="meta"><div class="name">--surface</div><div class="val">#16140f</div><div class="use">Card background (idle)</div></div></div>
+    <div class="token"><div class="chip" style="background: #1f1c14;"></div><div class="meta"><div class="name">--surface-2</div><div class="val">#1f1c14</div><div class="use">IconBtn, progress track, chips</div></div></div>
+    <div class="token"><div class="chip" style="background: #2e2b22;"></div><div class="meta"><div class="name">--line</div><div class="val">#2e2b22</div><div class="use">Card border (idle)</div></div></div>
+    <div class="token"><div class="chip" style="background: #f7f5f0;"></div><div class="meta"><div class="name">--fg</div><div class="val">#f7f5f0</div><div class="use">Primary text, title</div></div></div>
+    <div class="token"><div class="chip" style="background: #a8a59a;"></div><div class="meta"><div class="name">--fg-2</div><div class="val">#a8a59a</div><div class="use">Secondary text, sub, intro</div></div></div>
+    <div class="token"><div class="chip" style="background: #696657;"></div><div class="meta"><div class="name">--fg-3</div><div class="val">#696657</div><div class="use">Hint, radio idle border</div></div></div>
+    <div class="token"><div class="chip" style="background: oklch(0.88 0.22 125);"></div><div class="meta"><div class="name">--accent</div><div class="val">oklch(.88 .22 125)</div><div class="use">Selected border, dot, badge, progress fill, hint accent</div></div></div>
+    <div class="token"><div class="chip" style="background: #0a0a09; border: 1px solid var(--line);"></div><div class="meta"><div class="name">--accent-fg</div><div class="val">#0a0a09</div><div class="use">Text on accent (badge, radio dot back)</div></div></div>
+  </div>
+
+  <h4>Selected card background</h4>
+  <p>
+    The selected card uses a CSS color mix: <code>color-mix(in oklch, var(--accent) 12%, var(--surface))</code>.
+    This produces a subtle lime-tinted dark surface, ~<code>#1d2517</code>. Do not hard-code this;
+    use <code>color-mix</code> so palette swaps stay coherent.
+  </p>
+
+  <h3>Typography</h3>
+  <table class="spec">
+    <thead><tr><th>Role</th><th>Family</th><th>Weight</th><th>Size / Line / Tracking</th><th>Color</th></tr></thead>
+    <tbody>
+      <tr><td>Title "Pick your split"</td><td>Anton</td><td>400</td><td><code>36px / 34px / 0.02em</code>, UPPER</td><td><code>--fg</code></td></tr>
+      <tr><td>Step counter "Step 1 of 3"</td><td>Inter</td><td>600</td><td><code>11px / 1.45 / 0.14em</code>, UPPER</td><td><code>--fg-2</code></td></tr>
+      <tr><td>Intro paragraph</td><td>Inter</td><td>400</td><td><code>14px / 1.45 / 0</code></td><td><code>--fg-2</code></td></tr>
+      <tr><td>Split name (card)</td><td>Anton</td><td>400</td><td><code>22px / 22px / 0.015em</code>, UPPER</td><td><code>--fg</code></td></tr>
+      <tr><td>Split sub (card)</td><td>Inter</td><td>400</td><td><code>12px / 1.4 / 0</code></td><td><code>--fg-2</code></td></tr>
+      <tr><td>"From your PDF" badge</td><td>Inter</td><td>700</td><td><code>9px / 1 / 0.1em</code>, UPPER</td><td><code>--accent-fg</code></td></tr>
+      <tr><td>Day chip "D1 · Upper"</td><td>Inter</td><td>500</td><td><code>11px / 1.4 / 0</code></td><td><code>--fg-2</code></td></tr>
+      <tr><td>Hint "Tap a split…"</td><td>Inter</td><td>400</td><td><code>11px / 1.4 / 0.04em</code></td><td><code>--fg-3</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Radii &amp; shadows</h3>
+  <table class="spec">
+    <thead><tr><th>Token</th><th>Value</th><th>Applied to</th></tr></thead>
+    <tbody>
+      <tr><td>Card radius</td><td><code>14 px</code></td><td>Split option cards</td></tr>
+      <tr><td>Pill radius</td><td><code>100 px</code></td><td>Day chips, recommended badge, progress, radio</td></tr>
+      <tr><td>Button radius</td><td><code>10 px</code></td><td>IconBtn (back)</td></tr>
+      <tr><td>Phone frame radius</td><td><code>44 px</code></td><td>Outer device only</td></tr>
+    </tbody>
+  </table>
+  <p>This screen uses <strong>no drop shadows</strong>. Depth comes from surface stacking (bg → surface → surface-2) and from a 1.5px border around cards.</p>
+
+  <h3>Motion</h3>
+  <table class="spec">
+    <thead><tr><th>Action</th><th>Duration</th><th>Easing</th><th>Property</th></tr></thead>
+    <tbody>
+      <tr><td>Tap press feedback (any row)</td><td><code>120 ms</code></td><td>ease</td><td><code>background</code></td></tr>
+      <tr><td>Selection commit delay</td><td><code>180 ms</code></td><td>—</td><td>JS <code>setTimeout</code> after <code>setSelected</code></td></tr>
+      <tr><td>Screen transition out (slide)</td><td><code>240 ms</code></td><td>ease</td><td><code>transform</code> + <code>opacity</code></td></tr>
+      <tr><td>Card hover/active scale</td><td>—</td><td>—</td><td>Not used — no hover state on mobile.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ════════════ 05 STATES ════════════ -->
+  <div class="section-mark"><span class="num">05</span><h2>States</h2></div>
+
+  <p>Each option card has three visual states:</p>
+  <div class="states-grid">
+    <div class="state-card">
+      <div class="label">A · Idle</div>
+      <div class="opt" style="background: var(--dark-surface); border-color: var(--dark-line);">
+        <div class="opt-head">
+          <div>
+            <div class="opt-name">Push Pull Legs</div>
+            <div class="opt-sub">3 or 6 day variants</div>
+          </div>
+          <div class="radio"></div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--dark-fg-2); margin-top: 10px; line-height: 1.45;">
+        Surface <code style="color: var(--dark-fg);">--surface</code>, 1.5px <code style="color: var(--dark-fg);">--line</code> border, radio outline only.
+      </div>
+    </div>
+    <div class="state-card">
+      <div class="label">B · Pressed</div>
+      <div class="opt" style="background: var(--dark-surface-2); border-color: var(--dark-line);">
+        <div class="opt-head">
+          <div>
+            <div class="opt-name">Push Pull Legs</div>
+            <div class="opt-sub">3 or 6 day variants</div>
+          </div>
+          <div class="radio"></div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--dark-fg-2); margin-top: 10px; line-height: 1.45;">
+        Active state via <code style="color: var(--dark-fg);">.row-tap:active</code> — background lifts to <code style="color: var(--dark-fg);">--surface-2</code>.
+      </div>
+    </div>
+    <div class="state-card">
+      <div class="label">C · Selected</div>
+      <div class="opt selected">
+        <div class="opt-head">
+          <div>
+            <div class="opt-name">Push Pull Legs</div>
+            <div class="opt-sub">3 or 6 day variants</div>
+          </div>
+          <div class="radio"><div class="radio-dot"></div></div>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--dark-fg-2); margin-top: 10px; line-height: 1.45;">
+        Border switches to <code style="color: var(--dark-fg);">--accent</code>, background gets lime tint, radio fills with dot. Visible for 180ms before advance.
+      </div>
+    </div>
+  </div>
+
+  <p>The "recommended" badge is a separate state-orthogonal modifier and appears on whichever option carries the <code>recommended: true</code> data flag, regardless of A/B/C state.</p>
+
+  <!-- ════════════ 06 INTERACTION & MOTION ════════════ -->
+  <div class="section-mark"><span class="num">06</span><h2>Interaction</h2></div>
+
+  <h3>Primary gesture: single tap on any card</h3>
+  <ol class="checklist">
+    <li><div><div class="t">Tap</div><div class="d">Touch on card. CSS active state immediately darkens the row (<code>--surface-2</code>).</div></div></li>
+    <li><div><div class="t">Set selected</div><div class="d"><code>setSelected(opt.id)</code> — card switches to selected state (lime border, lime tint, filled radio dot).</div></div></li>
+    <li><div><div class="t">180&nbsp;ms hold</div><div class="d">User sees the selection commit. Confirmation without explicit Continue button.</div></div></li>
+    <li><div><div class="t">Advance</div><div class="d"><code>onNext()</code> fires. The parent navigates to the next onboarding step. The current screen slides out left over 240&nbsp;ms while the next slides in.</div></div></li>
+  </ol>
+
+  <h3>Secondary gestures</h3>
+  <ul class="tight">
+    <li><strong>Back button</strong> (top-left IconBtn) — calls <code>onBack()</code>; returns to splash. Standard 36×36 tap target, no confirmation.</li>
+    <li><strong>System back gesture</strong> (Android edge swipe) — should be wired to the same <code>onBack()</code> handler.</li>
+    <li><strong>Scroll</strong> — if more options exist than fit (6+ cards on 412×892), the options region scrolls. Scrollbar is hidden but functional. Top bar and progress remain pinned.</li>
+  </ul>
+
+  <h3>What does NOT happen</h3>
+  <div class="callout warn">
+    <div class="label">Anti-patterns to avoid</div>
+    <p>
+      <strong>Do not</strong> add a separate Continue / Confirm button — single-tap commit is intentional.<br/>
+      <strong>Do not</strong> add a long-press or context menu on cards.<br/>
+      <strong>Do not</strong> haptic-pulse on selection — the visual confirmation alone is the spec; haptics will be added centrally later.<br/>
+      <strong>Do not</strong> highlight the recommended option on mount as "pre-selected" — show it visually distinct (badge), but no card is selected until the user taps.
+    </p>
+  </div>
+
+  <!-- ════════════ 07 COMPONENT: TOPBAR ════════════ -->
+  <div class="section-mark"><span class="num">07</span><h2>Top bar</h2></div>
+
+  <div class="blueprint">
+    <div class="render">
+      <div style="width: 380px; background: var(--dark); padding: 4px;">
+        <div class="topbar" style="padding: 14px 22px 12px;">
+          <div class="iconbtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </div>
+          <div class="titleblock">
+            <div class="sub">Step 1 of 3</div>
+            <div class="ttl" style="font-size: 32px;">Pick your<br/>split</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>TopBar</h3>
+      <ul>
+        <li><strong>Container:</strong> <code>display:flex; align-items:flex-start; gap:10px; padding:20px 22px 12px;</code></li>
+        <li><strong>Back IconBtn:</strong> <code>36 × 36 px</code>, radius <code>10px</code>, background <code>--surface-2</code>, contains the SVG back arrow at 20×20.</li>
+        <li><strong>Title block:</strong> flex-1, top padding <code>4px</code>.</li>
+        <li><strong>"Step 1 of 3" eyebrow:</strong> 11px Inter 600, color <code>--fg-2</code>, <code>letter-spacing:0.14em</code>, <code>text-transform:uppercase</code>, <code>margin-bottom:4px</code>.</li>
+        <li><strong>Title:</strong> 36px Anton, color <code>--fg</code>, <code>line-height:0.95</code>, <code>letter-spacing:0.02em</code>, UPPER. <em>Two-line</em>: "Pick your" / "split" (break is intentional; allow it to flow naturally — wrap container is <code>flex: 1</code>, so the title wraps).</li>
+        <li><strong>Right slot (36px reserved):</strong> empty on this screen.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Back icon SVG</h3>
+  <pre><code><span class="tag">&lt;svg</span> <span class="attr">viewBox</span>=<span class="str">"0 0 24 24"</span> <span class="attr">fill</span>=<span class="str">"none"</span> <span class="attr">stroke</span>=<span class="str">"currentColor"</span>
+     <span class="attr">stroke-width</span>=<span class="str">"2"</span> <span class="attr">stroke-linecap</span>=<span class="str">"round"</span>
+     <span class="attr">stroke-linejoin</span>=<span class="str">"round"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;path</span> <span class="attr">d</span>=<span class="str">"M19 12H5M12 19l-7-7 7-7"</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/svg&gt;</span></code></pre>
+
+  <!-- ════════════ 08 COMPONENT: PROGRESS ════════════ -->
+  <div class="section-mark"><span class="num">08</span><h2>Progress bar</h2></div>
+
+  <div class="blueprint">
+    <div class="render">
+      <div style="width: 360px;">
+        <div class="progress" style="margin: 0 0 14px;"><div></div></div>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>ProgressBar</h3>
+      <ul>
+        <li><strong>Track:</strong> <code>height: 6px; background: --surface-2; border-radius: 100px; overflow: hidden;</code></li>
+        <li><strong>Fill:</strong> <code>height: 100%; width: 33%; background: --accent; border-radius: 100px;</code></li>
+        <li><strong>Width per step:</strong> Step 1 → 33%, Step 2 → 66%, Step 3 → 100%. Animate width on entry over 400ms ease-out (deferred — wire-up nice-to-have).</li>
+        <li><strong>Container padding:</strong> <code>0 20px 14px</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════════════ 09 COMPONENT: INTRO PARAGRAPH ════════════ -->
+  <div class="section-mark"><span class="num">09</span><h2>Intro paragraph</h2></div>
+
+  <p>One static sentence below the progress bar.</p>
+  <pre><code><span class="tag">&lt;p</span> <span class="attr">style</span>=<span class="str">"font-size: 14px; color: var(--fg-2);
+          margin: 0 0 8px; padding: 0 20px 16px; line-height: 1.45;"</span><span class="tag">&gt;</span>
+  The split decides what muscles you train on which day. You can change this anytime.
+<span class="tag">&lt;/p&gt;</span></code></pre>
+
+  <p><strong>Copy is locked.</strong> Do not paraphrase. The closing reassurance — "You can change this anytime" — is critical to reduce commitment anxiety on first-launch and is part of the design.</p>
+
+  <!-- ════════════ 10 COMPONENT: SPLIT CARD ════════════ -->
+  <div class="section-mark"><span class="num">10</span><h2>Split option card</h2></div>
+
+  <p>The repeated card. Five instances render on this screen from <code>SPLIT_OPTIONS</code>.</p>
+
+  <div class="blueprint">
+    <div class="render">
+      <div class="opt selected" style="width: 320px;">
+        <div class="recommended">From your PDF</div>
+        <div class="opt-head">
+          <div>
+            <div class="opt-name">5 Day Illustrated</div>
+            <div class="opt-sub">Your PDF split</div>
+          </div>
+          <div class="radio"><div class="radio-dot"></div></div>
+        </div>
+        <div class="chips">
+          <span class="chip">D1 · Upper</span>
+          <span class="chip">D2 · Lower</span>
+          <span class="chip">D3 · Shoulders & Arms</span>
+          <span class="chip">D4 · Legs (Quad)</span>
+          <span class="chip">D5 · Back & Chest</span>
+        </div>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>SplitCard</h3>
+      <ul>
+        <li><strong>Outer:</strong> <code>border-radius:14px; padding:16px; border:1.5px solid;</code> Border &amp; background are state-driven (see §05).</li>
+        <li><strong>Position:</strong> <code>position:relative;</code> so the badge can absolute-anchor.</li>
+        <li><strong>Tap target:</strong> The whole card. Minimum 80px tall — well above the 44px Android guideline.</li>
+        <li><strong>Inter-card gap:</strong> 10px (provided by the parent flex column's <code>gap</code>).</li>
+        <li><strong>No hover state</strong> — mobile.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Internal structure</h3>
+  <pre><code><span class="kw">&lt;div className="opt"&gt;</span>
+  <span class="kw">&lt;div className="recommended"&gt;</span>From your PDF<span class="kw">&lt;/div&gt;</span>   <span class="com">// only on recommended option</span>
+  <span class="kw">&lt;div className="opt-head"&gt;</span>
+    <span class="kw">&lt;div&gt;</span>
+      <span class="kw">&lt;div className="opt-name"&gt;</span>5 Day Illustrated<span class="kw">&lt;/div&gt;</span>
+      <span class="kw">&lt;div className="opt-sub"&gt;</span>Your PDF split<span class="kw">&lt;/div&gt;</span>
+    <span class="kw">&lt;/div&gt;</span>
+    <span class="kw">&lt;div className="radio"&gt;</span>
+      <span class="kw">&lt;div className="radio-dot"/&gt;</span>             <span class="com">// only when selected</span>
+    <span class="kw">&lt;/div&gt;</span>
+  <span class="kw">&lt;/div&gt;</span>
+  <span class="kw">&lt;div className="chips"&gt;</span>
+    <span class="kw">&lt;span className="chip"&gt;</span>D1 · Upper<span class="kw">&lt;/span&gt;</span>      <span class="com">// repeat for each day</span>
+  <span class="kw">&lt;/div&gt;</span>
+<span class="kw">&lt;/div&gt;</span></code></pre>
+
+  <h3>Card dimensions reference</h3>
+  <table class="spec">
+    <thead><tr><th>Property</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td class="k">padding</td><td>16px on all sides</td></tr>
+      <tr><td class="k">border-radius</td><td>14px</td></tr>
+      <tr><td class="k">border-width</td><td>1.5px</td></tr>
+      <tr><td class="k">opt-head gap</td><td>Justify-between, no explicit gap (flex spacing only)</td></tr>
+      <tr><td class="k">opt-name → opt-sub gap</td><td>4px (margin-top: 2px on sub)</td></tr>
+      <tr><td class="k">opt-head → chips gap</td><td>12px (margin-top: 12px on chips)</td></tr>
+      <tr><td class="k">chips gap</td><td>6px between chips, flex-wrap on</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ════════════ 11 COMPONENT: RECOMMENDED BADGE ════════════ -->
+  <div class="section-mark"><span class="num">11</span><h2>Recommended badge</h2></div>
+
+  <div class="blueprint">
+    <div class="render">
+      <div style="position: relative; padding: 16px 0;">
+        <div class="recommended" style="position: relative; top: 0; right: 0;">From your PDF</div>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>RecommendedBadge</h3>
+      <ul>
+        <li><strong>Position:</strong> <code>absolute; top:-8px; right:14px;</code> — overhangs the top edge of the card by 8px to create the "stuck on top" tag look.</li>
+        <li><strong>Color:</strong> Solid <code>--accent</code> background, <code>--accent-fg</code> text.</li>
+        <li><strong>Type:</strong> Inter 700, 9px, <code>letter-spacing:0.1em</code>, UPPER.</li>
+        <li><strong>Padding:</strong> <code>3px 8px</code>, radius <code>100px</code>.</li>
+        <li><strong>Copy variants:</strong> "From your PDF" (when seeded from PDF), or just "Recommended" (no upstream data). Fall back to no badge if neither applies.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════════════ 12 COMPONENT: RADIO ════════════ -->
+  <div class="section-mark"><span class="num">12</span><h2>Radio indicator</h2></div>
+
+  <div class="blueprint">
+    <div class="render">
+      <div style="display: flex; gap: 30px; align-items: center;">
+        <div style="text-align: center;">
+          <div class="radio" style="margin: 0 auto;"></div>
+          <div style="font-size: 10px; color: var(--dark-fg-2); margin-top: 8px; letter-spacing: 0.1em; text-transform: uppercase;">Idle</div>
+        </div>
+        <div style="text-align: center;">
+          <div class="radio" style="margin: 0 auto; border-color: var(--accent);"><div class="radio-dot"></div></div>
+          <div style="font-size: 10px; color: var(--accent); margin-top: 8px; letter-spacing: 0.1em; text-transform: uppercase;">Selected</div>
+        </div>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>RadioDot</h3>
+      <ul>
+        <li><strong>Outer ring:</strong> <code>22 × 22 px</code>, <code>border-radius:100px</code>, <code>border:2px solid --fg-3</code> idle, <code>--accent</code> selected.</li>
+        <li><strong>Inner dot:</strong> <code>10 × 10 px</code>, <code>border-radius:100px</code>, <code>background:--accent</code>, only rendered when selected.</li>
+        <li><strong>Centering:</strong> outer is <code>display:flex; align-items:center; justify-content:center;</code></li>
+        <li><strong>Not a real input:</strong> No <code>&lt;input type="radio"&gt;</code> is used. The whole card is the control. For accessibility wire <code>role="radio"</code> and <code>aria-checked</code> on the card itself (see §15).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════════════ 13 COMPONENT: DAY CHIPS ════════════ -->
+  <div class="section-mark"><span class="num">13</span><h2>Day chips</h2></div>
+
+  <div class="blueprint">
+    <div class="render">
+      <div class="chips" style="width: 320px; padding: 16px; background: var(--dark-surface); border-radius: 12px;">
+        <span class="chip">D1 · Upper</span>
+        <span class="chip">D2 · Lower</span>
+        <span class="chip">D3 · Shoulders & Arms</span>
+        <span class="chip">D4 · Legs (Quad)</span>
+        <span class="chip">D5 · Back & Chest</span>
+      </div>
+    </div>
+    <div class="specs">
+      <h3>DayChip</h3>
+      <ul>
+        <li><strong>Outer:</strong> <code>display:inline-flex; align-items:center; padding:6px 10px;</code> background <code>--surface-2</code>, radius <code>100px</code>.</li>
+        <li><strong>Type:</strong> Inter 500, 11px, color <code>--fg-2</code>.</li>
+        <li><strong>Format:</strong> <code>D{n} · {DayName}</code> — middle dot is a literal · (U+00B7), padded with spaces.</li>
+        <li><strong>Wrap:</strong> Parent has <code>flex-wrap: wrap; gap: 6px;</code> Chips never truncate; long chip names just push to next row.</li>
+        <li><strong>"Custom" option:</strong> If <code>opt.days</code> is empty, render no chips and no gap below the head.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ════════════ 14 COMPONENT: HINT LINE ════════════ -->
+  <div class="section-mark"><span class="num">14</span><h2>Hint line</h2></div>
+  <p>Below the option list, inside the scroll container.</p>
+  <pre><code><span class="tag">&lt;div</span> <span class="attr">style</span>=<span class="str">"text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--fg-3);
+            letter-spacing: 0.04em;"</span><span class="tag">&gt;</span>
+  Tap a split to continue
+<span class="tag">&lt;/div&gt;</span></code></pre>
+  <p>It serves as the affordance for the gesture — replacing the removed Continue button. The copy must be exactly "Tap a split to continue".</p>
+
+  <!-- ════════════ 15 ACCESSIBILITY ════════════ -->
+  <div class="section-mark"><span class="num">15</span><h2>Accessibility</h2></div>
+  <ul class="tight">
+    <li><strong>Group semantic.</strong> Wrap the option list in <code>role="radiogroup"</code> with <code>aria-labelledby</code> pointing at the title.</li>
+    <li><strong>Each card</strong>: <code>role="radio"</code>, <code>aria-checked={isSel}</code>, <code>tabindex="0"</code>, focus ring (browser default OK).</li>
+    <li><strong>Keyboard.</strong> Arrow up/down moves focus between cards; <code>Enter</code> or <code>Space</code> selects + advances. <code>Esc</code> calls <code>onBack</code>.</li>
+    <li><strong>Hit area.</strong> Cards are ~96–140px tall. Far above the 48dp Android minimum.</li>
+    <li><strong>Contrast.</strong> All text-on-surface combinations meet WCAG AA: <code>--fg</code> on <code>--surface</code> is 14.5:1; <code>--fg-2</code> on <code>--surface</code> is 7.4:1; <code>--accent-fg</code> on <code>--accent</code> is 12.3:1.</li>
+    <li><strong>Screen reader announcement on advance.</strong> Use an <code>aria-live="polite"</code> region: when the screen mounts, announce "Pick your split. Step 1 of 3. Six options available."</li>
+    <li><strong>Reduced motion.</strong> If <code>prefers-reduced-motion</code> is set, skip the 180ms commit delay and advance immediately on tap.</li>
+  </ul>
+
+  <!-- ════════════ 16 DATA MODEL ════════════ -->
+  <div class="section-mark"><span class="num">16</span><h2>Data model</h2></div>
+
+  <p>The screen consumes one array, <code>SPLIT_OPTIONS</code>, defined in <code>data.js</code>. Each entry is rendered as one card.</p>
+
+  <pre><code><span class="kw">window</span>.SPLIT_OPTIONS = [
+  {
+    <span class="key">id</span>:   <span class="str">'5day-illustrated'</span>,    <span class="com">// stable string id, used for selection</span>
+    <span class="key">name</span>: <span class="str">'5 Day Illustrated'</span>,   <span class="com">// rendered as the big Anton title</span>
+    <span class="key">sub</span>:  <span class="str">'Your PDF split'</span>,       <span class="com">// rendered below, 12px Inter</span>
+    <span class="key">days</span>: [<span class="str">'Upper'</span>, <span class="str">'Lower'</span>, <span class="str">'Shoulders & Arms'</span>,
+            <span class="str">'Legs (Quad)'</span>, <span class="str">'Back & Chest'</span>],
+    <span class="key">recommended</span>: <span class="kw">true</span>,           <span class="com">// shows the "From your PDF" badge</span>
+  },
+  { <span class="key">id</span>: <span class="str">'ppl'</span>,         <span class="key">name</span>: <span class="str">'Push Pull Legs'</span>,
+    <span class="key">sub</span>: <span class="str">'3 or 6 day variants'</span>, <span class="key">days</span>: [<span class="str">'Push'</span>, <span class="str">'Pull'</span>, <span class="str">'Legs'</span>] },
+  { <span class="key">id</span>: <span class="str">'upper-lower'</span>, <span class="key">name</span>: <span class="str">'Upper / Lower'</span>,
+    <span class="key">sub</span>: <span class="str">'4 day classic'</span>,    <span class="key">days</span>: [<span class="str">'Upper'</span>, <span class="str">'Lower'</span>, <span class="str">'Upper'</span>, <span class="str">'Lower'</span>] },
+  { <span class="key">id</span>: <span class="str">'bro'</span>,         <span class="key">name</span>: <span class="str">'Bro Split'</span>,
+    <span class="key">sub</span>: <span class="str">'One muscle a day'</span>,  <span class="key">days</span>: [<span class="str">'Chest'</span>, <span class="str">'Back'</span>, <span class="str">'Shoulders'</span>, <span class="str">'Arms'</span>, <span class="str">'Legs'</span>] },
+  { <span class="key">id</span>: <span class="str">'full-body'</span>,   <span class="key">name</span>: <span class="str">'Full Body'</span>,
+    <span class="key">sub</span>: <span class="str">'3x per week'</span>,       <span class="key">days</span>: [<span class="str">'Full A'</span>, <span class="str">'Full B'</span>, <span class="str">'Full C'</span>] },
+  { <span class="key">id</span>: <span class="str">'custom'</span>,      <span class="key">name</span>: <span class="str">'Build my own'</span>,
+    <span class="key">sub</span>: <span class="str">'Pick the days'</span>,     <span class="key">days</span>: [] },
+];</code></pre>
+
+  <h3>Rules</h3>
+  <ul class="tight">
+    <li>Order in the array determines display order.</li>
+    <li>Exactly one entry should have <code>recommended: true</code> at any time (currently the PDF-seeded one).</li>
+    <li>An entry with an empty <code>days</code> array shows no chips and no chip-row gap.</li>
+    <li><code>id</code> is stable and used as both React key and persistence key.</li>
+  </ul>
+
+  <!-- ════════════ 17 STATE & PROPS ════════════ -->
+  <div class="section-mark"><span class="num">17</span><h2>State &amp; props</h2></div>
+
+  <h3>Component signature</h3>
+  <pre><code><span class="kw">function</span> <span class="tag">SplitSelect</span>({
+  <span class="attr">selected</span>,     <span class="com">// string | null — currently selected split id</span>
+  <span class="attr">setSelected</span>,  <span class="com">// (id: string) =&gt; void</span>
+  <span class="attr">onNext</span>,       <span class="com">// () =&gt; void — advance to next onboarding step</span>
+  <span class="attr">onBack</span>,       <span class="com">// () =&gt; void — return to splash</span>
+}) { … }</code></pre>
+
+  <h3>Ownership</h3>
+  <p>
+    State for the <code>selected</code> id lives in the parent <code>App</code> component, not here.
+    This screen is fully controlled. The parent persists it (eventually to local storage / cloud)
+    once <code>onNext</code> fires.
+  </p>
+
+  <h3>Tap handler</h3>
+  <pre><code><span class="attr">onClick</span>={() =&gt; {
+  setSelected(opt.id);            <span class="com">// 1. mark card as selected</span>
+  setTimeout(onNext, <span class="num">180</span>);       <span class="com">// 2. 180ms hold, then advance</span>
+}}</code></pre>
+  <p>The 180ms is the only piece of "magic timing" in this screen. Do not shorten below 120ms or the user will not see the selection register. Do not extend past 250ms or the screen will feel sluggish.</p>
+
+  <!-- ════════════ 18 EDGE CASES ════════════ -->
+  <div class="section-mark"><span class="num">18</span><h2>Edge cases</h2></div>
+
+  <ul class="tight">
+    <li><strong>Empty <code>SPLIT_OPTIONS</code>.</strong> Render the screen chrome (top bar, progress, intro) and an empty state under the intro: "No splits available." This should not happen in practice — the array is hard-coded.</li>
+    <li><strong>Long split name.</strong> The Anton title can wrap to two lines inside the card. Reduce the card padding-bottom only if the chips have wrapped to a third row.</li>
+    <li><strong>Long sub.</strong> The sub paragraph allows up to 2 lines. Truncate with ellipsis after that — but the current copy is well within limits.</li>
+    <li><strong>Many chips.</strong> Bro Split is the longest (5 chips). All fit within two lines at 320px card width. If a future split has 7+ days, the chip row will wrap to 3 lines — acceptable.</li>
+    <li><strong>Build my own.</strong> No chips render. Card height is shorter (~80px). This visual asymmetry is intentional — it signals "this one is different."</li>
+    <li><strong>Double-tap during commit delay.</strong> The 180ms window is short, but if the user double-taps, the second tap should be ignored. Guard with a <code>committingRef</code> on first click.</li>
+    <li><strong>System back during commit.</strong> If the user hits back inside the 180ms window, cancel the <code>setTimeout</code> and run <code>onBack</code>. (Use <code>useEffect</code> cleanup or a ref'd timer.)</li>
+    <li><strong>Returning to the screen.</strong> If the user goes back from step 2, <code>selected</code> should still be set to whatever they chose. The card should render in the selected state on mount.</li>
+  </ul>
+
+  <!-- ════════════ 19 REFERENCE IMPLEMENTATION ════════════ -->
+  <div class="section-mark"><span class="num">19</span><h2>Reference implementation</h2></div>
+  <p>Drop-in React JSX. Assumes parent provides <code>SPLIT_OPTIONS</code>, <code>TopBar</code>, <code>IconBtn</code> (or your equivalents).</p>
+
+  <pre><code><span class="kw">function</span> <span class="tag">SplitSelect</span>({ selected, setSelected, onNext, onBack }) {
+  <span class="kw">const</span> committingRef = <span class="tag">React</span>.useRef(<span class="kw">false</span>);
+
+  <span class="kw">const</span> <span class="attr">pick</span> = (id) =&gt; {
+    <span class="kw">if</span> (committingRef.current) <span class="kw">return</span>;
+    committingRef.current = <span class="kw">true</span>;
+    setSelected(id);
+    setTimeout(() =&gt; { committingRef.current = <span class="kw">false</span>; onNext(); }, <span class="num">180</span>);
+  };
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div</span> <span class="attr">style</span>={{ display: <span class="str">'flex'</span>, flexDirection: <span class="str">'column'</span>, height: <span class="str">'100%'</span> }}<span class="tag">&gt;</span>
+
+      <span class="com">{/* 1. TOP BAR */}</span>
+      <span class="tag">&lt;TopBar</span>
+        <span class="attr">title</span>=<span class="str">"Pick your split"</span>
+        <span class="attr">sub</span>=<span class="str">"Step 1 of 3"</span>
+        <span class="attr">left</span>={<span class="tag">&lt;IconBtn</span> <span class="attr">icon</span>=<span class="str">"back"</span> <span class="attr">onClick</span>={onBack}<span class="tag">/&gt;</span>}
+        <span class="attr">big</span>
+      <span class="tag">/&gt;</span>
+
+      <span class="tag">&lt;div</span> <span class="attr">style</span>={{ padding: <span class="str">'0 20px 8px'</span> }}<span class="tag">&gt;</span>
+
+        <span class="com">{/* 2. PROGRESS BAR */}</span>
+        <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"progress"</span> <span class="attr">style</span>={{ marginBottom: <span class="num">14</span> }}<span class="tag">&gt;</span>
+          <span class="tag">&lt;div</span> <span class="attr">style</span>={{ width: <span class="str">'33%'</span> }} <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+
+        <span class="com">{/* 3. INTRO PARAGRAPH */}</span>
+        <span class="tag">&lt;p</span> <span class="attr">style</span>={{ fontSize: <span class="num">14</span>, color: <span class="str">'var(--fg-2)'</span>,
+                    margin: <span class="str">'0 0 8px'</span> }}<span class="tag">&gt;</span>
+          The split decides what muscles you train on which day. You can change this anytime.
+        <span class="tag">&lt;/p&gt;</span>
+
+      <span class="tag">&lt;/div&gt;</span>
+
+      <span class="com">{/* 4. SCROLLABLE OPTIONS */}</span>
+      <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"scrollable"</span>
+            <span class="attr">style</span>={{ padding: <span class="str">'8px 20px 20px'</span> }}<span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="attr">role</span>=<span class="str">"radiogroup"</span>
+              <span class="attr">style</span>={{ display: <span class="str">'flex'</span>, flexDirection: <span class="str">'column'</span>, gap: <span class="num">10</span> }}<span class="tag">&gt;</span>
+          {SPLIT_OPTIONS.map(opt =&gt; {
+            <span class="kw">const</span> isSel = selected === opt.id;
+            <span class="kw">return</span> (
+              <span class="tag">&lt;div</span>
+                <span class="attr">key</span>={opt.id}
+                <span class="attr">role</span>=<span class="str">"radio"</span>
+                <span class="attr">aria-checked</span>={isSel}
+                <span class="attr">tabIndex</span>={<span class="num">0</span>}
+                <span class="attr">className</span>=<span class="str">"row-tap"</span>
+                <span class="attr">onClick</span>={() =&gt; pick(opt.id)}
+                <span class="attr">onKeyDown</span>={(e) =&gt; (e.key === <span class="str">' '</span> || e.key === <span class="str">'Enter'</span>) &amp;&amp; pick(opt.id)}
+                <span class="attr">style</span>={{
+                  background: isSel
+                    ? <span class="str">'color-mix(in oklch, var(--accent) 12%, var(--surface))'</span>
+                    : <span class="str">'var(--surface)'</span>,
+                  border: <span class="str">`1.5px solid ${isSel ? 'var(--accent)' : 'var(--line)'}`</span>,
+                  borderRadius: <span class="num">14</span>,
+                  padding: <span class="num">16</span>,
+                  position: <span class="str">'relative'</span>,
+                }}<span class="tag">&gt;</span>
+                {opt.recommended &amp;&amp; (
+                  <span class="tag">&lt;div</span> <span class="attr">style</span>={{
+                    position: <span class="str">'absolute'</span>, top: -<span class="num">8</span>, right: <span class="num">14</span>,
+                    background: <span class="str">'var(--accent)'</span>, color: <span class="str">'var(--accent-fg)'</span>,
+                    fontSize: <span class="num">9</span>, fontWeight: <span class="num">700</span>, padding: <span class="str">'3px 8px'</span>,
+                    borderRadius: <span class="num">100</span>, textTransform: <span class="str">'uppercase'</span>,
+                    letterSpacing: <span class="str">'0.1em'</span>,
+                  }}<span class="tag">&gt;</span>From your PDF<span class="tag">&lt;/div&gt;</span>
+                )}
+
+                <span class="com">{/* head: name+sub | radio */}</span>
+                <span class="tag">&lt;div</span> <span class="attr">style</span>={{ display: <span class="str">'flex'</span>,
+                            justifyContent: <span class="str">'space-between'</span>,
+                            alignItems: <span class="str">'flex-start'</span> }}<span class="tag">&gt;</span>
+                  <span class="tag">&lt;div&gt;</span>
+                    <span class="tag">&lt;div</span> <span class="attr">className</span>=<span class="str">"display"</span> <span class="attr">style</span>={{ fontSize: <span class="num">22</span>, color: <span class="str">'var(--fg)'</span> }}<span class="tag">&gt;</span>
+                      {opt.name}
+                    <span class="tag">&lt;/div&gt;</span>
+                    <span class="tag">&lt;div</span> <span class="attr">style</span>={{ fontSize: <span class="num">12</span>, color: <span class="str">'var(--fg-2)'</span>,
+                                marginTop: <span class="num">2</span> }}<span class="tag">&gt;</span>{opt.sub}<span class="tag">&lt;/div&gt;</span>
+                  <span class="tag">&lt;/div&gt;</span>
+                  <span class="tag">&lt;div</span> <span class="attr">style</span>={{
+                    width: <span class="num">22</span>, height: <span class="num">22</span>, borderRadius: <span class="num">100</span>,
+                    border: <span class="str">`2px solid ${isSel ? 'var(--accent)' : 'var(--fg-3)'}`</span>,
+                    display: <span class="str">'flex'</span>, alignItems: <span class="str">'center'</span>,
+                    justifyContent: <span class="str">'center'</span>,
+                  }}<span class="tag">&gt;</span>
+                    {isSel &amp;&amp; <span class="tag">&lt;div</span> <span class="attr">style</span>={{ width: <span class="num">10</span>, height: <span class="num">10</span>,
+                                          borderRadius: <span class="num">100</span>,
+                                          background: <span class="str">'var(--accent)'</span> }} <span class="tag">/&gt;</span>}
+                  <span class="tag">&lt;/div&gt;</span>
+                <span class="tag">&lt;/div&gt;</span>
+
+                <span class="com">{/* chips */}</span>
+                {opt.days.length &gt; <span class="num">0</span> &amp;&amp; (
+                  <span class="tag">&lt;div</span> <span class="attr">style</span>={{ display: <span class="str">'flex'</span>, flexWrap: <span class="str">'wrap'</span>,
+                              gap: <span class="num">6</span>, marginTop: <span class="num">12</span> }}<span class="tag">&gt;</span>
+                    {opt.days.map((d, i) =&gt; (
+                      <span class="tag">&lt;div</span> <span class="attr">key</span>={i} <span class="attr">className</span>=<span class="str">"chip"</span>
+                            <span class="attr">style</span>={{ background: <span class="str">'var(--surface-2)'</span>,
+                                    fontSize: <span class="num">11</span> }}<span class="tag">&gt;</span>
+                        D{i + <span class="num">1</span>} · {d}
+                      <span class="tag">&lt;/div&gt;</span>
+                    ))}
+                  <span class="tag">&lt;/div&gt;</span>
+                )}
+              <span class="tag">&lt;/div&gt;</span>
+            );
+          })}
+        <span class="tag">&lt;/div&gt;</span>
+
+        <span class="com">{/* 5. HINT LINE */}</span>
+        <span class="tag">&lt;div</span> <span class="attr">style</span>={{ textAlign: <span class="str">'center'</span>, marginTop: <span class="num">16</span>,
+                    fontSize: <span class="num">11</span>, color: <span class="str">'var(--fg-3)'</span>,
+                    letterSpacing: <span class="str">'0.04em'</span> }}<span class="tag">&gt;</span>
+          Tap a split to continue
+        <span class="tag">&lt;/div&gt;</span>
+      <span class="tag">&lt;/div&gt;</span>
+
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+
+  <!-- ════════════ 20 ACCEPTANCE CHECKLIST ════════════ -->
+  <div class="section-mark"><span class="num">20</span><h2>Acceptance checklist</h2></div>
+  <p>Implementation is complete when all of the following are observable on a 412×892 viewport:</p>
+  <ol class="checklist">
+    <li><div><div class="t">Visual parity</div><div class="d">Side-by-side with the rendered showcase in §01, no measurable difference in spacing, color, type weight, or radius.</div></div></li>
+    <li><div><div class="t">Five options render</div><div class="d">In the exact order: 5 Day Illustrated, Push Pull Legs, Upper/Lower, Bro Split, Full Body, Build my own. (Six total when "Build my own" is included.)</div></div></li>
+    <li><div><div class="t">Recommended badge</div><div class="d">"From your PDF" appears overhanging the top edge of the first card only.</div></div></li>
+    <li><div><div class="t">No pre-selection</div><div class="d">On first mount, no card is in the selected state.</div></div></li>
+    <li><div><div class="t">Single-tap advance</div><div class="d">Tapping any card selects it visually for ~180ms, then advances to the Method screen.</div></div></li>
+    <li><div><div class="t">No Continue button</div><div class="d">The bottom of the screen contains the hint line "Tap a split to continue" and nothing else.</div></div></li>
+    <li><div><div class="t">Back navigation</div><div class="d">Top-left arrow and system back gesture both call <code>onBack</code>.</div></div></li>
+    <li><div><div class="t">Scroll behavior</div><div class="d">If options overflow, the list scrolls. Top bar, progress, and intro stay pinned.</div></div></li>
+    <li><div><div class="t">Re-entry preserves selection</div><div class="d">If the user advances and returns, their previously chosen card shows the selected state.</div></div></li>
+    <li><div><div class="t">Keyboard</div><div class="d">Arrow keys move focus, Space/Enter selects + advances.</div></div></li>
+    <li><div><div class="t">Reduced motion</div><div class="d">When <code>prefers-reduced-motion</code> is on, the 180ms commit delay is skipped.</div></div></li>
+    <li><div><div class="t">Screen reader</div><div class="d">Cards announce as radio options with their name + sub. Group announces as "Pick your split, radio group, 6 items."</div></div></li>
+  </ol>
+
+  <!-- ════════════ 21 KNOWN OPEN QUESTIONS ════════════ -->
+  <div class="section-mark"><span class="num">21</span><h2>Open questions</h2></div>
+  <ul class="tight">
+    <li>Should "Build my own" route to a different next step than the curated options? Currently both go to the Method screen.</li>
+    <li>Is the 180ms commit hold long enough on lower-end devices, where the visual update may render late?</li>
+    <li>Should we add a quick-tip tooltip on first-launch above the first card ("Tap one to begin")? Not in scope for v1.</li>
+    <li>If a user signs in and we restore a previous split selection, do we still show this screen, or skip to home? Current behavior: always show, with prior choice pre-selected.</li>
+  </ul>
+
+  <footer>
+    <div>
+      <div class="signoff">Get Gym Done.</div>
+      <div style="margin-top: 4px;">Pick Your Split — engineering handover · v1.0 · May 18, 2026</div>
+    </div>
+    <div style="text-align: right;">
+      <div>One screen · Nine elements · Five tokens · One gesture</div>
+      <div style="margin-top: 4px;">Ship it.</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  window.addEventListener('load', async () => {
+    try { await document.fonts.ready; } catch (e) {}
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+
+</body>
+</html>

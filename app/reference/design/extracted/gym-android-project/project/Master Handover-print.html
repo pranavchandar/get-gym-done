@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get Gym Done — Master Engineering Handover</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --paper: #ffffff;
+    --ink: #14130f;
+    --ink-2: #5a564a;
+    --ink-3: #908a78;
+    --line: #d6d2c4;
+    --line-2: #ebe8e0;
+    --accent: oklch(0.88 0.22 125);
+    --accent-fg: #0a0a09;
+    /* App dark palette (mirrors styles.css) */
+    --d-bg: #0a0a09;
+    --d-surface: #16140f;
+    --d-surface-2: #1f1c14;
+    --d-surface-3: #2a2620;
+    --d-line: #2e2b22;
+    --d-fg: #f7f5f0;
+    --d-fg-2: #a8a59a;
+    --d-fg-3: #696657;
+    --d-coral: oklch(0.70 0.22 25);
+  }
+
+  @page { size: A4; margin: 1.2cm; }
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .doc { max-width: 1100px; margin: 0 auto; padding: 48px 64px 80px; background: var(--paper); }
+  @media screen {
+    body { padding: 24px 0; }
+    .doc { box-shadow: 0 8px 60px rgba(0,0,0,0.08); }
+  }
+
+  /* Type */
+  h1, h2, h3, h4 { font-family: 'Anton', sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 0.015em; line-height: 0.94; margin: 0; }
+  h1 { font-size: 76px; }
+  h2 { font-size: 38px; margin-top: 8px; }
+  h3 { font-size: 24px; margin-top: 32px; letter-spacing: 0.025em; }
+  h4 { font-family: 'Inter'; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); margin: 24px 0 8px; }
+  p { margin: 0 0 12px; }
+  p + p { margin-top: 0; }
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+  .lede { font-size: 17px; line-height: 1.55; color: var(--ink-2); max-width: 760px; margin-top: 16px; }
+  code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--line-2); padding: 1px 6px; border-radius: 4px; }
+  em.note { color: var(--ink-3); font-style: italic; }
+
+  pre {
+    background: var(--d-bg); color: var(--d-fg); padding: 18px 20px; border-radius: 10px;
+    overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    line-height: 1.6; margin: 12px 0 24px; border: 1px solid var(--d-line);
+  }
+  pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; }
+  pre .kw { color: #ff8a65; } pre .str { color: oklch(0.85 0.18 125); } pre .num { color: #e6c97a; }
+  pre .com { color: #6b6450; font-style: italic; } pre .tag { color: #9fcfff; } pre .attr { color: #f7a8c5; } pre .key { color: #b388ff; }
+
+  /* Hero */
+  .hero { border-bottom: 2.5px solid var(--ink); padding-bottom: 36px; }
+  .hero .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .hero-meta { display: flex; gap: 28px; padding-top: 20px; border-top: 1px solid var(--line); margin-top: 28px; flex-wrap: wrap; }
+  .hero-meta .col { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .hero-meta .val { font-family: 'Anton', sans-serif; font-size: 22px; color: var(--ink); letter-spacing: 0.02em; }
+
+  /* Section markers */
+  .section-mark { display: flex; align-items: baseline; gap: 18px; margin-top: 76px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .section-mark .num { font-family: 'Anton', sans-serif; font-size: 48px; color: var(--accent); line-height: 0.9; text-shadow: 0 0 0 #000; letter-spacing: 0.02em; }
+  .section-mark h2 { margin: 0; flex: 1; }
+  .section-mark .tag-grp { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* TOC */
+  .toc { columns: 2; column-gap: 40px; margin: 20px 0; }
+  .toc a { display: flex; justify-content: space-between; gap: 10px; text-decoration: none; color: var(--ink); padding: 6px 0; border-bottom: 1px solid var(--line-2); font-size: 13px; break-inside: avoid; }
+  .toc a .n { font-family: 'Anton'; color: var(--accent); margin-right: 10px; }
+  .toc a:hover { color: var(--accent-fg); background: var(--line-2); }
+
+  /* Tables */
+  table.spec { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 12px 0 24px; }
+  table.spec th, table.spec td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.spec th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3); font-weight: 700; border-bottom: 1.5px solid var(--ink); background: var(--line-2); }
+  table.spec td.k { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink); width: 190px; background: var(--bg); }
+  table.spec tr:nth-child(even) td:not(.k) { background: var(--bg); }
+
+  /* Tokens */
+  .token-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0 8px; }
+  .token { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--paper); }
+  .token .chip { height: 52px; }
+  .token .meta { padding: 9px 11px; font-size: 11px; }
+  .token .name { font-weight: 700; color: var(--ink); }
+  .token .val { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; margin-top: 2px; }
+  .token .use { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+
+  /* Type spec rows */
+  .type-spec { display: grid; grid-template-columns: 130px 1fr 120px; gap: 16px; align-items: center; padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+  .type-spec .role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3); font-weight: 700; }
+  .type-spec .spec { font-size: 10px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-align: right; line-height: 1.5; }
+  .ut-display { font-family: 'Anton'; font-size: 30px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase; }
+  .ut-num { font-family: 'Anton'; font-size: 24px; }
+  .ut-l { font-family: 'Inter'; font-size: 16px; font-weight: 600; }
+  .ut-m { font-family: 'Inter'; font-size: 14px; font-weight: 500; }
+  .ut-mono { font-family: 'JetBrains Mono'; font-size: 13px; }
+
+  /* Phone renders */
+  .phone { width: 412px; height: 892px; background: var(--d-bg); color: var(--d-fg); border-radius: 44px; border: 8px solid #1a1813; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,255,255,0.04); overflow: hidden; display: flex; flex-direction: column; font-family: 'Inter', sans-serif; position: relative; flex-shrink: 0; }
+  .phone .sb { height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 13px; font-weight: 600; flex-shrink: 0; position: relative; }
+  .phone .sb .punch { position: absolute; left: 50%; top: 9px; transform: translateX(-50%); width: 18px; height: 18px; border-radius: 100px; background: #000; }
+  .phone .gn { height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phone .gn .bar { width: 132px; height: 5px; border-radius: 100px; background: var(--d-fg); opacity: 0.6; }
+  .scale-65 { transform: scale(0.65); transform-origin: top center; }
+  .scale-55 { transform: scale(0.55); transform-origin: top center; }
+  .scale-50 { transform: scale(0.5); transform-origin: top center; }
+  .scale-45 { transform: scale(0.45); transform-origin: top center; }
+
+  /* Screen gallery: phone + spec side by side */
+  .screen { display: grid; grid-template-columns: auto 1fr; gap: 36px; align-items: flex-start; margin: 20px 0 12px; }
+  .screen .stage { background: var(--d-bg); border-radius: 20px; padding: 18px; display: flex; justify-content: center; overflow: hidden; }
+  .screen .stage.h-65 { height: 614px; }
+  .screen .stage.h-55 { height: 524px; }
+  .screen .stage.h-50 { height: 480px; }
+  .screen .desc { font-size: 13px; }
+  .screen .desc h3 { margin-top: 0; }
+
+  /* Inline app component styles (mirror styles.css) */
+  .a-topbar { padding: 20px 22px 12px; display: flex; align-items: flex-start; gap: 10px; }
+  .a-iconbtn { width: 36px; height: 36px; border-radius: 10px; background: var(--d-surface-2); color: var(--d-fg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .a-iconbtn svg { width: 20px; height: 20px; }
+  .a-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--d-fg-2); margin-bottom: 4px; }
+  .a-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--d-fg-2); }
+  .a-ttl { font-family: 'Anton'; color: var(--d-fg); line-height: 0.95; letter-spacing: 0.02em; text-transform: uppercase; }
+  .a-progress { height: 6px; background: var(--d-surface-2); border-radius: 100px; overflow: hidden; }
+  .a-progress > div { height: 100%; background: var(--accent); border-radius: 100px; }
+  .a-card { background: var(--d-surface); border: 1px solid var(--d-line); border-radius: 18px; padding: 16px; }
+  .a-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 100px; background: var(--d-surface-2); color: var(--d-fg-2); font-size: 11px; font-weight: 500; }
+  .a-chip.solid { background: var(--accent); color: var(--accent-fg); }
+  .a-striped { background-image: repeating-linear-gradient(-45deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 8px, rgba(255,255,255,0.08) 8px, rgba(255,255,255,0.08) 16px); background-color: var(--d-surface-2); position: relative; }
+  .a-striped-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--d-fg-3); letter-spacing: 0.08em; text-transform: uppercase; }
+  .a-cta { width: 100%; padding: 22px 24px; border-radius: 14px; font-family: 'Anton'; font-size: 26px; letter-spacing: 0.04em; text-transform: uppercase; background: var(--accent); color: var(--accent-fg); border: none; }
+  .a-tabbar { display: flex; justify-content: space-around; background: var(--d-surface); border-top: 1px solid var(--d-line); }
+  .a-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 8px; color: var(--d-fg-2); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; gap: 4px; }
+  .a-tab.active { color: var(--accent); }
+  .a-tab svg { width: 22px; height: 22px; }
+
+  /* Callout */
+  .callout { background: var(--d-bg); color: var(--d-fg); border-radius: 12px; padding: 20px 24px; margin: 20px 0; }
+  .callout .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+  .callout p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.55; }
+  .callout p:last-child { margin: 0; }
+  .callout strong { color: var(--accent); font-weight: 600; }
+  .callout.warn .label { color: oklch(0.80 0.16 60); }
+  .callout.warn strong { color: oklch(0.80 0.16 60); }
+
+  ul.tight { margin: 8px 0 14px; padding-left: 20px; }
+  ul.tight li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+  ul.tight li code { font-size: 11px; }
+
+  .pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; background: var(--ink); color: var(--paper); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 5px; }
+  .pill.accent { background: var(--accent); color: var(--accent-fg); }
+  .pill.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); padding: 2px 7px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 16px 0; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+
+  .tree { background: var(--bg); border-radius: 8px; padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; border: 1px solid var(--line); }
+  .tree .folder { color: var(--ink-2); font-weight: 700; }
+  .tree .file { color: var(--ink); }
+  .tree .note { color: var(--ink-3); }
+
+  ol.checklist { list-style: none; padding: 0; margin: 14px 0; counter-reset: ch; }
+  ol.checklist li { counter-increment: ch; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  ol.checklist li::before { content: ''; width: 18px; height: 18px; border: 1.5px solid var(--accent); border-radius: 4px; margin-top: 1px; }
+  ol.checklist li:last-child { border-bottom: none; }
+  ol.checklist .t { font-weight: 700; margin-bottom: 2px; }
+  ol.checklist .d { color: var(--ink-2); font-size: 12px; }
+
+  footer { margin-top: 80px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: var(--ink-3); }
+  footer .signoff { font-family: 'Anton', sans-serif; font-size: 22px; color: var(--ink); letter-spacing: 0.02em; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .doc { box-shadow: none; max-width: none; padding: 0; }
+    h2, h3 { page-break-after: avoid; }
+    table.spec, pre, .callout, .screen, .token-grid, .type-spec { page-break-inside: avoid; }
+    .section-mark { page-break-before: auto; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="hero">
+    <div class="top">
+      <div>
+        <div class="eyebrow">Master engineering handover · Full app spec</div>
+        <h1 style="margin-top: 14px;">Get<br/>Gym<br/><span style="color: var(--accent);">Done.</span></h1>
+      </div>
+      <div style="text-align: right; padding-top: 8px;">
+        <div class="eyebrow">For</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px;">Claude Code</div>
+        <div class="eyebrow" style="margin-top: 14px;">Rebuild target</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px;">Native Android</div>
+      </div>
+    </div>
+    <p class="lede">
+      The complete design specification for <strong>Get Gym Done</strong>, an Android workout
+      logbook. This document is self-contained: design system, shared components, iconography,
+      navigation model, and a full spec for all 17 screens — sufficient to rebuild the app
+      pixel- and behaviour-perfect without the source. Read §01–05 first (foundations), then
+      each screen section references those tokens by name.
+    </p>
+    <div class="hero-meta">
+      <div class="col"><span class="lbl">Screens</span><span class="val">17</span></div>
+      <div class="col"><span class="lbl">Workout variants</span><span class="val">4</span></div>
+      <div class="col"><span class="lbl">Viewport</span><span class="val">412 × 892</span></div>
+      <div class="col"><span class="lbl">Theme</span><span class="val">Dark default</span></div>
+      <div class="col"><span class="lbl">Accent</span><span class="val">Electric lime</span></div>
+      <div class="col"><span class="lbl">Version</span><span class="val">1.0</span></div>
+    </div>
+  </section>
+
+  <!-- ═══════ TOC ═══════ -->
+  <div class="section-mark"><span class="num">00</span><h2>Contents</h2></div>
+  <div class="toc">
+    <a href="#s01"><span><span class="n">01</span>Product overview &amp; principles</span></a>
+    <a href="#s02"><span><span class="n">02</span>Design system &amp; tokens</span></a>
+    <a href="#s03"><span><span class="n">03</span>Shared components</span></a>
+    <a href="#s04"><span><span class="n">04</span>Iconography</span></a>
+    <a href="#s05"><span><span class="n">05</span>Navigation &amp; app state</span></a>
+    <a href="#s06"><span><span class="n">06</span>Splash</span></a>
+    <a href="#s07"><span><span class="n">07</span>Pick your split</span></a>
+    <a href="#s08"><span><span class="n">08</span>Routine method</span></a>
+    <a href="#s09"><span><span class="n">09</span>Customize routine</span></a>
+    <a href="#s10"><span><span class="n">10</span>Exercise picker sheet</span></a>
+    <a href="#s11"><span><span class="n">11</span>Home / Today</span></a>
+    <a href="#s12"><span><span class="n">12</span>Day overview + Warmup</span></a>
+    <a href="#s13"><span><span class="n">13</span>Override day sheet</span></a>
+    <a href="#s14"><span><span class="n">14</span>Workouts list</span></a>
+    <a href="#s15"><span><span class="n">15</span>Active workout — 4 variants</span></a>
+    <a href="#s16"><span><span class="n">16</span>Set tracking &amp; keypad</span></a>
+    <a href="#s17"><span><span class="n">17</span>Workout complete</span></a>
+    <a href="#s18"><span><span class="n">18</span>Profile / Metrics</span></a>
+    <a href="#s19"><span><span class="n">19</span>Settings</span></a>
+    <a href="#s20"><span><span class="n">20</span>Data model</span></a>
+    <a href="#s21"><span><span class="n">21</span>Tweaks &amp; theming</span></a>
+    <a href="#s22"><span><span class="n">22</span>Acceptance checklist</span></a>
+  </div>
+
+  <!-- ═══════ 01 OVERVIEW ═══════ -->
+  <div class="section-mark" id="s01"><span class="num">01</span><h2>Product overview</h2></div>
+  <p style="margin-top:16px;">
+    Get Gym Done is a workout-tracking app built around a recurring multi-day <em>split</em>.
+    The reference program is a 5-day split (Upper / Lower / Shoulders &amp; Arms / Legs (Quad) /
+    Back &amp; Chest) with 26 exercises, each carrying form cues and prescribed sets × reps. The
+    app auto-detects which day is next from the user's log, opens straight into it, and lets the
+    user log sets with a single big CTA. Progress is reviewed via charts in the Profile tab.
+  </p>
+
+  <h3>Design principles</h3>
+  <ul class="tight">
+    <li><strong>One screen, one job.</strong> Each surface does exactly one thing — pick, log, or review.</li>
+    <li><strong>Fast logging beats rich logging.</strong> Pre-fill from last session, big tap targets, single-tap commit.</li>
+    <li><strong>Calendar-first home.</strong> The home screen surfaces the next workout automatically; override is always one tap away.</li>
+    <li><strong>Honest placeholders.</strong> Exercise demos and anatomy use labeled striped placeholders, never fake art.</li>
+    <li><strong>Bold sport aesthetic.</strong> Warm near-black ground, a single electric-lime accent, condensed display type, oversized numerals.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="label">North star</div>
+    <p><strong>"Open app → know what to lift → log it → leave."</strong> The big "Complete Set" CTA is the most-tapped pixel in the product. Anything that slows that loop is wrong.</p>
+  </div>
+
+  <!-- ═══════ 02 DESIGN SYSTEM ═══════ -->
+  <div class="section-mark" id="s02"><span class="num">02</span><h2>Design system</h2></div>
+
+  <h3>Color — dark theme (default)</h3>
+  <p>All colors are CSS custom properties on <code>:root</code>; <code>[data-theme="light"]</code> overrides the ground colors. Accent is theme-independent.</p>
+  <div class="token-grid">
+    <div class="token"><div class="chip" style="background:#0a0a09;"></div><div class="meta"><div class="name">--bg</div><div class="val">#0a0a09</div><div class="use">App background</div></div></div>
+    <div class="token"><div class="chip" style="background:#16140f;"></div><div class="meta"><div class="name">--surface</div><div class="val">#16140f</div><div class="use">Cards</div></div></div>
+    <div class="token"><div class="chip" style="background:#1f1c14;"></div><div class="meta"><div class="name">--surface-2</div><div class="val">#1f1c14</div><div class="use">Inset chips, icon btns</div></div></div>
+    <div class="token"><div class="chip" style="background:#2a2620;"></div><div class="meta"><div class="name">--surface-3</div><div class="val">#2a2620</div><div class="use">Pressed, muscle base</div></div></div>
+    <div class="token"><div class="chip" style="background:#2e2b22;"></div><div class="meta"><div class="name">--line</div><div class="val">#2e2b22</div><div class="use">Borders, dividers</div></div></div>
+    <div class="token"><div class="chip" style="background:#f7f5f0;"></div><div class="meta"><div class="name">--fg</div><div class="val">#f7f5f0</div><div class="use">Primary text</div></div></div>
+    <div class="token"><div class="chip" style="background:#a8a59a;"></div><div class="meta"><div class="name">--fg-2</div><div class="val">#a8a59a</div><div class="use">Secondary text</div></div></div>
+    <div class="token"><div class="chip" style="background:#696657;"></div><div class="meta"><div class="name">--fg-3</div><div class="val">#696657</div><div class="use">Tertiary / hints</div></div></div>
+    <div class="token"><div class="chip" style="background:oklch(0.88 0.22 125);"></div><div class="meta"><div class="name">--accent</div><div class="val">oklch(.88 .22 125)</div><div class="use">Electric lime</div></div></div>
+    <div class="token"><div class="chip" style="background:#0a0a09;border:1px solid var(--line);"></div><div class="meta"><div class="name">--accent-fg</div><div class="val">#0a0a09</div><div class="use">Text on accent</div></div></div>
+    <div class="token"><div class="chip" style="background:oklch(0.70 0.22 25);"></div><div class="meta"><div class="name">--accent-2</div><div class="val">oklch(.70 .22 25)</div><div class="use">Coral (day 2/4, bodyweight)</div></div></div>
+    <div class="token"><div class="chip" style="background:oklch(0.65 0.22 25);"></div><div class="meta"><div class="name">--danger</div><div class="val">oklch(.65 .22 25)</div><div class="use">Destructive</div></div></div>
+  </div>
+
+  <h4>Light theme overrides</h4>
+  <table class="spec">
+    <thead><tr><th>Token</th><th>Dark</th><th>Light</th></tr></thead>
+    <tbody>
+      <tr><td class="k">--bg</td><td>#0a0a09</td><td>#f5f3ee</td></tr>
+      <tr><td class="k">--surface</td><td>#16140f</td><td>#ffffff</td></tr>
+      <tr><td class="k">--surface-2</td><td>#1f1c14</td><td>#ebe8e0</td></tr>
+      <tr><td class="k">--surface-3</td><td>#2a2620</td><td>#ddd9cd</td></tr>
+      <tr><td class="k">--line</td><td>#2e2b22</td><td>#d6d2c4</td></tr>
+      <tr><td class="k">--fg</td><td>#f7f5f0</td><td>#14130f</td></tr>
+      <tr><td class="k">--fg-2</td><td>#a8a59a</td><td>#5a564a</td></tr>
+      <tr><td class="k">--fg-3</td><td>#696657</td><td>#908a78</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Selected / tinted surfaces</h4>
+  <p>Selection states use <code>color-mix</code> so they track the active accent: selected card = <code>color-mix(in oklch, var(--accent) 12%, var(--surface))</code>; done set row = <code>14%</code>; rest-timer bar = <code>22%</code>. Never hard-code these mixes.</p>
+
+  <h3>Typography</h3>
+  <p>Three families, loaded from Google Fonts: <strong>Anton</strong> (display + all numerals), <strong>Inter</strong> (400/500/600/700, all UI text), <strong>JetBrains Mono</strong> (data, placeholder labels).</p>
+  <div class="type-spec"><div class="role">Display / hero</div><div class="ut-display">Get Gym Done</div><div class="spec">Anton 400<br/>32–96px · UC<br/>tracking .01–.02em</div></div>
+  <div class="type-spec"><div class="role">Numerals</div><div class="ut-num">120 KG × 8</div><div class="spec">Anton 400<br/>18–110px</div></div>
+  <div class="type-spec"><div class="role">Body / UI</div><div class="ut-l">Wide Grip Pulldown</div><div class="spec">Inter 600<br/>14–16px</div></div>
+  <div class="type-spec"><div class="role">Caption</div><div class="ut-m">3×6–8 · Lats</div><div class="spec">Inter 500<br/>11–13px</div></div>
+  <div class="type-spec"><div class="role">Eyebrow</div><div class="ut-m" style="text-transform:uppercase;letter-spacing:.14em;color:var(--ink-3);font-size:11px;">Step 1 of 3</div><div class="spec">Inter 600<br/>11px · .14em · UC</div></div>
+  <div class="type-spec"><div class="role">Mono / data</div><div class="ut-mono">2026-05-16 +12%</div><div class="spec">JetBrains 500<br/>10–13px</div></div>
+
+  <h3>Radii, spacing &amp; motion</h3>
+  <div class="three-col">
+    <div>
+      <h4 style="margin-top:0;">Radius scale</h4>
+      <table class="spec"><tbody>
+        <tr><td class="k">--r-sm</td><td>10px — buttons, set rows</td></tr>
+        <tr><td class="k">14px</td><td>cards, sheets, CTA</td></tr>
+        <tr><td class="k">--r</td><td>18px — large cards</td></tr>
+        <tr><td class="k">22px</td><td>hero cards</td></tr>
+        <tr><td class="k">100px</td><td>pills, chips, radio</td></tr>
+        <tr><td class="k">44px</td><td>phone frame</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <h4 style="margin-top:0;">Spacing</h4>
+      <table class="spec"><tbody>
+        <tr><td class="k">22px</td><td>screen gutters (home/profile)</td></tr>
+        <tr><td class="k">20px</td><td>screen gutters (onboarding)</td></tr>
+        <tr><td class="k">18px</td><td>workout gutters</td></tr>
+        <tr><td class="k">16px</td><td>card padding</td></tr>
+        <tr><td class="k">10px</td><td>stack gap (cards)</td></tr>
+        <tr><td class="k">6px</td><td>chip gap</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <h4 style="margin-top:0;">Motion</h4>
+      <table class="spec"><tbody>
+        <tr><td class="k">120ms</td><td>press scale 0.97</td></tr>
+        <tr><td class="k">180ms</td><td>split commit hold</td></tr>
+        <tr><td class="k">200ms</td><td>sheet backdrop / toggle</td></tr>
+        <tr><td class="k">240ms</td><td>screen slide-in, sheet rise</td></tr>
+        <tr><td class="k">300ms</td><td>progress bar fill</td></tr>
+        <tr><td class="k">1.6s</td><td>pulse loop (today dot)</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <p><strong>Screen entrance:</strong> <code>slideIn</code> — from <code>translateX(8%)</code> + <code>opacity:0</code> to rest, 240ms ease. <strong>Sheet:</strong> rises from <code>translateY(100%)</code> with cubic-bezier(.2,.8,.2,1). <strong>Toast:</strong> from <code>translateY(20px)</code> + fade, 200ms. <strong>No drop shadows</strong> anywhere except the phone frame and floating toasts; depth comes from surface stacking + 1px borders.</p>
+
+  <p style="margin-top:24px;color:var(--ink-3);font-size:12px;">Foundations continue below. Per-screen specs begin at §06.</p>
+
+  <!-- ═══════ 03 SHARED COMPONENTS ═══════ -->
+  <div class="section-mark" id="s03"><span class="num">03</span><h2>Shared components</h2></div>
+  <p style="margin-top:16px;">Every screen is assembled from this kit. Specs here are the source of truth; screen sections reference them by name.</p>
+
+  <h3>Phone frame &amp; chrome</h3>
+  <ul class="tight">
+    <li><strong>Frame:</strong> <code>412 × 892px</code>, <code>border-radius:44px</code>, <code>8px solid #1a1813</code> border, large soft drop shadow. Inner content clipped to the radius.</li>
+    <li><strong>Status bar:</strong> <code>38px</code> tall, <code>0 22px</code> padding. Left: time "9:30" (13px Inter 600). Center: <code>18px</code> black circular camera punch-hole, absolutely centered, top 9px. Right: wifi + battery SVGs in <code>--fg</code>.</li>
+    <li><strong>Gesture nav:</strong> <code>24px</code> tall, centered <code>132 × 5px</code> pill at <code>--fg</code> / 0.6 opacity.</li>
+    <li><strong>Column model:</strong> phone is <code>display:flex; flex-direction:column</code>. Status bar (fixed) → screen content (<code>flex:1</code>) → gesture nav (fixed). Scroll happens inside the content region only via a <code>.scrollable</code> wrapper (<code>flex:1; overflow-y:auto</code>, scrollbar width 0).</li>
+  </ul>
+
+  <h3>TopBar</h3>
+  <p>Header used by onboarding + day overview. Three-slot flex row: <code>left</code> (36px) · title block (flex-1) · <code>right</code> (36px).</p>
+  <ul class="tight">
+    <li>Padding <code>20px 22px 12px</code> when <code>big</code>, else <code>14px 18px 12px</code>.</li>
+    <li>Optional <code>sub</code> eyebrow above title (11px Inter 600, .14em, UC, <code>--fg-2</code>, margin-bottom 4px).</li>
+    <li>Title: Anton, 36px when <code>big</code> else 22px, <code>--fg</code>.</li>
+    <li>Left/right slots hold <code>IconBtn</code> or nothing (the 36px gutter is always reserved for symmetry).</li>
+  </ul>
+
+  <h3>IconBtn</h3>
+  <p><code>36 × 36px</code>, <code>border-radius:10px</code>, background <code>--surface-2</code>, color <code>--fg</code>, centered icon at 20×20. No border. Active scale 0.97.</p>
+
+  <h3>Buttons</h3>
+  <table class="spec">
+    <thead><tr><th>Variant</th><th>Spec</th></tr></thead>
+    <tbody>
+      <tr><td class="k">.btn-cta-huge</td><td>Full width, <code>padding 22px 24px</code>, <code>radius 14px</code>, Anton 26px, .04em, UC, bg <code>--accent</code>, text <code>--accent-fg</code>. Active scale 0.98. Disabled = opacity 0.4. The primary CTA across the app.</td></tr>
+      <tr><td class="k">.btn-primary</td><td><code>padding 14px 20px</code>, <code>radius 10px</code>, Inter 600 15px, bg <code>--accent</code>.</td></tr>
+      <tr><td class="k">.btn-ghost</td><td>Transparent, <code>1px solid --line</code>, text <code>--fg</code>. Used for "Skip — keep it local" (Anton 18px variant).</td></tr>
+      <tr><td class="k">.btn-surface</td><td>bg <code>--surface-2</code>, text <code>--fg</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Card &amp; Chip</h3>
+  <ul class="tight">
+    <li><strong>.card</strong> — bg <code>--surface</code>, <code>1px solid --line</code>, <code>radius 18px</code>, <code>padding 16px</code>.</li>
+    <li><strong>.card-flat</strong> — bg <code>--surface-2</code>, no border, same radius/padding.</li>
+    <li><strong>.chip</strong> — inline-flex, <code>padding 6px 10px</code>, <code>radius 100px</code>, bg <code>--surface-2</code>, <code>--fg-2</code>, 12px Inter 500. Modifiers: <code>.solid</code> (bg accent, text accent-fg), <code>.outline</code> (transparent, border line).</li>
+  </ul>
+
+  <h3>StripedPlaceholder</h3>
+  <p>The honest stand-in for exercise GIFs and any missing imagery. A <code>repeating-linear-gradient(-45deg, …)</code> of two white-alpha stripes (0.04 / 0.08) over <code>--surface-2</code>, with a centered lowercase mono label (11px, <code>--fg-3</code>, .08em). In light theme the stripes switch to black-alpha. Always labeled with what belongs there (e.g. "exercise gif · incline-smith-press", "hero — athlete", "gif").</p>
+
+  <h3>MuscleMap</h3>
+  <p>A stylized front/back body silhouette in a <code>100×200</code> viewBox, rendered as flat blob <code>&lt;path&gt;</code>s. Muscle groups light up: active = <code>--accent</code> fill, inactive = <code>--surface-3</code> fill, <code>--line</code> stroke. Accepts <code>active</code> (array of muscle names, case-insensitive) and <code>side</code> ('front' default | 'back'). Recognized names: Upper Chest, Chest, Shoulders, Front/Side/Rear Delts, Biceps, Triceps, Forearms, Abs/Core, Quads, Hamstrings, Glutes, Adductors, Calves, Lats, Mid Back, Posterior Chain. <em class="note">Not anatomical art — intentionally abstract; replace with a real anatomy system in production.</em></p>
+
+  <h3>LineChart &amp; Sparkline</h3>
+  <ul class="tight">
+    <li><strong>LineChart</strong> — SVG, <code>320×height</code> viewBox, <code>preserveAspectRatio:none</code>. Draws a filled area (accent at 0.14 opacity) under a 2.4px accent stroke line, a dot at every point (last point larger, 4px, with a <code>--bg</code> ring). Optional min/max axis labels in mono. Accepts <code>data: [{x, y}]</code>, <code>height</code>, <code>color</code>.</li>
+    <li><strong>Sparkline</strong> — tiny inline line, no fill, for card corners.</li>
+  </ul>
+
+  <h3>Bottom sheet</h3>
+  <p>Modal pattern for keypad, day-override, exercise picker. Full-screen <code>.sheet-backdrop</code> (rgba(0,0,0,.5), fade-in 200ms) with a bottom-anchored <code>.sheet</code> (bg <code>--surface</code>, <code>radius 24px 24px 0 0</code>, <code>padding 20px</code>, rises 240ms cubic-bezier(.2,.8,.2,1), <code>max-height 80%</code>, scrolls internally). Top: <code>40×4px</code> grab handle in <code>--fg-3</code> / 0.5. Tap backdrop to dismiss; <code>stopPropagation</code> on the sheet body.</p>
+
+  <h3>TabBar</h3>
+  <p>Bottom navigation, 4 destinations. bg <code>--surface</code>, <code>1px</code> top border. Each tab: column, <code>padding 10px 0 8px</code>, 22px icon + 10px UC label (.08em), <code>--fg-2</code> idle / <code>--accent</code> active.</p>
+  <div class="screen" style="grid-template-columns:1fr;">
+    <div class="a-tabbar" style="border-radius:12px;overflow:hidden;max-width:412px;">
+      <div class="a-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11z"/></svg><span>Today</span></div>
+      <div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M3 9l3-3M21 15l-3 3M5 11l-2 2 4 4 2-2M19 13l2-2-4-4-2 2"/></svg><span>Workouts</span></div>
+      <div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 4 3 5-6"/></svg><span>Profile</span></div>
+      <div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.04 1.56V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1.1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.04H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34h.04a1.7 1.7 0 001.04-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.04 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87v.04a1.7 1.7 0 001.56 1.04H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.56 1.04z"/></svg><span>Settings</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════ 04 ICONOGRAPHY ═══════ -->
+  <div class="section-mark" id="s04"><span class="num">04</span><h2>Iconography</h2></div>
+  <p style="margin-top:16px;">All icons are inline SVG, <code>24×24</code> viewBox, <code>stroke="currentColor"</code>, <code>stroke-width 2</code> (2.4 for emphasis glyphs), round caps/joins. A few (more, fire, play, pause) are filled. Render at 12–28px depending on context. The full set:</p>
+  <table class="spec">
+    <thead><tr><th>Name</th><th>Use</th><th>Name</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>back</code></td><td>Top-bar back arrow</td><td><code>close</code></td><td>Exit workout, dismiss</td></tr>
+      <tr><td><code>plus / minus</code></td><td>Steppers, add</td><td><code>check</code></td><td>Set done, selected</td></tr>
+      <tr><td><code>chev / chevDown</code></td><td>Row affordance, expanders</td><td><code>arrow</code></td><td>Next exercise</td></tr>
+      <tr><td><code>home</code></td><td>Tab: Today</td><td><code>dumbbell</code></td><td>Tab: Workouts</td></tr>
+      <tr><td><code>chart</code></td><td>Tab: Profile</td><td><code>cog</code></td><td>Tab: Settings</td></tr>
+      <tr><td><code>flame / fire</code></td><td>Streak, warmup</td><td><code>timer</code></td><td>Rest timer</td></tr>
+      <tr><td><code>trend</code></td><td>PRs, progression deltas</td><td><code>swap</code></td><td>Override day</td></tr>
+      <tr><td><code>edit</code></td><td>Edit profile/routine</td><td><code>more</code></td><td>Overflow menu (filled dots)</td></tr>
+      <tr><td><code>play / pause</code></td><td>Demo playback (filled)</td><td><code>bell</code></td><td>Notifications</td></tr>
+      <tr><td><code>filter</code></td><td>Picker filters</td><td><code>user</code></td><td>Profile, account</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════ 05 NAVIGATION ═══════ -->
+  <div class="section-mark" id="s05"><span class="num">05</span><h2>Navigation &amp; app state</h2></div>
+  <p style="margin-top:16px;">Top-level state is a single state machine in the root <code>App</code> component. Onboarding is linear; the main app is a tab shell with modal takeovers.</p>
+
+  <pre><code><span class="com">// Top-level screen machine</span>
+screen: <span class="str">'splash'</span> | <span class="str">'split'</span> | <span class="str">'method'</span> | <span class="str">'customize'</span> | <span class="str">'app'</span>
+
+<span class="com">// When screen === 'app', a tab + view drive what renders:</span>
+tab:     <span class="str">'home'</span> | <span class="str">'workouts'</span> | <span class="str">'profile'</span> | <span class="str">'settings'</span>
+appView: <span class="str">'home'</span> | <span class="str">'day-overview'</span> | <span class="str">'workout'</span> | <span class="str">'complete'</span>
+openDayIdx: <span class="num">0</span>–<span class="num">4</span>            <span class="com">// which day is being viewed/worked</span>
+workoutLog: [{date, day}]   <span class="com">// grows when a session completes</span>
+tweaks: { palette, theme, layout, unit, … }</code></pre>
+
+  <h4>Flows</h4>
+  <ul class="tight">
+    <li><strong>Onboarding:</strong> splash → split → method → (custom only) customize → app. "Curate for me" skips customize.</li>
+    <li><strong>Workout:</strong> home → [day-overview] → workout (per-exercise loop) → complete → home. The home CTA can skip straight to workout.</li>
+    <li><strong>Next-day logic:</strong> <code>nextDayIndex = lastLog ? (lastLog.day % 5) : 0</code>. After day 5 wraps to day 1. User can override on any tap; the override is what gets logged.</li>
+    <li><strong>Modals</strong> (override sheet, keypad, exercise picker) overlay the current screen without changing <code>screen</code>/<code>appView</code>.</li>
+  </ul>
+
+  <p style="margin-top:24px;color:var(--ink-3);font-size:12px;">Per-screen specifications follow. Each cites tokens and components from §02–04.</p>
+
+  <!-- ═══════ 06 SPLASH ═══════ -->
+  <div class="section-mark" id="s06"><span class="num">06</span><h2>Splash</h2><span class="tag-grp">Onboarding</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div><div style="display:flex;gap:6px;"><svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="1" width="18" height="9" rx="2" stroke="#f7f5f0" fill="none" opacity="0.5"/><rect x="2" y="2.5" width="13" height="6" rx="0.5" fill="#f7f5f0"/></svg></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:24px;">
+          <div style="padding-top:60px;">
+            <div class="a-eyebrow" style="color:var(--accent);">v1.0 — beta</div>
+            <div style="font-family:'Anton';font-size:84px;line-height:0.85;color:var(--d-fg);margin-top:18px;text-transform:uppercase;">Get<br/>Gym<br/><span style="color:var(--accent);">Done.</span></div>
+            <div style="margin-top:24px;font-size:16px;color:var(--d-fg-2);max-width:280px;line-height:1.4;">A logbook that knows what day it is, what's next, and how strong you're getting.</div>
+          </div>
+          <div>
+            <div class="a-striped" style="height:160px;border-radius:18px;margin-bottom:22px;"><div class="a-striped-label">hero — athlete</div></div>
+            <button class="a-cta">Sign up / Sign in</button>
+            <button style="width:100%;margin-top:10px;padding:16px 24px;border-radius:14px;background:transparent;color:var(--d-fg);border:1.5px solid var(--d-line);font-family:'Anton';font-size:18px;letter-spacing:.04em;text-transform:uppercase;">Skip — keep it local</button>
+            <div style="text-align:center;margin-top:12px;color:var(--d-fg-3);font-size:11px;line-height:1.45;max-width:280px;margin-left:auto;margin-right:auto;">Sign in to sync across devices · Skip to start logging now, all data stays on this phone</div>
+          </div>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Splash</h3>
+      <p>Cold-launch welcome. Full-bleed flow (no TopBar). Vertical layout with <code>space-between</code>: brand block top, action block bottom.</p>
+      <h4>Elements</h4>
+      <ul class="tight">
+        <li><strong>Eyebrow</strong> "v1.0 — beta" in <code>--accent</code>.</li>
+        <li><strong>Wordmark</strong> "Get / Gym / Done." Anton 84–88px, <code>line-height 0.85</code>, "Done." in accent. Three lines, hard breaks.</li>
+        <li><strong>Tagline</strong> 16px <code>--fg-2</code>, max-width 280.</li>
+        <li><strong>Hero placeholder</strong> 160–180px striped, labeled "hero — athlete".</li>
+        <li><strong>Primary CTA</strong> <code>.btn-cta-huge</code> "Sign up / Sign in".</li>
+        <li><strong>Secondary</strong> ghost button "Skip — keep it local" (Anton 18px, 1.5px line border).</li>
+        <li><strong>Helper line</strong> 11px <code>--fg-3</code> explaining the sync-vs-local trade-off.</li>
+      </ul>
+      <h4>Behaviour</h4>
+      <p>Both buttons call <code>onStart()</code> → advances to Pick your split. (Sign-in screen is a future stub — wire both to the same handler for now.) No "already have an account" link.</p>
+      <p><strong>Padding:</strong> 24px all around. Brand block has 60–80px top padding to push the wordmark down.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 07 PICK YOUR SPLIT ═══════ -->
+  <div class="section-mark" id="s07"><span class="num">07</span><h2>Pick your split</h2><span class="tag-grp">Onboarding · 1/3</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div class="a-topbar"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div style="flex:1;padding-top:4px;"><div class="a-sub">Step 1 of 3</div><div class="a-ttl" style="font-size:36px;">Pick your<br/>split</div></div><div style="width:36px;"></div></div>
+        <div style="padding:0 20px 8px;"><div class="a-progress" style="margin-bottom:14px;"><div style="width:33%;"></div></div><p style="font-size:14px;color:var(--d-fg-2);margin:0 0 8px;line-height:1.45;">The split decides what muscles you train on which day. You can change this anytime.</p></div>
+        <div style="padding:8px 20px 20px;display:flex;flex-direction:column;gap:10px;">
+          <div style="background:color-mix(in oklch, var(--accent) 12%, var(--d-surface));border:1.5px solid var(--accent);border-radius:14px;padding:16px;position:relative;">
+            <div style="position:absolute;top:-8px;right:14px;background:var(--accent);color:var(--accent-fg);font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:.1em;">From your PDF</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-family:'Anton';font-size:22px;text-transform:uppercase;">5 Day Illustrated</div><div style="font-size:12px;color:var(--d-fg-2);margin-top:2px;">Your PDF split</div></div><div style="width:22px;height:22px;border-radius:100px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;border-radius:100px;background:var(--accent);"></div></div></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"><span class="a-chip">D1 · Upper</span><span class="a-chip">D2 · Lower</span><span class="a-chip">D3 · Shoulders & Arms</span></div>
+          </div>
+          <div style="background:var(--d-surface);border:1.5px solid var(--d-line);border-radius:14px;padding:16px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-family:'Anton';font-size:22px;text-transform:uppercase;">Push Pull Legs</div><div style="font-size:12px;color:var(--d-fg-2);margin-top:2px;">3 or 6 day variants</div></div><div style="width:22px;height:22px;border-radius:100px;border:2px solid var(--d-fg-3);"></div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;"><span class="a-chip">D1 · Push</span><span class="a-chip">D2 · Pull</span><span class="a-chip">D3 · Legs</span></div></div>
+          <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--d-fg-3);letter-spacing:.04em;">Tap a split to continue</div>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Pick your split</h3>
+      <p>First onboarding step. Choose the recurring weekly structure. <em class="note">Full standalone spec exists in "Pick Your Split — Handover"; condensed here.</em></p>
+      <h4>Key points</h4>
+      <ul class="tight">
+        <li><strong>TopBar</strong> big, sub "Step 1 of 3", back button → splash.</li>
+        <li><strong>Progress</strong> 33% lime fill.</li>
+        <li><strong>Intro</strong> locked copy: "The split decides what muscles you train on which day. You can change this anytime."</li>
+        <li><strong>Option cards</strong> from <code>SPLIT_OPTIONS</code>: name (Anton 22px), sub (12px), radio (22px), day-preview chips (<code>D{n} · {name}</code>). <code>radius 14px</code>, <code>1.5px</code> border, <code>padding 16px</code>.</li>
+        <li><strong>Selected state:</strong> accent border + 12% accent-tint bg + filled radio dot.</li>
+        <li><strong>Recommended badge</strong> "From your PDF" overhangs top edge (<code>top:-8px; right:14px</code>) on the <code>recommended:true</code> option.</li>
+        <li><strong>Custom option</strong> ("Build my own") has empty <code>days</code> → no chips.</li>
+      </ul>
+      <h4>Interaction — single-tap commit</h4>
+      <p>No Continue button. <code>onClick → setSelected(id); setTimeout(onNext, 180)</code>. The 180ms hold lets the selection register visually before advancing. Hint line "Tap a split to continue" sits below the list. Guard against double-tap; cancel the timer on back.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 08 ROUTINE METHOD ═══════ -->
+  <div class="section-mark" id="s08"><span class="num">08</span><h2>Routine method</h2><span class="tag-grp">Onboarding · 2/3</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div class="a-topbar"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div style="flex:1;padding-top:4px;"><div class="a-sub">Step 2 of 3</div><div class="a-ttl" style="font-size:36px;">Routine</div></div><div style="width:36px;"></div></div>
+        <div style="padding:0 20px 16px;"><div class="a-progress" style="margin-bottom:14px;"><div style="width:66%;"></div></div><p style="font-size:14px;color:var(--d-fg-2);margin:0;">How do you want to set up your exercises?</p></div>
+        <div style="padding:0 20px 16px;display:flex;flex-direction:column;gap:14px;">
+          <div style="background:var(--d-surface);border:2px solid var(--accent);border-radius:18px;padding:18px;">
+            <span class="a-chip solid" style="font-size:10px;padding:4px 8px;">Recommended</span>
+            <div style="font-family:'Anton';font-size:30px;text-transform:uppercase;margin-top:10px;">Curate for me</div>
+            <div style="font-size:14px;color:var(--d-fg-2);margin-top:8px;line-height:1.45;">Use the proven 5-day program from your PDF, with optimal exercise order.</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--d-fg-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>26 exercises preloaded</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--d-fg-2);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Form cues on every screen</div>
+            </div>
+          </div>
+          <div style="background:var(--d-surface);border:2px solid var(--d-line);border-radius:18px;padding:18px;">
+            <span class="a-chip" style="font-size:10px;padding:4px 8px;">Advanced</span>
+            <div style="font-family:'Anton';font-size:30px;text-transform:uppercase;margin-top:10px;">Build my own</div>
+            <div style="font-size:14px;color:var(--d-fg-2);margin-top:8px;line-height:1.45;">Pick the exercises for each day. We tell you which muscles each one targets.</div>
+          </div>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Routine method</h3>
+      <p>Two large choice cards. Unlike the split picker, this one <strong>does</strong> keep a bottom CTA — selection is a toggle, commit is explicit.</p>
+      <h4>Cards</h4>
+      <ul class="tight">
+        <li><strong>radius 18px</strong>, <code>2px</code> border (note: thicker than split cards), <code>padding 18px</code>.</li>
+        <li>Tag chip at top: "Recommended" (solid accent when selected) / "Advanced".</li>
+        <li>Title Anton 30px. Sub 14px <code>--fg-2</code>.</li>
+        <li>Bullet list with accent check icons (Curate: "26 exercises preloaded", "Form cues on every screen", "Edit any time"; Build: "Drag to reorder", "Search 200+ exercises", "Save as template").</li>
+        <li>Selected = accent border (bg stays <code>--surface</code>); tag chip flips to solid accent.</li>
+      </ul>
+      <h4>CTA</h4>
+      <p>Bottom <code>.btn-cta-huge</code> with dynamic label: <code>'Use this program →'</code> (curated) / <code>'Build it →'</code> (custom). Disabled (opacity 0.4) until a method is chosen. Curated → app; Custom → customize.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 09 CUSTOMIZE ROUTINE ═══════ -->
+  <div class="section-mark" id="s09"><span class="num">09</span><h2>Customize routine</h2><span class="tag-grp">Onboarding · 3/3 · custom only</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div class="a-topbar"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div style="flex:1;padding-top:4px;"><div class="a-sub">Step 3 of 3</div><div class="a-ttl" style="font-size:36px;">Your routine</div></div><div style="width:36px;"></div></div>
+        <div style="padding:0 20px 12px;"><div class="a-progress" style="margin-bottom:14px;"><div style="width:100%;"></div></div>
+          <div style="display:flex;gap:6px;">
+            <div style="padding:8px 14px;border-radius:10px;background:var(--accent);color:var(--accent-fg);font-family:'Anton';font-size:14px;letter-spacing:.04em;text-transform:uppercase;">D1</div>
+            <div style="padding:8px 14px;border-radius:10px;background:var(--d-surface-2);color:var(--d-fg);font-family:'Anton';font-size:14px;letter-spacing:.04em;text-transform:uppercase;">D2</div>
+            <div style="padding:8px 14px;border-radius:10px;background:var(--d-surface-2);color:var(--d-fg);font-family:'Anton';font-size:14px;letter-spacing:.04em;text-transform:uppercase;">D3</div>
+            <div style="padding:8px 14px;border-radius:10px;background:var(--d-surface-2);color:var(--d-fg);font-family:'Anton';font-size:14px;letter-spacing:.04em;text-transform:uppercase;">D4</div>
+          </div>
+        </div>
+        <div style="padding:4px 20px 16px;">
+          <div style="font-family:'Anton';font-size:30px;text-transform:uppercase;margin:8px 0 4px;">Upper Body</div>
+          <div style="font-size:12px;color:var(--d-fg-2);margin-bottom:16px;">6 exercises · ~72 min</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="a-card" style="padding:12px;display:flex;align-items:center;gap:12px;"><div class="a-striped" style="width:44px;height:44px;border-radius:8px;"><div class="a-striped-label" style="font-size:7px;">gif</div></div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Wide Grip Pulldown</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Lats</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;"><span class="a-chip" style="font-size:10px;padding:3px 7px;">3 × 6-8</span><span style="font-size:10px;color:var(--d-fg-3);">tap to swap</span></div></div>
+            <button style="padding:14px;border-radius:12px;border:1.5px dashed var(--d-line);background:transparent;color:var(--d-fg-2);display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Inter';font-weight:600;font-size:14px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add exercise</button>
+          </div>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Customize routine</h3>
+      <p>Per-day exercise editor, shown only when "Build my own" was chosen. Pre-populated with the curated days so the user edits rather than starts empty.</p>
+      <h4>Elements</h4>
+      <ul class="tight">
+        <li><strong>Progress</strong> 100%.</li>
+        <li><strong>Day tabs</strong> D1–D5, horizontally scrollable. Active = solid accent, idle = <code>--surface-2</code>. Anton 14px.</li>
+        <li><strong>Day title</strong> Anton 30px + meta line ("N exercises · ~N×12 min").</li>
+        <li><strong>Exercise rows</strong> — <code>.card</code> padding 12px: 44px gif placeholder, name (14px 600) + primary muscles (11px), right column with <code>{sets} × {reps}</code> chip and "tap to swap" hint.</li>
+        <li><strong>Add exercise</strong> — dashed-border button (1.5px <code>--line</code>) opening the picker sheet (§10).</li>
+      </ul>
+      <h4>CTA</h4>
+      <p>Bottom <code>.btn-cta-huge</code> "Lock it in →" → app. Adding/removing exercises mutates <code>customDays[activeDay].exercises</code>.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 10 EXERCISE PICKER ═══════ -->
+  <div class="section-mark" id="s10"><span class="num">10</span><h2>Exercise picker sheet</h2><span class="tag-grp">Modal</span></div>
+  <div class="screen">
+    <div class="stage h-55">
+      <div class="phone scale-55">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;">
+          <div style="width:100%;background:var(--d-surface);border-radius:24px 24px 0 0;padding:20px;">
+            <div style="width:40px;height:4px;background:var(--d-fg-3);border-radius:100px;margin:-8px auto 16px;opacity:0.5;"></div>
+            <div style="font-family:'Anton';font-size:28px;text-transform:uppercase;margin-bottom:4px;">Add exercise</div>
+            <div style="font-size:12px;color:var(--d-fg-2);margin-bottom:14px;">6 picked · tap to add/remove</div>
+            <div style="display:flex;gap:6px;margin-bottom:14px;"><span class="a-chip solid">all</span><span class="a-chip">Chest</span><span class="a-chip">Back</span><span class="a-chip">Lats</span><span class="a-chip">Shoulders</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:color-mix(in oklch, var(--accent) 14%, var(--d-surface));border:1.5px solid var(--accent);">
+                <svg viewBox="0 0 100 200" width="44"><circle cx="50" cy="14" r="9" fill="var(--d-surface-3)" stroke="var(--d-line)"/><path d="M30 30 Q50 26 70 30 L72 80 Q72 100 68 120 L62 150 Q58 165 56 180 L44 180 Q42 165 38 150 L32 120 Q28 100 28 80 Z" fill="var(--d-surface-3)" stroke="var(--d-line)"/><path d="M34 36 Q50 36 66 36 L64 56 Q50 54 36 56 Z" fill="var(--accent)" stroke="var(--d-line)"/></svg>
+                <div style="flex:1;"><div style="font-size:14px;font-weight:600;">Incline Smith Press</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Upper Chest · Front Delts, Triceps</div></div>
+                <div style="width:24px;height:24px;border-radius:100px;background:var(--accent);display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-fg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:var(--d-surface-2);border:1.5px solid transparent;">
+                <svg viewBox="0 0 100 200" width="44"><circle cx="50" cy="14" r="9" fill="var(--d-surface-3)" stroke="var(--d-line)"/><path d="M30 30 Q50 26 70 30 L72 80 Q72 100 68 120 L62 150 Q58 165 56 180 L44 180 Q42 165 38 150 L32 120 Q28 100 28 80 Z" fill="var(--d-surface-3)" stroke="var(--d-line)"/><path d="M22 42 Q14 60 18 80 L28 78 Q28 58 30 44 Z" fill="var(--accent)" stroke="var(--d-line)"/><path d="M78 42 Q86 60 82 80 L72 78 Q72 58 70 44 Z" fill="var(--accent)" stroke="var(--d-line)"/></svg>
+                <div style="flex:1;"><div style="font-size:14px;font-weight:600;">Barbell Curl</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Biceps · Forearms</div></div>
+                <div style="width:24px;height:24px;border-radius:100px;border:2px solid var(--d-fg-3);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Exercise picker sheet</h3>
+      <p>Bottom sheet (85% height) opened from "Add exercise". Multi-select against the full <code>EXERCISES</code> library.</p>
+      <h4>Elements</h4>
+      <ul class="tight">
+        <li><strong>Title</strong> "Add exercise" (Anton 28px) + count line "{n} picked · tap to add/remove".</li>
+        <li><strong>Filter chips</strong> — horizontally scrollable: <code>all</code> + 11 muscle groups (Chest, Back, Lats, Shoulders, Biceps, Triceps, Quads, Hamstrings, Glutes, Calves, Abs). Active chip = solid accent.</li>
+        <li><strong>Exercise rows</strong> — 44px MuscleMap (highlighting primary+secondary), name (14px 600), muscle summary (11px: <code>primary · secondary</code>), 24px check circle on the right.</li>
+        <li><strong>Selected row</strong> = 14% accent-tint bg + accent border + filled check.</li>
+      </ul>
+      <h4>Behaviour</h4>
+      <p>Tapping a row toggles it in the active day's exercise list (default <code>{sets:3, reps:'8-12'}</code>). Filter narrows by primary OR secondary muscle. Tap backdrop or handle to dismiss.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 11 HOME ═══════ -->
+  <div class="section-mark" id="s11"><span class="num">11</span><h2>Home / Today</h2><span class="tag-grp">Tab · Today</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+          <div style="flex:1;overflow:hidden;padding-bottom:4px;">
+            <div style="padding:6px 22px 16px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;"><div style="flex:1;"><div class="a-eyebrow">Today · Friday</div><div style="font-family:'Anton';font-size:38px;line-height:0.9;text-transform:uppercase;margin-top:6px;">Ready to<br/>get it<span style="color:var(--accent);">.</span></div></div><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg></div></div></div>
+            <div style="padding:0 22px 16px;display:flex;gap:8px;">
+              <div style="flex:1;background:var(--d-surface);border:1px solid var(--d-line);border-radius:14px;padding:12px 14px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;letter-spacing:.08em;">Streak</div><div style="font-family:'Anton';font-size:22px;margin-top:6px;">3w</div></div>
+              <div style="flex:1;background:var(--d-surface);border:1px solid var(--d-line);border-radius:14px;padding:12px 14px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;letter-spacing:.08em;">This week</div><div style="font-family:'Anton';font-size:22px;margin-top:6px;">4/5</div></div>
+              <div style="flex:1;background:var(--d-surface);border:1px solid var(--d-line);border-radius:14px;padding:12px 14px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;letter-spacing:.08em;">Weight</div><div style="font-family:'Anton';font-size:22px;margin-top:6px;">81.0</div></div>
+            </div>
+            <div style="padding:0 22px 18px;"><div style="background:var(--accent);color:var(--accent-fg);border-radius:22px;padding:22px;position:relative;overflow:hidden;"><div style="position:absolute;right:-30px;top:-30px;font-family:'Anton';font-size:200px;opacity:0.12;line-height:0.8;">D1</div><div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;"><div style="width:8px;height:8px;border-radius:100px;background:var(--accent-fg);"></div> Up next</div><div style="font-family:'Anton';font-size:44px;margin-top:12px;line-height:0.85;text-transform:uppercase;">Day 1<br/>Upper Body</div><div style="display:flex;gap:10px;margin-top:14px;font-size:12px;font-weight:600;"><span>6 exercises</span><span>·</span><span>~66 min</span><span>·</span><span>18 sets</span></div><div style="display:flex;gap:8px;margin-top:18px;"><div style="flex:1;background:var(--accent-fg);color:var(--accent);padding:16px 18px;border-radius:12px;font-family:'Anton';font-size:22px;letter-spacing:.04em;text-transform:uppercase;text-align:center;">Start workout →</div><div style="padding:12px 14px;background:rgba(0,0,0,0.18);border-radius:12px;display:flex;align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg></div></div></div></div>
+            <div style="padding:4px 22px 8px;"><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;"><div style="font-family:'Anton';font-size:22px;text-transform:uppercase;">May 2026</div><span style="font-size:12px;color:var(--d-fg-2);">26 sessions</span></div></div>
+          </div>
+          <div class="a-tabbar"><div class="a-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11z"/></svg><span>Today</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11" stroke-linecap="round"/></svg><span>Workouts</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 4 3 5-6"/></svg><span>Profile</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Home / Today</h3>
+      <p>The default tab and emotional center of the app. Scrolls vertically; 22px gutters. Order top to bottom:</p>
+      <ul class="tight">
+        <li><strong>Greeting header</strong> — eyebrow "Today · {weekday}", then Anton 38px "Ready to / get it." (accent period). Bell IconBtn top-right. Title block is <code>flex:1; min-width:0</code> so it wraps on two lines.</li>
+        <li><strong>Stat strip</strong> — 3 equal pills: Streak ("3w"), This week ("4/5"), Bodyweight ("81.0 kg"). Each: small accent icon + UC label + Anton 22px value.</li>
+        <li><strong>Up-next hero card</strong> — full <code>--accent</code> fill, <code>radius 22px</code>. Giant faded "D{n}" watermark (Anton 200px, 0.12 opacity, top-right). "Up next" label with a pulsing dot. "Day N / {name}" Anton 44px. Meta row (exercises · minutes · sets). Two actions: big "Start workout →" (inverted: accent-fg bg, accent text) + swap IconBtn (opens override sheet).</li>
+        <li><strong>Calendar</strong> — month title + session count, weekday header row (S M T W T F S), then a 7-col grid. Completed days = solid accent cell with "D{n}" label; today = accent outline; future = muted.</li>
+        <li><strong>Legend</strong> + <strong>"This week" list</strong> — all 5 days as rows; next day highlighted with accent border + "Next" chip; completed days show a check.</li>
+      </ul>
+      <h4>Calendar logic</h4>
+      <p>Build from <code>WORKOUT_LOG</code> keyed by date. Tapping a completed day opens its overview; tapping today opens the next-up day's overview.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 12 DAY OVERVIEW ═══════ -->
+  <div class="section-mark" id="s12"><span class="num">12</span><h2>Day overview + Warmup</h2><span class="tag-grp">Pre-workout</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="padding:14px 18px 12px;display:flex;justify-content:space-between;"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div></div>
+        <div style="padding:0 22px 14px;"><div class="a-eyebrow">Day 1 of 5</div><div style="font-family:'Anton';font-size:44px;line-height:0.85;text-transform:uppercase;margin-top:6px;">Upper Body</div><div style="display:flex;gap:6px;margin-top:12px;"><span class="a-chip" style="background:transparent;border:1px solid var(--d-line);">6 exercises</span><span class="a-chip" style="background:transparent;border:1px solid var(--d-line);">~66 min</span></div></div>
+        <div style="padding:0 22px 12px;"><div style="display:flex;gap:6px;background:var(--d-surface-2);padding:4px;border-radius:10px;"><div style="flex:1;padding:10px 0;background:var(--d-bg);color:var(--d-fg);border-radius:8px;text-align:center;font-weight:600;font-size:13px;">Exercises</div><div style="flex:1;padding:10px 0;color:var(--d-fg-2);text-align:center;font-weight:600;font-size:13px;">Warmup</div></div></div>
+        <div style="padding:8px 22px 16px;display:flex;flex-direction:column;gap:10px;">
+          <div class="a-card" style="display:flex;gap:12px;align-items:center;padding:12px;"><div style="font-family:'Anton';font-size:26px;width:28px;color:var(--d-fg-3);">1</div><div class="a-striped" style="width:48px;height:48px;border-radius:8px;"><div class="a-striped-label" style="font-size:7px;">gif</div></div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Wide Grip Pulldown</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Lats</div></div><div style="font-family:'Anton';font-size:18px;color:var(--accent);">3×6-8</div></div>
+          <div class="a-card" style="display:flex;gap:12px;align-items:center;padding:12px;"><div style="font-family:'Anton';font-size:26px;width:28px;color:var(--d-fg-3);">2</div><div class="a-striped" style="width:48px;height:48px;border-radius:8px;"><div class="a-striped-label" style="font-size:7px;">gif</div></div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Incline Smith Press</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Upper Chest</div></div><div style="font-family:'Anton';font-size:18px;color:var(--accent);">3×6-8</div></div>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Day overview</h3>
+      <p>Pre-workout briefing. Reached by tapping a day (not the direct "Start" CTA). Has a back button + overflow (opens override sheet).</p>
+      <h4>Structure</h4>
+      <ul class="tight">
+        <li><strong>Header</strong> — eyebrow "Day N of 5", title Anton 44px, two outline chips (exercise count, est. minutes).</li>
+        <li><strong>Segmented tabs</strong> — "Exercises" / "Warmup" in a <code>--surface-2</code> track; active pill = <code>--bg</code>.</li>
+        <li><strong>Exercises tab</strong> — numbered cards: index (Anton 26px), 48px gif placeholder, name + primary muscle, prescription <code>{sets}×{reps}</code> in accent Anton 18px.</li>
+        <li><strong>Warmup tab</strong> — a header card (flame icon + "Recommended warmup · ~8 min · primes the muscles you'll hit today"), then numbered <code>.card-flat</code> rows from <code>day.warmup</code>, each with accent index + check icon. Footer note "Skip warmup at your own risk."</li>
+      </ul>
+      <h4>CTA</h4>
+      <p>Bottom <code>.btn-cta-huge</code>: "Start workout →" (Exercises tab) / "Start warmup →" (Warmup tab) → active workout.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 13 OVERRIDE SHEET ═══════ -->
+  <div class="section-mark" id="s13"><span class="num">13</span><h2>Override day sheet</h2><span class="tag-grp">Modal</span></div>
+  <div class="screen">
+    <div class="stage h-55">
+      <div class="phone scale-55">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end;">
+          <div style="width:100%;background:var(--d-surface);border-radius:24px 24px 0 0;padding:20px;">
+            <div style="width:40px;height:4px;background:var(--d-fg-3);border-radius:100px;margin:-8px auto 16px;opacity:0.5;"></div>
+            <div style="font-family:'Anton';font-size:26px;text-transform:uppercase;margin-bottom:4px;">Override today</div>
+            <div style="font-size:12px;color:var(--d-fg-2);margin-bottom:14px;">Feeling like a different day? Switch up.</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="padding:14px 16px;border-radius:12px;background:color-mix(in oklch, var(--accent) 12%, var(--d-surface-2));display:flex;align-items:center;gap:12px;"><div style="font-family:'Anton';font-size:20px;width:28px;color:var(--accent);">1</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Upper Body</div><div style="font-size:11px;color:var(--d-fg-2);">6 exercises</div></div><span class="a-chip solid" style="font-size:10px;">Current</span></div>
+              <div style="padding:14px 16px;border-radius:12px;background:var(--d-surface-2);display:flex;align-items:center;gap:12px;"><div style="font-family:'Anton';font-size:20px;width:28px;color:var(--d-fg-3);">2</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Lower Body</div><div style="font-size:11px;color:var(--d-fg-2);">5 exercises</div></div></div>
+              <div style="padding:14px 16px;border-radius:12px;background:var(--d-surface-2);display:flex;align-items:center;gap:12px;"><div style="font-family:'Anton';font-size:20px;width:28px;color:var(--d-fg-3);">3</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Shoulders & Arms</div><div style="font-size:11px;color:var(--d-fg-2);">7 exercises</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Override day sheet</h3>
+      <p>Bottom sheet for going off-schedule. Opened from the home hero card's swap icon or the day-overview overflow.</p>
+      <h4>Elements</h4>
+      <ul class="tight">
+        <li><strong>Title</strong> "Override today" (Anton 26px) + sub "Feeling like a different day? Switch up."</li>
+        <li><strong>Day rows</strong> — all 5: index (Anton 20px), name + exercise count. The currently-targeted day gets a 12% accent-tint bg + "Current" solid chip.</li>
+      </ul>
+      <h4>Behaviour</h4>
+      <p>Tapping a day sets <code>openDayIdx</code> and closes the sheet. The chosen day — not the scheduled one — is what the session logs.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 14 WORKOUTS LIST ═══════ -->
+  <div class="section-mark" id="s14"><span class="num">14</span><h2>Workouts list</h2><span class="tag-grp">Tab · Workouts</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;">
+          <div style="flex:1;padding:12px 22px 16px;">
+            <div class="a-eyebrow">Routine</div>
+            <div style="font-family:'Anton';font-size:36px;text-transform:uppercase;margin:6px 0 16px;">5 Day Illustrated</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="a-card" style="padding:14px;"><div style="display:flex;align-items:center;gap:12px;"><div style="font-family:'Anton';font-size:36px;width:44px;color:var(--accent);">1</div><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Upper Body</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">6 exercises · 18 sets</div></div><div style="text-align:right;"><div style="font-family:'Anton';font-size:18px;">5×</div><div style="font-size:10px;color:var(--d-fg-3);">completed</div></div></div><div style="display:flex;gap:4px;margin-top:12px;"><div style="padding:4px 8px;border-radius:6px;background:var(--d-surface-2);font-size:10px;color:var(--d-fg-2);">Wide Grip</div><div style="padding:4px 8px;border-radius:6px;background:var(--d-surface-2);font-size:10px;color:var(--d-fg-2);">Incline Smith</div><div style="padding:4px 8px;font-size:10px;color:var(--d-fg-3);">+4</div></div></div>
+              <div class="a-card" style="padding:14px;"><div style="display:flex;align-items:center;gap:12px;"><div style="font-family:'Anton';font-size:36px;width:44px;color:var(--accent);">2</div><div style="flex:1;"><div style="font-size:15px;font-weight:700;">Lower Body</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">5 exercises · 15 sets</div></div><div style="text-align:right;"><div style="font-family:'Anton';font-size:18px;">5×</div><div style="font-size:10px;color:var(--d-fg-3);">completed</div></div></div></div>
+            </div>
+          </div>
+          <div class="a-tabbar"><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11z"/></svg><span>Today</span></div><div class="a-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M3 9l3-3M21 15l-3 3M5 11l-2 2 4 4 2-2M19 13l2-2-4-4-2 2"/></svg><span>Workouts</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 4 3 5-6"/></svg><span>Profile</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Workouts list</h3>
+      <p>Browser of the whole routine. Reached via the Workouts tab.</p>
+      <h4>Elements</h4>
+      <ul class="tight">
+        <li><strong>Header</strong> — eyebrow "Routine" + split name (Anton 36px).</li>
+        <li><strong>Day cards</strong> — <code>.card</code> padding 14px. Top row: big accent index (Anton 36px), name (15px 700) + meta (exercises · sets), right column with completion count ("5×" Anton 18px + "completed").</li>
+        <li><strong>Exercise preview</strong> — horizontally scrollable mini-chips showing the first ~6 exercises (first two words each), with "+N" overflow.</li>
+      </ul>
+      <p>Tapping a card opens that day's overview (§12).</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 15 ACTIVE WORKOUT ═══════ -->
+  <div class="section-mark" id="s15"><span class="num">15</span><h2>Active workout — 4 variants</h2><span class="tag-grp">Core loop</span></div>
+  <p style="margin-top:16px;">
+    The highest-traffic surface. The same session data renders in one of four user-selectable
+    layouts (Tweaks → Layout variant). All four share: a top bar, exercise progress dots, a
+    rest-timer bar, and the bottom Complete-Set CTA. The variant is a global preference applied
+    to every exercise.
+  </p>
+
+  <h3>Shared chrome</h3>
+  <ul class="tight">
+    <li><strong>WorkoutTopBar</strong> — close IconBtn (exit) · centered {day name eyebrow + "{exIdx+1} / {total}" Anton 18px} · more IconBtn. Below it a full-width <code>.progress</code> bar tracking total sets completed across the whole session.</li>
+    <li><strong>ExerciseDots</strong> — one thin bar per exercise; done = accent, active = <code>--fg</code>, upcoming = <code>--surface-3</code>. Tappable to jump.</li>
+    <li><strong>RestBar</strong> — appears after a completed set: 22% accent-tint bg, accent top/bottom border, timer icon + "RESTING · {s}s" (Anton 18px) + outlined "Skip" button. Counts down from 90s.</li>
+    <li><strong>CompleteSetCTA</strong> — pinned bottom. While sets remain: "Complete Set {n}" with inline "{weight}{unit} × {reps}" preview. When the exercise is done: turns into "Next exercise →" (or finishes the session on the last exercise). An "Undo last set" ghost button appears above once any set is logged.</li>
+  </ul>
+
+  <h3>The four variants</h3>
+  <div class="three-col" style="grid-template-columns:repeat(2,1fr);">
+    <div class="screen" style="grid-template-columns:1fr;margin:0;">
+      <div class="stage h-65" style="padding:12px;">
+        <div class="phone scale-55">
+          <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+          <div style="padding:8px 18px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div><div style="text-align:center;"><div class="a-eyebrow" style="font-size:10px;">Upper Body</div><div style="font-family:'Anton';font-size:18px;margin-top:2px;">1 / 6</div></div><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></div></div><div class="a-progress"><div style="width:8%;"></div></div></div>
+          <div style="padding:8px 18px;"><div class="a-striped" style="height:170px;border-radius:16px;"><div class="a-striped-label">exercise gif</div></div>
+            <div style="display:flex;align-items:flex-end;gap:12px;margin:14px 0;"><div style="flex:1;"><div class="a-eyebrow">Exercise 1</div><div style="font-family:'Anton';font-size:30px;line-height:0.9;text-transform:uppercase;margin-top:4px;">Wide Grip Pulldown</div></div><div style="background:var(--d-surface);border:1px solid var(--d-line);border-radius:10px;padding:8px 12px;text-align:center;"><div style="font-family:'Anton';font-size:22px;color:var(--accent);">3×6-8</div></div></div>
+          </div>
+          <div class="gn"><div class="bar"></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-family:'Anton';font-size:18px;text-transform:uppercase;margin-top:8px;">A · Stacked <span style="color:var(--ink-3);font-size:11px;font-family:Inter;">default</span></div>
+    </div>
+    <div class="screen" style="grid-template-columns:1fr;margin:0;">
+      <div class="stage h-65" style="padding:12px;">
+        <div class="phone scale-55">
+          <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+          <div style="padding:8px 18px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div><div style="text-align:center;"><div class="a-eyebrow" style="font-size:10px;">Upper Body</div><div style="font-family:'Anton';font-size:18px;margin-top:2px;">1 / 6</div></div><div class="a-iconbtn"></div></div><div class="a-progress"><div style="width:8%;"></div></div></div>
+          <div style="padding:24px 18px 0;text-align:center;"><div class="a-eyebrow">Exercise 1 of 6</div><div style="font-family:'Anton';font-size:26px;margin-top:6px;text-transform:uppercase;">Wide Grip Pulldown</div></div>
+          <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 18px;"><div style="text-align:right;flex:1;"><div style="font-family:'Anton';font-size:72px;line-height:0.85;">65</div><div class="a-eyebrow" style="color:var(--accent);margin-top:4px;">kg</div></div><div style="font-family:'Anton';font-size:40px;color:var(--d-fg-3);align-self:flex-start;margin-top:8px;">×</div><div style="text-align:left;flex:1;"><div style="font-family:'Anton';font-size:72px;line-height:0.85;">8</div><div class="a-eyebrow" style="color:var(--accent);margin-top:4px;">reps</div></div></div>
+          <div style="display:flex;gap:6px;justify-content:center;"><div style="width:30px;height:30px;border-radius:10px;border:2px solid var(--accent);background:var(--d-surface-2);display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:14px;">1</div><div style="width:30px;height:30px;border-radius:10px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:14px;color:var(--d-fg-3);">2</div><div style="width:30px;height:30px;border-radius:10px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:14px;color:var(--d-fg-3);">3</div></div>
+          <div class="gn" style="margin-top:auto;"><div class="bar"></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-family:'Anton';font-size:18px;text-transform:uppercase;margin-top:8px;">B · Focus <span style="color:var(--ink-3);font-size:11px;font-family:Inter;">huge numerals</span></div>
+    </div>
+    <div class="screen" style="grid-template-columns:1fr;margin:0;">
+      <div class="stage h-65" style="padding:12px;">
+        <div class="phone scale-55">
+          <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+          <div style="padding:8px 18px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div><div style="text-align:center;"><div class="a-eyebrow" style="font-size:10px;">Upper Body</div><div style="font-family:'Anton';font-size:18px;margin-top:2px;">1 / 6</div></div><div class="a-iconbtn"></div></div><div class="a-progress"><div style="width:8%;"></div></div></div>
+          <div style="padding:12px 18px 0;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><svg viewBox="0 0 100 200" width="56"><circle cx="50" cy="14" r="9" fill="var(--d-surface-3)" stroke="var(--d-line)"/><path d="M30 30 Q50 26 70 30 L72 80 Q72 100 68 120 L62 150 Q58 165 56 180 L44 180 Q42 165 38 150 L32 120 Q28 100 28 80 Z" fill="var(--d-surface-3)" stroke="var(--d-line)"/></svg><div style="flex:1;"><div class="a-eyebrow">Exercise 1 · 3×6-8</div><div style="font-family:'Anton';font-size:24px;text-transform:uppercase;margin-top:4px;">Wide Grip Pulldown</div></div></div><div style="background:color-mix(in oklch, var(--accent) 14%, var(--d-surface));border-radius:18px;padding:22px;border:1px solid var(--accent);"><div class="a-eyebrow" style="color:var(--accent);margin-bottom:14px;">Cue 1 of 4</div><div style="font-family:'Anton';font-size:32px;line-height:1;text-transform:uppercase;">Slight lean back</div></div></div>
+          <div class="gn" style="margin-top:auto;"><div class="bar"></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-family:'Anton';font-size:18px;text-transform:uppercase;margin-top:8px;">C · Coach <span style="color:var(--ink-3);font-size:11px;font-family:Inter;">cue-first</span></div>
+    </div>
+    <div class="screen" style="grid-template-columns:1fr;margin:0;">
+      <div class="stage h-65" style="padding:12px;">
+        <div class="phone scale-55">
+          <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+          <div style="padding:8px 16px 12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="a-iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div><div style="text-align:center;"><div class="a-eyebrow" style="font-size:10px;">Upper Body</div><div style="font-family:'Anton';font-size:18px;margin-top:2px;">1 / 6</div></div><div class="a-iconbtn"></div></div><div class="a-progress"><div style="width:8%;"></div></div></div>
+          <div style="padding:8px 16px;"><div style="display:flex;gap:10px;align-items:center;padding:10px;background:var(--d-surface);border-radius:12px;border:1px solid var(--d-line);margin-bottom:10px;"><div class="a-striped" style="width:60px;height:60px;border-radius:8px;"><div class="a-striped-label" style="font-size:7px;">gif</div></div><div style="flex:1;"><div style="font-family:'Anton';font-size:20px;text-transform:uppercase;">Wide Grip Pulldown</div><div style="display:flex;gap:4px;margin-top:6px;"><span class="a-chip solid" style="font-size:9px;padding:2px 6px;">Lats</span></div></div><div style="font-family:'Anton';font-size:22px;color:var(--accent);">3×6-8</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"><div style="padding:8px;border-radius:10px;background:var(--d-surface-2);font-size:11px;"><span style="font-family:Anton;color:var(--accent);">01</span> Slight lean back</div><div style="padding:8px;border-radius:10px;background:var(--d-surface-2);font-size:11px;"><span style="font-family:Anton;color:var(--accent);">02</span> Pull to chest</div></div></div>
+          <div class="gn" style="margin-top:auto;"><div class="bar"></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-family:'Anton';font-size:18px;text-transform:uppercase;margin-top:8px;">D · Compact <span style="color:var(--ink-3);font-size:11px;font-family:Inter;">dense</span></div>
+    </div>
+  </div>
+
+  <table class="spec" style="margin-top:24px;">
+    <thead><tr><th>Variant</th><th>For</th><th>Composition (top → bottom)</th></tr></thead>
+    <tbody>
+      <tr><td class="k">stacked</td><td>Default / first-timers</td><td>170–200px gif (with "Demo" button) → name + prescription pill → muscle-map card with primary (solid) + secondary (outline) chips → numbered form-cue card → set rows + "Add set".</td></tr>
+      <tr><td class="k">focus</td><td>Experienced lifters</td><td>Centered name → giant <code>110px</code> weight × reps numerals (tap to edit) → set chip row (done=accent / active=outline) → collapsible "Form cues" toggle. Minimal chrome.</td></tr>
+      <tr><td class="k">coach</td><td>Learning new lifts</td><td>Muscle map + name + prescription → one big lime cue card (Anton 36px) with prev/next + dot indicators → compact set rows + "Add set".</td></tr>
+      <tr><td class="k">compact</td><td>Fast loggers</td><td>Single compact header (64px gif + name + chips + prescription) → 2×2 cue grid → compact set rows + "Add set". Everything in one scroll-free view.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Implementation note</h4>
+  <p>One <code>WorkoutSession</code> component owns all session state (a per-exercise array of <code>{weight, reps, done}</code> sets) and the callbacks. It passes a single <code>props</code> object into whichever <code>Layout*</code> renderer matches <code>tweaks.layout</code>. To add a variant: write a new <code>Layout*</code> consuming the same props, register it in the switch, and add it to the Tweaks select.</p>
+
+  <!-- ═══════ 16 SET TRACKING ═══════ -->
+  <div class="section-mark" id="s16"><span class="num">16</span><h2>Set tracking &amp; keypad</h2><span class="tag-grp">Interaction</span></div>
+  <div class="screen">
+    <div class="stage h-50">
+      <div class="phone scale-50">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="padding:16px 18px;">
+          <div style="display:flex;align-items:center;gap:6px;padding:10px 12px;background:color-mix(in oklch, var(--accent) 8%, var(--d-surface-2));border:1px solid var(--accent);border-radius:12px;margin-bottom:6px;">
+            <div style="font-family:'Anton';font-size:18px;width:26px;color:var(--accent);">01</div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;"><div style="width:28px;height:28px;border-radius:8px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></div><div style="text-align:center;"><div style="font-family:'Anton';font-size:22px;">65</div><div style="font-size:9px;color:var(--d-fg-3);text-transform:uppercase;">kg</div></div><div style="width:28px;height:28px;border-radius:8px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+            <div style="color:var(--d-fg-3);font-family:Anton;">×</div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;"><div style="width:28px;height:28px;border-radius:8px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></div><div style="text-align:center;"><div style="font-family:'Anton';font-size:22px;">8</div><div style="font-size:9px;color:var(--d-fg-3);text-transform:uppercase;">reps</div></div><div style="width:28px;height:28px;border-radius:8px;border:1px solid var(--d-line);background:var(--d-surface);display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+            <div style="width:18px;"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:10px 12px;background:color-mix(in oklch, var(--accent) 14%, var(--d-surface));border-radius:12px;margin-bottom:6px;"><div style="font-family:'Anton';font-size:18px;width:26px;color:var(--accent);">02</div><div style="flex:1;text-align:center;"><div style="font-family:'Anton';font-size:22px;">65</div></div><div style="color:var(--d-fg-3);font-family:Anton;">×</div><div style="flex:1;text-align:center;"><div style="font-family:'Anton';font-size:22px;">8</div></div><div style="width:18px;display:flex;justify-content:flex-end;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+          <button style="width:100%;padding:10px;border-radius:12px;border:1.5px dashed var(--d-line);background:transparent;color:var(--d-fg-2);display:flex;align-items:center;justify-content:center;gap:6px;font-family:Inter;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Add set</button>
+          <div style="margin-top:14px;"><div style="background:var(--accent);color:var(--accent-fg);border-radius:14px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;font-family:Anton;text-transform:uppercase;"><span style="font-size:22px;">Complete Set 1</span><span style="font-size:14px;opacity:0.7;">65kg × 8</span></div></div>
+        </div>
+        <div class="gn" style="margin-top:auto;"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Set row</h3>
+      <p>The atomic logging unit. Three states: <strong>active</strong> (accent border + 8% tint), <strong>done</strong> (14% accent tint, accent set-number + check), <strong>idle</strong>.</p>
+      <ul class="tight">
+        <li><strong>Layout:</strong> set number (Anton, zero-padded "01") · weight cell · "×" · reps cell · 18px done-check slot.</li>
+        <li><strong>Steppers:</strong> each of weight &amp; reps is flanked by <code>28×28</code> −/+ buttons. Weight steps by <code>2.5kg</code> (or <code>5lbs</code>); reps by <code>1</code>. Buttons disable on completed sets; active-press flips to accent.</li>
+        <li><strong>Tap the number</strong> (not the steppers) opens the keypad sheet for big edits.</li>
+        <li><strong>Add set</strong> — dashed button below the list; new set inherits the previous set's weight + reps.</li>
+      </ul>
+      <h3>Complete-Set CTA</h3>
+      <p>Bottom <code>.btn-cta-huge</code> variant showing "Complete Set {n}" + inline "{weight}{unit} × {reps}". On tap: marks the current set done, starts the 90s rest timer, toasts "Set {n} logged · 90s rest". After the last set: becomes "Next exercise →".</p>
+      <h3>Keypad sheet</h3>
+      <p>Opened by tapping a weight/reps number. Big accent value display (Anton 80px) + quick-adjust chips (weight: ±1.25/±2.5/±5; reps: ±1/±2/±5), a 3-col numeric keypad (7-8-9 / 4-5-6 / 1-2-3 / . 0 ⌫), and a "Save" CTA.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 17 WORKOUT COMPLETE ═══════ -->
+  <div class="section-mark" id="s17"><span class="num">17</span><h2>Workout complete</h2><span class="tag-grp">End state</span></div>
+  <div class="screen">
+    <div class="stage h-55">
+      <div class="phone scale-55">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;text-align:center;padding:24px;justify-content:space-between;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            <div class="a-eyebrow" style="color:var(--accent);">Day 1 done</div>
+            <div style="font-family:'Anton';font-size:50px;line-height:0.9;text-transform:uppercase;">Upper Body<br/>locked in.</div>
+            <div style="font-size:14px;color:var(--d-fg-2);max-width:280px;">6 exercises · 18 sets · logged.</div>
+            <div style="display:flex;gap:18px;margin-top:16px;"><div style="background:var(--d-surface);border:1px solid var(--d-line);border-radius:14px;padding:12px 20px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;">PRs</div><div style="font-family:Anton;font-size:22px;margin-top:4px;">2</div></div><div style="background:var(--d-surface);border:1px solid var(--d-line);border-radius:14px;padding:12px 20px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;">Vol</div><div style="font-family:Anton;font-size:22px;margin-top:4px;">+8%</div></div></div>
+          </div>
+          <button class="a-cta">Back home →</button>
+        </div>
+        <div class="gn"><div class="bar"></div></div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Workout complete</h3>
+      <p>Celebration shown after the final set of the final exercise. Centered, full-bleed.</p>
+      <ul class="tight">
+        <li>Large accent check (80px), eyebrow "Day N done", Anton 50–56px "{day name} / locked in.".</li>
+        <li>Summary line: "{n} exercises · {n} sets · logged."</li>
+        <li>Two stat pills: PRs count + Volume delta.</li>
+        <li>Bottom <code>.btn-cta-huge</code> "Back home →" → resets to home tab.</li>
+      </ul>
+      <p>On mount, the session is appended to <code>workoutLog</code> as <code>{date: today, day: dayIdx+1}</code> so the calendar + next-day logic update.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 18 PROFILE ═══════ -->
+  <div class="section-mark" id="s18"><span class="num">18</span><h2>Profile / Metrics</h2><span class="tag-grp">Tab · Profile</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;">
+          <div style="flex:1;padding:12px 22px 0;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;"><div style="width:64px;height:64px;border-radius:100px;background:var(--accent);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;font-family:Anton;font-size:32px;">AX</div><div style="flex:1;"><div style="font-family:Anton;font-size:24px;text-transform:uppercase;line-height:1;">Alex Mercer</div><div style="font-size:12px;color:var(--d-fg-2);margin-top:4px;">5'10" · 26 sessions · 8 weeks in</div></div></div>
+            <div style="display:flex;gap:8px;margin-bottom:18px;"><div class="a-card" style="flex:1;padding:14px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;letter-spacing:.1em;">Total volume</div><div style="display:flex;align-items:baseline;gap:4px;margin-top:8px;"><div style="font-family:Anton;font-size:36px;">48k</div><div style="font-size:12px;color:var(--d-fg-2);">kg</div></div></div><div class="a-card" style="flex:1;padding:14px;"><div style="font-size:10px;color:var(--d-fg-2);text-transform:uppercase;letter-spacing:.1em;">PRs this month</div><div style="font-family:Anton;font-size:36px;margin-top:8px;">6</div></div></div>
+            <div class="a-eyebrow" style="margin-bottom:6px;">Exercise progression</div>
+            <div class="a-card" style="padding:16px;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><div><div style="font-family:Anton;font-size:48px;">72.5<span style="font-size:16px;color:var(--d-fg-2);font-weight:400;margin-left:4px;">kg</span></div><div style="font-size:11px;color:var(--d-fg-2);">Current PR</div></div><div style="text-align:right;color:var(--accent);"><div style="font-family:Anton;font-size:18px;">+12.5kg</div><div style="font-size:11px;color:var(--d-fg-2);">+21% in 8w</div></div></div>
+              <svg viewBox="0 0 320 120" preserveAspectRatio="none" style="width:100%;height:90px;margin-top:8px;"><path d="M12 96 L70 80 L128 64 L186 48 L244 30 L308 14" stroke="var(--accent)" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M12 96 L70 80 L128 64 L186 48 L244 30 L308 14 L308 108 L12 108 Z" fill="var(--accent)" opacity="0.14"/></svg>
+            </div>
+          </div>
+          <div class="a-tabbar"><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11z"/></svg><span>Today</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11" stroke-linecap="round"/></svg><span>Workouts</span></div><div class="a-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 4 3 5-6"/></svg><span>Profile</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Profile / Metrics</h3>
+      <p>Where the work pays off. Scrolls; 22px gutters. Sections top to bottom:</p>
+      <ul class="tight">
+        <li><strong>Profile header</strong> — 64px lime monogram avatar ("AX"), name (Anton 24px), meta line, edit IconBtn.</li>
+        <li><strong>Big stats</strong> — 2 cards: Total volume ("48k kg", +12% trend) and PRs this month ("6", "On fire" flame).</li>
+        <li><strong>Exercise progression</strong> — card with current PR (Anton 48px + unit), 8-week delta (accent, "+Nkg" + "+N%"), a <code>LineChart</code>, and date axis. Below: horizontally-scrollable exercise chips to switch the charted exercise (active = solid accent).</li>
+        <li><strong>Bodyweight</strong> — same card pattern, <strong>coral</strong> line color, "Today" value + 8-week delta.</li>
+        <li><strong>Consistency heatmap</strong> — 7×8 grid of the last 8 weeks; trained days = accent cell, rest = <code>--surface-2</code>, today outlined. Summary line: sessions / avg-per-week / streak.</li>
+        <li><strong>Recent PRs</strong> — list rows: accent trend icon tile, exercise name + "Nd ago", weight (Anton 22px accent).</li>
+      </ul>
+      <p>Charts accept any <code>[{date, weight}]</code> array — wire to the live store in production. Data: <code>EXERCISE_HISTORY</code>, <code>BODYWEIGHT</code>, <code>WORKOUT_LOG</code>.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 19 SETTINGS ═══════ -->
+  <div class="section-mark" id="s19"><span class="num">19</span><h2>Settings</h2><span class="tag-grp">Tab · Settings</span></div>
+  <div class="screen">
+    <div class="stage h-65">
+      <div class="phone scale-65">
+        <div class="sb"><span style="width:60px;">9:30</span><div class="punch"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;">
+          <div style="flex:1;padding:12px 22px 0;">
+            <div class="a-eyebrow">Settings</div>
+            <div style="font-family:Anton;font-size:36px;text-transform:uppercase;margin-top:6px;">Settings</div>
+            <div class="a-eyebrow" style="margin:18px 0 8px;">Routine</div>
+            <div class="a-card" style="padding:0;overflow:hidden;">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;"><div style="width:32px;height:32px;border-radius:8px;background:var(--d-surface-2);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M3 9l3-3M21 15l-3 3M5 11l-2 2 4 4 2-2M19 13l2-2-4-4-2 2"/></svg></div><div style="flex:1;"><div style="font-size:14px;font-weight:500;">Your routine</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">5 Day Illustrated · 5 days</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--d-fg-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+              <div style="height:1px;background:var(--d-line);margin-left:52px;"></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;"><div style="width:32px;height:32px;border-radius:8px;background:var(--d-surface-2);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg></div><div style="flex:1;"><div style="font-size:14px;font-weight:500;">Switch split</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Change to push/pull/legs, etc</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--d-fg-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+            </div>
+            <div class="a-eyebrow" style="margin:18px 0 8px;">Workout experience</div>
+            <div class="a-card" style="padding:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:14px;padding:14px 16px;"><div style="width:32px;height:32px;border-radius:8px;background:var(--d-surface-2);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div><div style="flex:1;"><div style="font-size:14px;font-weight:500;">Notifications</div><div style="font-size:11px;color:var(--d-fg-2);margin-top:2px;">Daily reminders · 6:30 PM</div></div><div style="width:38px;height:22px;border-radius:100px;background:var(--accent);position:relative;"><div style="position:absolute;top:2px;left:18px;width:18px;height:18px;border-radius:100px;background:var(--accent-fg);"></div></div></div></div>
+          </div>
+          <div class="a-tabbar"><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v10a2 2 0 01-2 2H5a2 2 0 01-2-2V11z"/></svg><span>Today</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11" stroke-linecap="round"/></svg><span>Workouts</span></div><div class="a-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 4 3 5-6"/></svg><span>Profile</span></div><div class="a-tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.04 1.56V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1.1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.04H3a2 2 0 110-4h.09A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34h.04a1.7 1.7 0 001.04-1.56V3a2 2 0 114 0v.09a1.7 1.7 0 001.04 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87v.04a1.7 1.7 0 001.56 1.04H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.56 1.04z"/></svg><span>Settings</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="desc">
+      <h3>Settings</h3>
+      <p>Grouped list. Title "Settings" (Anton 36px), then labeled groups, each a single <code>.card</code> with rows separated by 1px dividers inset 52px (past the icon).</p>
+      <h4>Groups &amp; rows</h4>
+      <ul class="tight">
+        <li><strong>Routine</strong> — Your routine (→ customize), Switch split (→ split picker), Edit exercises, Default rest ("90 seconds").</li>
+        <li><strong>Workout experience</strong> — Layout style ("open Tweaks panel"), Notifications (toggle, on), Auto-start rest timer (toggle, on), Haptics on set complete (toggle, on).</li>
+        <li><strong>Preferences</strong> — Units (kg/lbs), Theme (dark/light), Profile &amp; body metrics.</li>
+        <li><strong>Account</strong> — Sync to cloud (toggle, on), Export history (CSV/JSON), Delete all data (danger styling — red icon tile + red label).</li>
+      </ul>
+      <h4>SettingsRow</h4>
+      <p>32px icon tile (<code>--surface-2</code>) + label (14px 500) + optional sub (11px) + right element: either a chevron (navigation) or a toggle. Toggle = <code>38×22</code> pill, accent when on, with an 18px knob sliding 16px. Footer: "Get Gym Done · v1.0.0 (beta)".</p>
+    </div>
+  </div>
+
+  <!-- ═══════ 20 DATA MODEL ═══════ -->
+  <div class="section-mark" id="s20"><span class="num">20</span><h2>Data model</h2></div>
+  <p style="margin-top:16px;">All reference data lives in one module. Shapes:</p>
+  <table class="spec">
+    <thead><tr><th>Name</th><th>Shape</th><th>Consumed by</th></tr></thead>
+    <tbody>
+      <tr><td class="k">SPLIT_OPTIONS</td><td><code>{id, name, sub, days[], recommended?}</code></td><td>Split picker (§07)</td></tr>
+      <tr><td class="k">EXERCISES</td><td><code>{id, name, primary[], secondary[], cues[]}</code></td><td>Every exercise surface</td></tr>
+      <tr><td class="k">WORKOUT_DAYS</td><td><code>{id, name, subtitle, color, exercises:[{id,sets,reps}], warmup[]}</code></td><td>Overview, workout</td></tr>
+      <tr><td class="k">WORKOUT_LOG</td><td><code>[{date:'YYYY-MM-DD', day:1–5}]</code></td><td>Calendar, heatmap, next-day</td></tr>
+      <tr><td class="k">EXERCISE_HISTORY</td><td><code>{exId: [{date, weight}]}</code></td><td>Progression chart</td></tr>
+      <tr><td class="k">BODYWEIGHT</td><td><code>[{date, kg}]</code></td><td>Bodyweight chart</td></tr>
+      <tr><td class="k">LAST_WEIGHT</td><td><code>{exId: kg}</code></td><td>Pre-fill Complete-Set</td></tr>
+    </tbody>
+  </table>
+  <p>The reference program is the 5-day split: <strong>Day 1 Upper</strong> (Pulldown, Incline Smith, T-Bar Row, Lateral Raise, Close-Grip Bench, Barbell Curl), <strong>Day 2 Lower</strong> (Deadlift, Leg Ext, Seated Ham Curl, Seated Calf, Decline Crunch), <strong>Day 3 Shoulders &amp; Arms</strong> (7 lifts), <strong>Day 4 Legs Quad</strong> (6 lifts), <strong>Day 5 Back &amp; Chest</strong> (5 lifts). Day 1/2 use 6–8 reps, Day 3+ use 8–12; each exercise carries 3–4 form cues lifted from the source PDF. <strong>Units:</strong> all weights stored in kg; convert to lbs at display only (<code>kg × 2.20462</code>, rounded to nearest 0.5).</p>
+
+  <!-- ═══════ 21 TWEAKS ═══════ -->
+  <div class="section-mark" id="s21"><span class="num">21</span><h2>Tweaks &amp; theming</h2></div>
+  <p style="margin-top:16px;">A design-exploration panel (not user-facing in production) exposes live knobs. Persist these as app preferences:</p>
+  <table class="spec">
+    <thead><tr><th>Tweak</th><th>Values</th><th>Affects</th></tr></thead>
+    <tbody>
+      <tr><td>Accent palette</td><td>lime · ember · electric · blood · mono</td><td><code>--accent</code>, <code>--accent-fg</code>, <code>--accent-2</code></td></tr>
+      <tr><td>Theme</td><td>dark · light</td><td><code>data-theme</code> ground colors</td></tr>
+      <tr><td>Layout variant</td><td>stacked · focus · coach · compact</td><td>Active workout (§15)</td></tr>
+      <tr><td>Auto rest timer</td><td>on · off</td><td>90s timer after set</td></tr>
+      <tr><td>Show muscle map</td><td>on · off</td><td>Body diagrams</td></tr>
+      <tr><td>Unit</td><td>kg · lbs</td><td>All weight displays</td></tr>
+      <tr><td>Type size</td><td>regular · large</td><td>Body base font-size</td></tr>
+    </tbody>
+  </table>
+  <h4>Palette presets</h4>
+  <table class="spec">
+    <thead><tr><th>Preset</th><th>--accent</th><th>--accent-fg</th></tr></thead>
+    <tbody>
+      <tr><td class="k">lime</td><td>oklch(0.88 0.22 125)</td><td>#0a0a09</td></tr>
+      <tr><td class="k">ember</td><td>oklch(0.74 0.20 50)</td><td>#0a0a09</td></tr>
+      <tr><td class="k">electric</td><td>oklch(0.80 0.18 235)</td><td>#0a0a09</td></tr>
+      <tr><td class="k">blood</td><td>oklch(0.62 0.22 25)</td><td>#f7f5f0</td></tr>
+      <tr><td class="k">mono</td><td>#f7f5f0</td><td>#0a0a09</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════ 22 CHECKLIST ═══════ -->
+  <div class="section-mark" id="s22"><span class="num">22</span><h2>Acceptance checklist</h2></div>
+  <ol class="checklist">
+    <li><div><div class="t">Foundations</div><div class="d">All tokens (§02) defined as CSS variables; light theme overrides ground colors; accent swappable via the 5 presets.</div></div></li>
+    <li><div><div class="t">Type</div><div class="d">Anton for display + all numerals, Inter for UI, JetBrains Mono for data/placeholders. Sizes match §02.</div></div></li>
+    <li><div><div class="t">Phone chrome</div><div class="d">412×892 frame, 38px status bar with centered punch-hole, 24px gesture nav.</div></div></li>
+    <li><div><div class="t">Onboarding</div><div class="d">Splash (sign-in + skip), single-tap split picker, method choice with CTA, customize + picker sheet.</div></div></li>
+    <li><div><div class="t">Home</div><div class="d">Greeting, stat strip, lime up-next hero card, calendar with completed/today marking, week list.</div></div></li>
+    <li><div><div class="t">Day overview</div><div class="d">Exercises + Warmup segmented tabs; start CTA.</div></div></li>
+    <li><div><div class="t">Active workout — 4 variants</div><div class="d">Stacked, Focus, Coach, Compact all render the same session; switchable by preference.</div></div></li>
+    <li><div><div class="t">Set logging</div><div class="d">Stepper ±, tap-to-keypad, Complete-Set CTA with preview, 90s rest timer, Add set, Undo.</div></div></li>
+    <li><div><div class="t">Workout complete</div><div class="d">Celebration + PR/volume stats; appends to log.</div></div></li>
+    <li><div><div class="t">Profile</div><div class="d">Progression chart (switchable), bodyweight (coral), consistency heatmap, recent PRs.</div></div></li>
+    <li><div><div class="t">Settings</div><div class="d">Grouped rows with toggles + navigation chevrons; danger row styling.</div></div></li>
+    <li><div><div class="t">Navigation</div><div class="d">4-tab bottom nav; modal sheets overlay without changing the tab; next-day auto-logic + override.</div></div></li>
+  </ol>
+
+  <h3>File map (current prototype)</h3>
+  <div class="tree">
+<span class="folder">styles.css</span>        <span class="note">// tokens, components, both themes</span>
+<span class="folder">data.js</span>           <span class="note">// SPLIT_OPTIONS, EXERCISES, WORKOUT_DAYS, history</span>
+<span class="folder">ui.jsx</span>            <span class="note">// Icons, TabBar, TopBar, LineChart, MuscleMap</span>
+<span class="folder">onboarding.jsx</span>    <span class="note">// Splash, SplitSelect, MethodSelect, CustomizeRoutine, ExercisePicker</span>
+<span class="folder">home.jsx</span>          <span class="note">// HomeScreen, DayOverview, SwitchDaySheet</span>
+<span class="folder">workout.jsx</span>       <span class="note">// WorkoutSession + 4 Layout* + SetRow + KeypadSheet + Complete</span>
+<span class="folder">profile.jsx</span>       <span class="note">// ProfileScreen + charts + heatmap</span>
+<span class="folder">settings.jsx</span>      <span class="note">// SettingsScreen, SettingsGroup, SettingsRow</span>
+<span class="folder">app.jsx</span>           <span class="note">// App state machine, routing, tweaks wiring</span>
+  </div>
+
+  <div class="callout">
+    <div class="label">Production gaps</div>
+    <p><strong>Persistence:</strong> log mutations are in-memory — back them with Room/DataStore. <strong>Placeholders:</strong> exercise GIFs &amp; the MuscleMap silhouette need real assets/art. <strong>Stubs:</strong> notifications, cloud sync, export have UI but no logic. <strong>Open questions:</strong> superset/drop-set support, deload handling, tablet layouts, plate calculator.</p>
+  </div>
+
+  <footer>
+    <div>
+      <div class="signoff">Get Gym Done.</div>
+      <div style="margin-top:4px;">Master engineering handover · v1.0 · June 2026</div>
+    </div>
+    <div style="text-align:right;">
+      <div>17 screens · 4 workout variants · 1 design system</div>
+      <div style="margin-top:4px;">Build it.</div>
+    </div>
+  </footer>
+
+</div>
+<script>
+  window.addEventListener('load', async () => {
+    try { await document.fonts.ready; } catch (e) {}
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+</body>
+</html>

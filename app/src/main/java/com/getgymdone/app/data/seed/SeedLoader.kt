@@ -28,7 +28,10 @@ class SeedLoader(
             db.exerciseDao().clear()
             db.userPrefsDao().upsert(UserPrefs())
         }
-        if (db.exerciseDao().getAll().isNotEmpty()) return
+        if (db.exerciseDao().getAll().isNotEmpty()) {
+            reconcileCatalogDays()
+            return
+        }
         val text = context.resources.openRawResource(R.raw.seed_data).bufferedReader().use { it.readText() }
         val seed = json.decodeFromString(SeedFile.serializer(), text)
 
@@ -43,6 +46,7 @@ class SeedLoader(
                     dayNumber = d.dayNumber,
                     name = d.name,
                     muscleGroups = d.muscleGroups,
+                    isRestDay = d.isRestDay,
                 )
             }
             db.workoutDayDao().upsertAll(days)
@@ -61,6 +65,43 @@ class SeedLoader(
                 }
             }
             db.dayExerciseDao().upsertAll(items)
+        }
+    }
+
+    /**
+     * Converge an already-seeded catalog onto the current seed's day layout (interspersed rest
+     * days, renumbered training days). Idempotent and safe for installs with workout history: we
+     * only ever INSERT new rest rows and UPDATE dayNumber/dayCount in place — never REPLACE an
+     * existing WorkoutDay/Split row, which would CASCADE-wipe day_exercise rows and break the
+     * session foreign key. A no-op once the DB already matches the seed.
+     */
+    private suspend fun reconcileCatalogDays() {
+        val existing = db.workoutDayDao().getAll()
+        if (existing.isEmpty()) return
+        val byId = existing.associateBy { it.id }
+
+        val text = context.resources.openRawResource(R.raw.seed_data).bufferedReader().use { it.readText() }
+        val seed = json.decodeFromString(SeedFile.serializer(), text)
+
+        seed.splits.forEach { s ->
+            val split = db.splitDao().getById(s.id) ?: return@forEach
+            val newRows = mutableListOf<WorkoutDay>()
+            s.days.forEach { d ->
+                val current = byId[d.id]
+                when {
+                    current == null -> newRows += WorkoutDay(
+                        id = d.id,
+                        splitId = s.id,
+                        dayNumber = d.dayNumber,
+                        name = d.name,
+                        muscleGroups = d.muscleGroups,
+                        isRestDay = d.isRestDay,
+                    )
+                    current.dayNumber != d.dayNumber -> db.workoutDayDao().setDayNumber(d.id, d.dayNumber)
+                }
+            }
+            if (newRows.isNotEmpty()) db.workoutDayDao().upsertAll(newRows)
+            if (split.dayCount != s.dayCount) db.splitDao().setDayCount(s.id, s.dayCount)
         }
     }
 

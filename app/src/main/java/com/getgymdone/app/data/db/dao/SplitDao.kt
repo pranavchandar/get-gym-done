@@ -24,6 +24,10 @@ interface SplitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(item: Split)
 
+    /** In-place update so we don't REPLACE the row (which would CASCADE-wipe its workout days). */
+    @Query("UPDATE split SET dayCount = :dayCount WHERE id = :id")
+    suspend fun setDayCount(id: String, dayCount: Int)
+
     @Query("DELETE FROM split")
     suspend fun clear()
 }

@@ -3,6 +3,8 @@ package com.getgymdone.app.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.getgymdone.app.data.db.dao.BodyMetricDao
 import com.getgymdone.app.data.db.dao.DayExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseDao
@@ -31,7 +33,7 @@ import com.getgymdone.app.data.db.entities.WorkoutDay
         BodyMetric::class,
         UserPrefs::class,
     ],
-    version = 1,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -47,5 +49,19 @@ abstract class AppDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "gymdone.db"
+
+        /** Adds WorkoutDay.isRestDay. Rest-day rows themselves are backfilled by SeedLoader. */
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE workout_day ADD COLUMN isRestDay INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** Adds UserPrefs.restSeconds (rest-timer duration, default 90s). */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN restSeconds INTEGER NOT NULL DEFAULT 90")
+            }
+        }
     }
 }

@@ -25,4 +25,5 @@ data class WorkoutDay(
     val dayNumber: Int,
     val name: String,
     val muscleGroups: List<String>,
+    val isRestDay: Boolean = false,
 )

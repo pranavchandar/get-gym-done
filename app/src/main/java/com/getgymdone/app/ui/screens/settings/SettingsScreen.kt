@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,7 +58,7 @@ class SettingsViewModel @Inject constructor(
 }
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onResetRoutine: () -> Unit) {
+fun SettingsScreen(onResetRoutine: () -> Unit, onOpenDebug: () -> Unit) {
     val vm: SettingsViewModel = hiltViewModel()
     val p by vm.prefsFlow.collectAsState()
 
@@ -71,6 +73,7 @@ fun SettingsScreen(onBack: () -> Unit, onResetRoutine: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 22.dp)
             .padding(top = 56.dp, bottom = 22.dp),
     ) {
@@ -111,10 +114,17 @@ fun SettingsScreen(onBack: () -> Unit, onResetRoutine: () -> Unit) {
                 label = "Import from JSON",
                 onClick = { openDoc.launch(arrayOf("application/json", "*/*")) },
             )
+            Spacer(Modifier.height(8.dp))
+            GhostCta(label = "View seeded data", onClick = onOpenDebug)
         }
 
-        Spacer(Modifier.weight(1f))
-        GhostCta(label = "Back", onClick = onBack)
+        Spacer(Modifier.height(24.dp))
+        Text(
+            "Get Gym Done · v0.1.0 (beta)",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
     }
 }
 

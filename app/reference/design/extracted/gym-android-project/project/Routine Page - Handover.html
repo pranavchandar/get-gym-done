@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Routine Page — Engineering Handover</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --paper: #ffffff;
+    --ink: #14130f;
+    --ink-2: #5a564a;
+    --ink-3: #908a78;
+    --line: #d6d2c4;
+    --line-2: #ebe8e0;
+    --accent: oklch(0.88 0.22 125);
+    --accent-fg: #0a0a09;
+    --dark: #0a0a09;
+    --dark-surface: #16140f;
+    --dark-surface-2: #1f1c14;
+    --dark-surface-3: #2a2620;
+    --dark-line: #2e2b22;
+    --dark-fg: #f7f5f0;
+    --dark-fg-2: #a8a59a;
+    --dark-fg-3: #696657;
+  }
+
+  @page { size: A4; margin: 1.2cm; }
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 64px 80px;
+    background: var(--paper);
+  }
+  @media screen {
+    body { padding: 24px 0; }
+    .doc { box-shadow: 0 8px 60px rgba(0,0,0,0.08); }
+  }
+
+  /* ─── Typography ─── */
+  h1, h2, h3, h4 {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.015em;
+    line-height: 0.94;
+    margin: 0;
+  }
+  h1 { font-size: 72px; }
+  h2 { font-size: 36px; margin-top: 64px; }
+  h3 { font-size: 22px; margin-top: 28px; letter-spacing: 0.025em; }
+  h4 {
+    font-family: 'Inter';
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    margin: 22px 0 8px;
+  }
+  p { margin: 0 0 12px; }
+  p + p { margin-top: 0; }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .lede {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 740px;
+    margin-top: 16px;
+  }
+
+  code, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--line-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--dark);
+    color: var(--dark-fg);
+    padding: 18px 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    margin: 12px 0 24px;
+    border: 1px solid var(--dark-line);
+  }
+  pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; }
+  pre .kw { color: #ff8a65; }
+  pre .str { color: oklch(0.85 0.18 125); }
+  pre .num { color: #e6c97a; }
+  pre .com { color: #6b6450; font-style: italic; }
+  pre .tag { color: #9fcfff; }
+  pre .attr { color: #f7a8c5; }
+  pre .key { color: #b388ff; }
+
+  /* ─── Hero ─── */
+  .hero { border-bottom: 2.5px solid var(--ink); padding-bottom: 36px; }
+  .hero .top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+  .hero-meta { display: flex; gap: 28px; padding-top: 20px; border-top: 1px solid var(--line); margin-top: 28px; flex-wrap: wrap; }
+  .hero-meta .col { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .hero-meta .val { font-family: 'Anton', sans-serif; font-size: 22px; color: var(--ink); letter-spacing: 0.02em; }
+
+  /* ─── Section markers ─── */
+  .section-mark {
+    display: flex; align-items: baseline; gap: 18px;
+    margin-top: 72px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .section-mark .num {
+    font-family: 'Anton', sans-serif; font-size: 48px; color: var(--accent);
+    line-height: 0.9; letter-spacing: 0.02em;
+  }
+  .section-mark h2 { margin-top: 0; flex: 1; }
+
+  /* ─── Showcase ─── */
+  .showcase {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 36px; align-items: center;
+    margin: 28px 0 12px; background: var(--dark); color: var(--dark-fg);
+    border-radius: 18px; padding: 32px; overflow: hidden; position: relative;
+  }
+  .showcase-bg {
+    position: absolute; top: -50%; right: -10%; width: 80%; height: 200%;
+    background: radial-gradient(circle at 20% 50%, oklch(0.88 0.22 125 / 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .showcase .left { position: relative; z-index: 1; }
+  .showcase h3 { font-size: 40px; color: var(--dark-fg); margin-bottom: 14px; margin-top: 0; }
+  .showcase p { color: var(--dark-fg-2); font-size: 14px; line-height: 1.55; margin-bottom: 10px; }
+  .showcase .tag {
+    display: inline-block; padding: 4px 10px; background: var(--accent); color: var(--accent-fg);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    border-radius: 100px; margin-bottom: 14px;
+  }
+  .showcase .right { position: relative; z-index: 1; display: flex; justify-content: center; }
+
+  /* ─── Phone frame (live render) ─── */
+  .phone {
+    width: 412px; height: 892px; background: var(--dark); color: var(--dark-fg);
+    border-radius: 44px; border: 8px solid #1a1813;
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6), inset 0 0 0 2px rgba(255,255,255,0.04);
+    overflow: hidden; display: flex; flex-direction: column;
+    font-family: 'Inter', sans-serif; position: relative;
+  }
+  .phone-half { transform: scale(0.55); transform-origin: center top; margin-bottom: -402px; }
+  .phone-65 { transform: scale(0.65); transform-origin: center top; margin-bottom: -312px; }
+
+  .statusbar {
+    height: 38px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 13px; font-weight: 600; color: var(--dark-fg);
+    flex-shrink: 0; position: relative;
+  }
+  .statusbar .punch {
+    position: absolute; left: 50%; top: 9px; transform: translateX(-50%);
+    width: 18px; height: 18px; border-radius: 100px; background: #000;
+  }
+  .gesture-nav { height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .gesture-nav .bar { width: 132px; height: 5px; border-radius: 100px; background: var(--dark-fg); opacity: 0.6; }
+
+  /* ─── Routine-list screen recreation ─── */
+  .rl-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 12px 22px 16px; }
+  .rl-eyebrow {
+    font-family: 'Inter'; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--dark-fg-2);
+  }
+  .rl-title {
+    font-family: 'Anton', sans-serif; font-size: 36px; text-transform: uppercase;
+    letter-spacing: 0.01em; line-height: 0.92; color: var(--dark-fg);
+    margin: 6px 0 16px;
+  }
+  .rl-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .day-card {
+    background: var(--dark-surface); border: 1px solid var(--dark-line);
+    border-radius: 18px; padding: 14px;
+  }
+  .day-card.pressed { background: var(--dark-surface-2); }
+  .day-row { display: flex; align-items: center; gap: 12px; }
+  .day-idx {
+    font-family: 'Anton', sans-serif; font-size: 36px; line-height: 0.92; width: 44px;
+    color: var(--accent); letter-spacing: 0.01em;
+  }
+  .day-main { flex: 1; min-width: 0; }
+  .day-name { font-size: 15px; font-weight: 700; color: var(--dark-fg); }
+  .day-meta { font-size: 11px; color: var(--dark-fg-2); margin-top: 2px; }
+  .day-count-wrap { text-align: right; }
+  .day-count { font-family: 'Anton', sans-serif; font-size: 18px; color: var(--dark-fg); line-height: 0.92; }
+  .day-count-label { font-size: 10px; color: var(--dark-fg-3); }
+  .ex-preview { display: flex; gap: 4px; margin-top: 12px; overflow: hidden; }
+  .ex-chip {
+    padding: 4px 8px; border-radius: 6px; background: var(--dark-surface-2);
+    font-size: 10px; color: var(--dark-fg-2); white-space: nowrap; flex-shrink: 0;
+  }
+  .ex-more { padding: 4px 8px; font-size: 10px; color: var(--dark-fg-3); white-space: nowrap; }
+
+  /* tab bar */
+  .tabbar {
+    display: flex; justify-content: space-around; align-items: stretch;
+    background: var(--dark-surface); border-top: 1px solid var(--dark-line); flex-shrink: 0;
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 0 8px; color: var(--dark-fg-2); font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; gap: 4px;
+  }
+  .tab.active { color: var(--accent); }
+  .tab svg { width: 22px; height: 22px; }
+
+  /* ─── Anatomy ─── */
+  .anatomy { display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px; margin: 24px 0; align-items: flex-start; }
+  .anatomy .phone-wrap { display: flex; justify-content: center; background: var(--dark); border-radius: 24px; padding: 16px; }
+  .anatomy-list { padding: 0; margin: 0; list-style: none; }
+  .anatomy-list li { display: grid; grid-template-columns: 30px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .anatomy-list li:last-child { border-bottom: none; }
+  .anatomy-list .num {
+    width: 26px; height: 26px; border-radius: 100px; background: var(--accent); color: var(--accent-fg);
+    display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 14px;
+  }
+  .anatomy-list .name { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+  .anatomy-list .desc { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+
+  /* numbered overlay on phone */
+  .phone-overlay-host { position: relative; display: inline-block; }
+  .ovl {
+    position: absolute; width: 22px; height: 22px; border-radius: 100px; background: var(--accent); color: var(--accent-fg);
+    display: flex; align-items: center; justify-content: center; font-family: 'Anton', sans-serif; font-size: 11px;
+    box-shadow: 0 0 0 3px var(--dark), 0 2px 8px rgba(0,0,0,0.4); z-index: 10;
+    transform: scale(1.5); transform-origin: center;
+  }
+
+  /* ─── Tokens grid ─── */
+  .token-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 8px; }
+  .token { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--paper); }
+  .token .sw { height: 56px; }
+  .token .meta { padding: 10px 12px; font-size: 11px; }
+  .token .name { font-weight: 700; color: var(--ink); }
+  .token .val { color: var(--ink-3); font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .token .use { font-size: 10px; color: var(--ink-3); margin-top: 2px; }
+
+  /* ─── Spec table ─── */
+  table.spec { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 12px 0 24px; }
+  table.spec th, table.spec td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.spec th {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3);
+    font-weight: 700; border-bottom: 1.5px solid var(--ink); background: var(--line-2);
+  }
+  table.spec td.k { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--ink); width: 210px; background: var(--bg); }
+  table.spec tr:nth-child(even) td:not(.k) { background: var(--bg); }
+
+  /* ─── Blueprint ─── */
+  .blueprint {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 24px;
+    margin: 16px 0 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center;
+  }
+  .blueprint .render {
+    background: var(--dark); border-radius: 12px; padding: 18px; display: flex; align-items: center;
+    justify-content: center; min-height: 220px; position: relative;
+  }
+  .blueprint .specs { font-size: 12px; color: var(--ink-2); }
+  .blueprint .specs h3 { margin-top: 0; margin-bottom: 10px; font-size: 22px; color: var(--ink); }
+  .blueprint .specs ul { margin: 0; padding-left: 18px; }
+  .blueprint .specs li { margin-bottom: 5px; line-height: 1.5; }
+  .blueprint .specs li code { font-size: 11px; }
+
+  /* states */
+  .states-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0 24px; }
+  .state-card { background: var(--dark); border-radius: 12px; padding: 16px; color: var(--dark-fg); }
+  .state-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); font-weight: 700; margin-bottom: 12px; }
+
+  /* pills */
+  .pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; background: var(--ink); color: var(--paper); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 6px; }
+  .pill.accent { background: var(--accent); color: var(--accent-fg); }
+  .pill.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); padding: 2px 7px; }
+
+  /* callout */
+  .callout { background: var(--dark); color: var(--dark-fg); border-radius: 12px; padding: 20px 24px; margin: 20px 0; }
+  .callout .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+  .callout p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+  .callout strong { color: var(--accent); font-weight: 600; }
+  .callout.warn .label { color: oklch(0.78 0.18 60); }
+  .callout.warn strong { color: oklch(0.78 0.18 60); }
+
+  ul.tight { margin: 8px 0 14px; padding-left: 20px; }
+  ul.tight li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 16px 0; }
+
+  /* flow diagram */
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 20px 0 8px; flex-wrap: wrap; }
+  .flow .node {
+    flex: 1; min-width: 150px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .flow .node.here { border-color: var(--accent); border-width: 2px; background: color-mix(in oklch, var(--accent) 8%, var(--paper)); }
+  .flow .node .n-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3); font-weight: 700; }
+  .flow .node .n-name { font-family: 'Anton', sans-serif; font-size: 17px; margin-top: 4px; letter-spacing: 0.02em; }
+  .flow .node .n-desc { font-size: 11px; color: var(--ink-2); margin-top: 4px; line-height: 1.4; }
+  .flow .arr { display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 20px; padding: 0 10px; font-family: 'Anton'; }
+
+  /* checklist */
+  ol.checklist { list-style: none; padding: 0; margin: 14px 0; counter-reset: ch; }
+  ol.checklist li { counter-increment: ch; display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  ol.checklist li::before { content: ''; width: 18px; height: 18px; border: 1.5px solid var(--accent); border-radius: 4px; margin-top: 1px; }
+  ol.checklist li:last-child { border-bottom: none; }
+  ol.checklist .t { font-weight: 700; margin-bottom: 2px; }
+  ol.checklist .d { color: var(--ink-2); font-size: 12px; }
+
+  /* footer */
+  footer { margin-top: 80px; padding-top: 24px; border-top: 2px solid var(--ink); display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: var(--ink-3); }
+  footer .signoff { font-family: 'Anton', sans-serif; font-size: 22px; color: var(--ink); letter-spacing: 0.02em; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .doc { box-shadow: none; max-width: none; padding: 0; }
+    h2, h3 { page-break-after: avoid; }
+    .blueprint, .anatomy, .showcase, table.spec, pre, .callout, .states-grid { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ════════════ HERO ════════════ -->
+  <section class="hero">
+    <div class="top">
+      <div>
+        <div class="eyebrow">Engineering handover · Single-screen spec · v1.0</div>
+        <h1 style="margin-top: 14px;">The<br/>Routine<br/><span style="color: var(--accent);">Page.</span></h1>
+      </div>
+      <div style="text-align: right; padding-top: 8px;">
+        <div class="eyebrow">For</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px; letter-spacing: 0.02em;">Claude Code</div>
+        <div class="eyebrow" style="margin-top: 14px;">From</div>
+        <div style="font-family: 'Anton'; font-size: 24px; margin-top: 4px; letter-spacing: 0.02em;">Design</div>
+      </div>
+    </div>
+    <p class="lede">
+      A complete, self-contained spec for the <strong>Routine</strong> page of Get Gym Done — the
+      landing screen of the <em>Workouts</em> tab, headed "Routine / 5 Day Illustrated". It is a
+      browser of all five training days, each card showing how the day is built and how many times
+      it has been logged. Everything below — structure, tokens, type, spacing, data derivation,
+      interaction, navigation, states, edge cases, accessibility — is sufficient to rebuild the
+      screen pixel-for-pixel and behaviour-for-behaviour without reading the source. Read it linearly.
+    </p>
+    <div class="hero-meta">
+      <div class="col"><span class="lbl">Screen</span><span class="val">Workouts tab</span></div>
+      <div class="col"><span class="lbl">Component</span><span class="val">WorkoutsList</span></div>
+      <div class="col"><span class="lbl">Source</span><span class="val">app.jsx</span></div>
+      <div class="col"><span class="lbl">Viewport</span><span class="val">412 × 892</span></div>
+      <div class="col"><span class="lbl">Density</span><span class="val">xxhdpi · 1×</span></div>
+      <div class="col"><span class="lbl">Theme</span><span class="val">Dark default</span></div>
+    </div>
+  </section>
+
+  <!-- ════════════ 01 PURPOSE ════════════ -->
+  <div class="section-mark"><span class="num">01</span><h2>Purpose</h2></div>
+  <p style="margin-top: 16px;">
+    The Routine page answers one question: <em>"What does my whole program look like, and how
+    consistent have I been on each day?"</em> Where the <strong>Today</strong> tab is forward-looking
+    (one "up next" card), the Routine page is the <strong>at-a-glance index of the entire split</strong>
+    — all five days in one scroll, each summarising its exercises, set volume, and lifetime completion
+    count. Tapping any day drills into its Day Overview.
+  </p>
+  <p>
+    It is reached by selecting the <strong>Workouts</strong> item (dumbbell icon) in the bottom tab
+    bar. It is a pure read/browse surface — nothing here mutates data; it only navigates.
+  </p>
+
+  <div class="showcase">
+    <div class="showcase-bg"></div>
+    <div class="left">
+      <span class="tag">Read-only index</span>
+      <h3>Five days.<br/>One scroll.</h3>
+      <p>
+        Every training day in the active split renders as a tappable card with a big lime index
+        numeral, a name, an "<strong style="color: var(--accent);">N exercises · M sets</strong>"
+        line, a lifetime completion counter, and a horizontally-scrolling strip of exercise chips.
+      </p>
+      <p style="margin-top: 14px;">
+        The header is fixed copy — eyebrow "Routine" over the split name "5 Day Illustrated" set in
+        Anton 36px. No filters, no search, no FAB. Tap a card → Day Overview.
+      </p>
+    </div>
+    <div class="right">
+      <!-- LIVE RENDER: full screen -->
+      <div class="phone phone-half" id="screen-render">
+        <div class="statusbar">
+          <span style="width: 60px;">9:30</span>
+          <div class="punch"></div>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <svg width="14" height="11" viewBox="0 0 14 11"><path d="M0 9.5L1 8c2.5-2.5 6.5-2.5 9 0l1 1.5L7 13zM3 6l1-1c1.7-1.7 4.3-1.7 6 0l1 1L7 10z" fill="#f7f5f0"/></svg>
+            <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="1" width="18" height="9" rx="2" stroke="#f7f5f0" fill="none" opacity="0.5"/><rect x="2" y="2.5" width="13" height="6" rx="0.5" fill="#f7f5f0"/></svg>
+          </div>
+        </div>
+        <div class="rl-scroll">
+          <div class="rl-eyebrow">Routine</div>
+          <div class="rl-title">5 Day Illustrated</div>
+          <div class="rl-list" id="day-list"></div>
+        </div>
+        <div class="tabbar" id="tabbar"></div>
+        <div class="gesture-nav"><div class="bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ 02 ANATOMY ════════════ -->
+  <div class="section-mark"><span class="num">02</span><h2>Anatomy</h2></div>
+  <p style="margin-top: 14px;">
+    The screen is a vertical flex column: a fixed device status bar, a scrollable body, a fixed
+    bottom tab bar, and the device gesture nav. The body holds a two-line header and a list of five
+    identical day cards. Each card has the same internal sub-structure.
+  </p>
+
+  <table class="spec">
+    <thead><tr><th style="width: 40px;">#</th><th>Element</th><th>Component</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1</strong></td><td>System status bar</td><td><code>PhoneStatusBar</code></td><td>Time, signal, battery — passive Android chrome (38px).</td></tr>
+      <tr><td><strong>2</strong></td><td>Header eyebrow "Routine"</td><td>Plain <code>.eyebrow</code></td><td>Section label above the title.</td></tr>
+      <tr><td><strong>3</strong></td><td>Header title "5 Day Illustrated"</td><td><code>.display</code> (Anton 36px)</td><td>The active split's display name. <em>Currently hard-coded</em> — see §06.</td></tr>
+      <tr><td><strong>4</strong></td><td>Day card (×5)</td><td><code>.card.row-tap</code></td><td>Tappable container summarising one training day; opens Day Overview.</td></tr>
+      <tr><td><strong>5</strong></td><td>Index numeral (1–5)</td><td><code>.display</code> 36px accent</td><td>Big lime day number, fixed 44px column.</td></tr>
+      <tr><td><strong>6</strong></td><td>Name + meta block</td><td>Plain <code>&lt;div&gt;</code></td><td>Day name (15/700) + "N exercises · M sets".</td></tr>
+      <tr><td><strong>7</strong></td><td>Completion counter</td><td>Plain <code>&lt;div&gt;</code></td><td>"6×" (Anton 18px) over "completed" (10px) — lifetime sessions.</td></tr>
+      <tr><td><strong>8</strong></td><td>Exercise preview chips</td><td>Plain chips</td><td>Up to 6 first-two-word labels, horizontally scrollable, "+N" overflow.</td></tr>
+      <tr><td><strong>9</strong></td><td>Bottom tab bar</td><td><code>TabBar</code></td><td>4 tabs; <em>Workouts</em> active (accent). Persists across all main tabs.</td></tr>
+      <tr><td><strong>10</strong></td><td>Gesture nav</td><td><code>GestureNav</code></td><td>Device chrome (24px).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="anatomy">
+    <div class="phone-wrap">
+      <div class="phone-overlay-host">
+        <div class="phone phone-half" id="anatomy-render">
+          <div class="statusbar">
+            <span style="width: 60px;">9:30</span><div class="punch"></div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <svg width="22" height="11" viewBox="0 0 22 11"><rect x="0.5" y="1" width="18" height="9" rx="2" stroke="#f7f5f0" fill="none" opacity="0.5"/><rect x="2" y="2.5" width="13" height="6" rx="0.5" fill="#f7f5f0"/></svg>
+            </div>
+          </div>
+          <div class="rl-scroll">
+            <div class="rl-eyebrow">Routine</div>
+            <div class="rl-title">5 Day Illustrated</div>
+            <div class="rl-list" id="day-list-2"></div>
+          </div>
+          <div class="tabbar" id="tabbar-2"></div>
+          <div class="gesture-nav"><div class="bar"></div></div>
+        </div>
+        <div class="ovl" style="top: 6px; left: 30px;">1</div>
+        <div class="ovl" style="top: 32px; left: 28px;">2</div>
+        <div class="ovl" style="top: 52px; left: 60px;">3</div>
+        <div class="ovl" style="top: 108px; left: 18px;">4</div>
+        <div class="ovl" style="top: 112px; left: 44px;">5</div>
+        <div class="ovl" style="top: 112px; left: 120px;">6</div>
+        <div class="ovl" style="top: 108px; right: 28px;">7</div>
+        <div class="ovl" style="top: 150px; left: 120px;">8</div>
+        <div class="ovl" style="bottom: 38px; left: 50%; transform: translateX(-50%) scale(1.5);">9</div>
+        <div class="ovl" style="bottom: 6px; left: 50%; transform: translateX(-50%) scale(1.5);">10</div>
+      </div>
+    </div>
+    <ul class="anatomy-list">
+      <li><div class="num">1</div><div><div class="name">Status bar</div><div class="desc">Device chrome. 38px. Not part of the screen's own scroll.</div></div></li>
+      <li><div class="num">2</div><div><div class="name">Eyebrow "Routine"</div><div class="desc">11px Inter 600, uppercase, 0.14em tracking, <code>--fg-2</code>.</div></div></li>
+      <li><div class="num">3</div><div><div class="name">Title "5 Day Illustrated"</div><div class="desc">Anton 36px, <code>--fg</code>. 6px below eyebrow, 16px above list.</div></div></li>
+      <li><div class="num">4</div><div><div class="name">Day card</div><div class="desc">Surface card, 18px radius, 14px padding. The whole card is the tap target → Day Overview.</div></div></li>
+      <li><div class="num">5</div><div><div class="name">Index numeral</div><div class="desc">Anton 36px, lime, fixed 44px wide column. Always accent — ignores per-day color data.</div></div></li>
+      <li><div class="num">6</div><div><div class="name">Name + meta</div><div class="desc">Name 15px/700; meta 11px <code>--fg-2</code>, "N exercises · M sets".</div></div></li>
+      <li><div class="num">7</div><div><div class="name">Completion counter</div><div class="desc">Right-aligned. "6×" Anton 18px over "completed" 10px <code>--fg-3</code>.</div></div></li>
+      <li><div class="num">8</div><div><div class="name">Exercise chips</div><div class="desc">≤6 chips, first two words each; horizontal scroll; "+N" overflow tail.</div></div></li>
+      <li><div class="num">9</div><div><div class="name">Tab bar</div><div class="desc">4 tabs; Workouts active. 22×22 icons, 10px labels.</div></div></li>
+      <li><div class="num">10</div><div><div class="name">Gesture nav</div><div class="desc">Device chrome. 24px.</div></div></li>
+    </ul>
+  </div>

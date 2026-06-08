@@ -29,20 +29,23 @@ class SessionRepository @Inject constructor(
     suspend fun completeSession(id: String) =
         sessionDao.complete(id, System.currentTimeMillis())
 
+    suspend fun getById(id: String): Session? = sessionDao.getById(id)
     suspend fun getInProgress(): Session? = sessionDao.getInProgress()
     suspend fun getLastCompleted(): Session? = sessionDao.getLastCompleted()
     fun observeHistory(): Flow<List<Session>> = sessionDao.observeHistory()
 
+    /** Logs a completed set and returns the new row id so callers can undo it. */
     suspend fun logSet(
         sessionId: String,
         exerciseId: String,
         setNumber: Int,
         weightKg: Double,
         reps: Int,
-    ) {
+    ): String {
+        val id = UUID.randomUUID().toString()
         setLogDao.insert(
             SetLog(
-                id = UUID.randomUUID().toString(),
+                id = id,
                 sessionId = sessionId,
                 exerciseId = exerciseId,
                 setNumber = setNumber,
@@ -51,7 +54,10 @@ class SessionRepository @Inject constructor(
                 completedAt = System.currentTimeMillis(),
             )
         )
+        return id
     }
+
+    suspend fun deleteSet(id: String) = setLogDao.deleteById(id)
 
     suspend fun getSetsForSession(sessionId: String): List<SetLog> =
         setLogDao.getBySession(sessionId)

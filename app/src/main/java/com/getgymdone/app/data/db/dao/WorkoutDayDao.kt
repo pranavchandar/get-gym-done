@@ -26,4 +26,8 @@ interface WorkoutDayDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<WorkoutDay>)
+
+    /** In-place renumber so we don't REPLACE the row (which would CASCADE-wipe its day_exercise). */
+    @Query("UPDATE workout_day SET dayNumber = :dayNumber WHERE id = :id")
+    suspend fun setDayNumber(id: String, dayNumber: Int)
 }

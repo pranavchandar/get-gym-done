@@ -15,6 +15,9 @@ interface SessionDao {
     @Query("UPDATE session SET completedAt = :completedAt WHERE id = :id")
     suspend fun complete(id: String, completedAt: Long)
 
+    @Query("SELECT * FROM session WHERE id = :id")
+    suspend fun getById(id: String): Session?
+
     @Query("SELECT * FROM session WHERE completedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
     suspend fun getInProgress(): Session?
 

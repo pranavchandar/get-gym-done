@@ -21,11 +21,8 @@ sealed interface Route {
      */
     @Serializable data class CustomizeRoutine(val seedSplitId: String? = null) : Route
 
-    // ── Main shell (bottom tabs) ──────────────────────────────────
+    // ── Main shell (bottom tabs: Today / Workouts / Profile / Settings) ──
     @Serializable data object Home : Route
-    @Serializable data object WorkoutsList : Route
-    @Serializable data object Profile : Route
-    @Serializable data object Settings : Route
 
     // ── Day & workout ─────────────────────────────────────────────
     @Serializable data class DayOverview(val workoutDayId: String) : Route

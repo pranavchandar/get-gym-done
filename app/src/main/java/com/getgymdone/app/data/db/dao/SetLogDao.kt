@@ -29,6 +29,9 @@ interface SetLogDao {
     """)
     suspend fun getRecent(exerciseId: String, limit: Int = 1): List<SetLog>
 
+    @Query("DELETE FROM set_log WHERE id = :id")
+    suspend fun deleteById(id: String)
+
     @Query("SELECT * FROM set_log")
     suspend fun getAll(): List<SetLog>
 }

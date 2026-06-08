@@ -3,7 +3,7 @@
     {
       "id": "ppl_6day",
       "name": "Push Pull Legs",
-      "dayCount": 6,
+      "dayCount": 7,
       "days": [
         {
           "id": "ppl_d1",
@@ -49,7 +49,7 @@
         },
         {
           "id": "ppl_d4",
-          "dayNumber": 4,
+          "dayNumber": 5,
           "name": "Push B",
           "muscleGroups": ["Chest", "Shoulders", "Triceps"],
           "exercises": [
@@ -63,7 +63,7 @@
         },
         {
           "id": "ppl_d5",
-          "dayNumber": 5,
+          "dayNumber": 6,
           "name": "Pull B",
           "muscleGroups": ["Back", "Biceps", "Rear Delts"],
           "exercises": [
@@ -77,7 +77,7 @@
         },
         {
           "id": "ppl_d6",
-          "dayNumber": 6,
+          "dayNumber": 7,
           "name": "Legs B",
           "muscleGroups": ["Quads", "Hamstrings", "Calves", "Abs"],
           "exercises": [
@@ -88,13 +88,21 @@
             { "exerciseId": "seated_calf_raise", "orderIndex": 4, "sets": 4, "repsLow": 12, "repsHigh": 20 },
             { "exerciseId": "decline_crunch",    "orderIndex": 5, "sets": 3, "repsLow": 12, "repsHigh": 20 }
           ]
+        },
+        {
+          "id": "ppl_rest1",
+          "dayNumber": 4,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "upper_lower_4day",
       "name": "Upper / Lower",
-      "dayCount": 4,
+      "dayCount": 7,
       "days": [
         {
           "id": "ul_d1",
@@ -125,7 +133,7 @@
         },
         {
           "id": "ul_d3",
-          "dayNumber": 3,
+          "dayNumber": 4,
           "name": "Upper B",
           "muscleGroups": ["Chest", "Back", "Shoulders", "Arms"],
           "exercises": [
@@ -139,7 +147,7 @@
         },
         {
           "id": "ul_d4",
-          "dayNumber": 4,
+          "dayNumber": 6,
           "name": "Lower B",
           "muscleGroups": ["Posterior Chain", "Quads", "Hamstrings", "Abs"],
           "exercises": [
@@ -150,13 +158,37 @@
             { "exerciseId": "seated_calf_raise", "orderIndex": 4, "sets": 4, "repsLow": 12, "repsHigh": 20 },
             { "exerciseId": "hanging_leg_raise", "orderIndex": 5, "sets": 3, "repsLow": 8,  "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "ul_rest1",
+          "dayNumber": 3,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "ul_rest2",
+          "dayNumber": 5,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "ul_rest3",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "bro_5day",
       "name": "Bro Split",
-      "dayCount": 5,
+      "dayCount": 7,
       "days": [
         {
           "id": "bro_d1",
@@ -200,7 +232,7 @@
         },
         {
           "id": "bro_d4",
-          "dayNumber": 4,
+          "dayNumber": 5,
           "name": "Arms",
           "muscleGroups": ["Biceps", "Triceps"],
           "exercises": [
@@ -214,7 +246,7 @@
         },
         {
           "id": "bro_d5",
-          "dayNumber": 5,
+          "dayNumber": 6,
           "name": "Legs",
           "muscleGroups": ["Quads", "Hamstrings", "Calves"],
           "exercises": [
@@ -225,13 +257,29 @@
             { "exerciseId": "standing_calf",     "orderIndex": 4, "sets": 4, "repsLow": 12, "repsHigh": 15 },
             { "exerciseId": "hanging_leg_raise", "orderIndex": 5, "sets": 3, "repsLow": 8,  "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "bro_rest1",
+          "dayNumber": 4,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "bro_rest2",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "full_body_3day",
       "name": "Full Body",
-      "dayCount": 3,
+      "dayCount": 7,
       "days": [
         {
           "id": "fb_d1",
@@ -248,7 +296,7 @@
         },
         {
           "id": "fb_d2",
-          "dayNumber": 2,
+          "dayNumber": 3,
           "name": "Full B",
           "muscleGroups": ["Posterior Chain", "Chest", "Back", "Shoulders", "Triceps"],
           "exercises": [
@@ -261,7 +309,7 @@
         },
         {
           "id": "fb_d3",
-          "dayNumber": 3,
+          "dayNumber": 6,
           "name": "Full C",
           "muscleGroups": ["Quads", "Chest", "Back", "Shoulders", "Biceps"],
           "exercises": [
@@ -271,13 +319,45 @@
             { "exerciseId": "db_shoulder_press", "orderIndex": 3, "sets": 3, "repsLow": 8,  "repsHigh": 12 },
             { "exerciseId": "hammer_curl",       "orderIndex": 4, "sets": 3, "repsLow": 10, "repsHigh": 12 }
           ]
+        },
+        {
+          "id": "fb_rest1",
+          "dayNumber": 2,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "fb_rest2",
+          "dayNumber": 4,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "fb_rest3",
+          "dayNumber": 5,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "fb_rest4",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "5day_illustrated",
       "name": "5 Day Illustrated",
-      "dayCount": 5,
+      "dayCount": 7,
       "days": [
         {
           "id": "ill_d1",
@@ -320,7 +400,7 @@
         },
         {
           "id": "ill_d4",
-          "dayNumber": 4,
+          "dayNumber": 5,
           "name": "Legs (Quad)",
           "muscleGroups": ["Quads", "Calves"],
           "exercises": [
@@ -332,7 +412,7 @@
         },
         {
           "id": "ill_d5",
-          "dayNumber": 5,
+          "dayNumber": 6,
           "name": "Back & Chest",
           "muscleGroups": ["Back", "Chest"],
           "exercises": [
@@ -342,13 +422,29 @@
             { "exerciseId": "chest_fly",          "orderIndex": 3, "sets": 3, "repsLow": 12, "repsHigh": 15 },
             { "exerciseId": "incline_cable_fly",  "orderIndex": 4, "sets": 3, "repsLow": 10, "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "ill_rest1",
+          "dayNumber": 4,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "ill_rest2",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "arnold_6day",
       "name": "Arnold Split",
-      "dayCount": 6,
+      "dayCount": 7,
       "days": [
         {
           "id": "arn_d1",
@@ -392,7 +488,7 @@
         },
         {
           "id": "arn_d4",
-          "dayNumber": 4,
+          "dayNumber": 5,
           "name": "Chest & Back B",
           "muscleGroups": ["Chest", "Back"],
           "exercises": [
@@ -405,7 +501,7 @@
         },
         {
           "id": "arn_d5",
-          "dayNumber": 5,
+          "dayNumber": 6,
           "name": "Shoulders & Arms B",
           "muscleGroups": ["Shoulders", "Biceps", "Triceps"],
           "exercises": [
@@ -419,7 +515,7 @@
         },
         {
           "id": "arn_d6",
-          "dayNumber": 6,
+          "dayNumber": 7,
           "name": "Legs B",
           "muscleGroups": ["Posterior Chain", "Quads", "Hamstrings", "Calves", "Abs"],
           "exercises": [
@@ -430,13 +526,21 @@
             { "exerciseId": "seated_calf_raise",  "orderIndex": 4, "sets": 4, "repsLow": 12, "repsHigh": 20 },
             { "exerciseId": "hanging_leg_raise",  "orderIndex": 5, "sets": 3, "repsLow": 8,  "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "arn_rest1",
+          "dayNumber": 4,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "phul_4day",
       "name": "PHUL",
-      "dayCount": 4,
+      "dayCount": 7,
       "days": [
         {
           "id": "phul_d1",
@@ -467,7 +571,7 @@
         },
         {
           "id": "phul_d3",
-          "dayNumber": 3,
+          "dayNumber": 4,
           "name": "Upper Hypertrophy",
           "muscleGroups": ["Chest", "Back", "Shoulders", "Arms"],
           "exercises": [
@@ -482,7 +586,7 @@
         },
         {
           "id": "phul_d4",
-          "dayNumber": 4,
+          "dayNumber": 6,
           "name": "Lower Hypertrophy",
           "muscleGroups": ["Quads", "Hamstrings", "Calves"],
           "exercises": [
@@ -493,13 +597,37 @@
             { "exerciseId": "walking_lunge",      "orderIndex": 4, "sets": 3, "repsLow": 10, "repsHigh": 12 },
             { "exerciseId": "seated_calf_raise",  "orderIndex": 5, "sets": 4, "repsLow": 10, "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "phul_rest1",
+          "dayNumber": 3,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "phul_rest2",
+          "dayNumber": 5,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "phul_rest3",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     },
     {
       "id": "glute_focused_5day",
       "name": "Glute Focused",
-      "dayCount": 5,
+      "dayCount": 7,
       "days": [
         {
           "id": "glt_d1",
@@ -529,7 +657,7 @@
         },
         {
           "id": "glt_d3",
-          "dayNumber": 3,
+          "dayNumber": 4,
           "name": "Lower (Quad)",
           "muscleGroups": ["Quads", "Glutes", "Calves"],
           "exercises": [
@@ -542,7 +670,7 @@
         },
         {
           "id": "glt_d4",
-          "dayNumber": 4,
+          "dayNumber": 5,
           "name": "Upper Pull",
           "muscleGroups": ["Back", "Biceps", "Rear Delts"],
           "exercises": [
@@ -555,7 +683,7 @@
         },
         {
           "id": "glt_d5",
-          "dayNumber": 5,
+          "dayNumber": 6,
           "name": "Glutes & Arms",
           "muscleGroups": ["Glutes", "Hamstrings", "Biceps", "Triceps"],
           "exercises": [
@@ -565,6 +693,22 @@
             { "exerciseId": "barbell_curl",       "orderIndex": 3, "sets": 3, "repsLow": 10, "repsHigh": 15 },
             { "exerciseId": "cable_tri_ext",      "orderIndex": 4, "sets": 3, "repsLow": 10, "repsHigh": 15 }
           ]
+        },
+        {
+          "id": "glt_rest1",
+          "dayNumber": 3,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
+        },
+        {
+          "id": "glt_rest2",
+          "dayNumber": 7,
+          "name": "Rest",
+          "muscleGroups": [],
+          "isRestDay": true,
+          "exercises": []
         }
       ]
     }

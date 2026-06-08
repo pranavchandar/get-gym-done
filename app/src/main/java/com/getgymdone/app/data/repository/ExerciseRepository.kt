@@ -11,5 +11,6 @@ class ExerciseRepository @Inject constructor(
     private val dao: ExerciseDao,
 ) {
     fun observeAll(): Flow<List<Exercise>> = dao.observeAll()
+    suspend fun all(): List<Exercise> = dao.getAll()
     suspend fun getById(id: String): Exercise? = dao.getById(id)
 }

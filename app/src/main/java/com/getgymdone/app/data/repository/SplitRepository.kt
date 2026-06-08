@@ -20,6 +20,7 @@ class SplitRepository @Inject constructor(
     fun observeAll(): Flow<List<Split>> = splitDao.observeAll()
     suspend fun getById(id: String): Split? = splitDao.getById(id)
     suspend fun getDays(splitId: String): List<WorkoutDay> = dayDao.getBySplit(splitId)
+    suspend fun getDayById(workoutDayId: String): WorkoutDay? = dayDao.getById(workoutDayId)
     suspend fun getDay(splitId: String, dayNumber: Int): WorkoutDay? = dayDao.getByDayNumber(splitId, dayNumber)
     suspend fun getDayExercises(workoutDayId: String): List<DayExercise> = dayExerciseDao.getByDay(workoutDayId)
 

@@ -12,4 +12,5 @@ data class UserPrefs(
     val units: String = "kg",              // "kg" | "lbs"
     val theme: String = "system",          // "light" | "dark" | "system"
     val onboardingComplete: Boolean = false,
+    val restSeconds: Int = 90,             // rest-timer duration, remembered across workouts
 )

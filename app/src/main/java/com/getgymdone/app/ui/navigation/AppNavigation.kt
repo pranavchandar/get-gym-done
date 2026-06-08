@@ -10,18 +10,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.getgymdone.app.data.repository.UserPrefsRepository
+import com.getgymdone.app.ui.screens.MainShell
 import com.getgymdone.app.ui.screens.day.DayOverviewScreen
 import com.getgymdone.app.ui.screens.debug.DebugDataScreen
-import com.getgymdone.app.ui.screens.home.HomeScreen
 import com.getgymdone.app.ui.screens.onboarding.CustomizeRoutineScreen
 import com.getgymdone.app.ui.screens.onboarding.PickSplitScreen
 import com.getgymdone.app.ui.screens.onboarding.RoutineMethodScreen
 import com.getgymdone.app.ui.screens.onboarding.SplashScreen
-import com.getgymdone.app.ui.screens.profile.ProfileScreen
-import com.getgymdone.app.ui.screens.settings.SettingsScreen
 import com.getgymdone.app.ui.screens.workout.ActiveWorkoutScreen
 import com.getgymdone.app.ui.screens.workout.WorkoutCompleteScreen
-import com.getgymdone.app.ui.screens.workouts.WorkoutsListScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -100,32 +97,17 @@ fun AppNavigation() {
         }
 
         composable<Route.Home> {
-            HomeScreen(
+            MainShell(
                 onOpenDay = { dayId -> nav.navigate(Route.DayOverview(dayId)) },
                 onStartToday = { dayId -> nav.navigate(Route.ActiveWorkout(dayId)) },
-                onOpenWorkouts = { nav.navigate(Route.WorkoutsList) },
-                onOpenProfile = { nav.navigate(Route.Profile) },
-                onOpenSettings = { nav.navigate(Route.Settings) },
-                onOpenDebug = { nav.navigate(Route.DebugData) },
-            )
-        }
-
-        composable<Route.WorkoutsList> {
-            WorkoutsListScreen(onBack = { nav.popBackStack() })
-        }
-        composable<Route.Profile> {
-            ProfileScreen(onBack = { nav.popBackStack() })
-        }
-        composable<Route.Settings> {
-            SettingsScreen(
-                onBack = { nav.popBackStack() },
                 onResetRoutine = {
-                    // Clear Settings + Home from the stack so PickSplit becomes the new root.
-                    // The completion path (RoutineMethod → Home) then rebuilds Home cleanly.
+                    // Clear Home from the stack so PickSplit becomes the new root. The completion
+                    // path (RoutineMethod → Home) then rebuilds the tab shell cleanly.
                     nav.navigate(Route.PickSplit) {
                         popUpTo(Route.Home) { inclusive = true }
                     }
                 },
+                onOpenDebug = { nav.navigate(Route.DebugData) },
             )
         }
 
@@ -133,7 +115,7 @@ fun AppNavigation() {
             val args: Route.DayOverview = entry.toRoute()
             DayOverviewScreen(
                 workoutDayId = args.workoutDayId,
-                onStart = { nav.navigate(Route.ActiveWorkout(args.workoutDayId)) },
+                onStart = { dayId -> nav.navigate(Route.ActiveWorkout(dayId)) },
                 onBack = { nav.popBackStack() },
             )
         }

@@ -36,6 +36,7 @@ object AppModule {
         lateinit var dbRef: AppDatabase
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         dbRef = Room.databaseBuilder(ctx, AppDatabase::class.java, AppDatabase.NAME)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .addCallback(object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     scope.launch {

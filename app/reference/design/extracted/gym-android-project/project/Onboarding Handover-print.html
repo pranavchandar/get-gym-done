@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Onboarding — Splash Screen · Handover for Claude Code</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ffffff;
+    --paper-2: #f5f3ee;
+    --ink: #14130f;
+    --ink-2: #5a564a;
+    --ink-3: #908a78;
+    --line: #d6d2c4;
+    --accent: oklch(0.88 0.22 125);
+    --accent-fg: #0a0a09;
+    --dark: #0a0a09;
+    --surface-dark: #16140f;
+    --line-dark: #2e2b22;
+    --code-bg: #ebe8e0;
+  }
+
+  @page { size: A4; margin: 1.4cm; }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper-2);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 60px 80px;
+    background: var(--paper);
+  }
+
+  @media screen {
+    body { padding: 24px 0; }
+    .doc { box-shadow: 0 8px 40px rgba(0,0,0,0.08); }
+  }
+
+  /* TYPE */
+  h1, h2, h3, h4 {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin: 0;
+  }
+  h1 { font-size: 64px; }
+  h2 { font-size: 32px; margin-top: 56px; margin-bottom: 4px; }
+  h3 { font-size: 20px; margin-top: 28px; margin-bottom: 10px; letter-spacing: 0.04em; }
+  h4 {
+    font-size: 11px; font-family: 'Inter'; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--ink-2);
+    margin-top: 22px; margin-bottom: 8px;
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+  }
+  .lede {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 640px;
+    margin-top: 16px;
+  }
+  p { margin: 0 0 12px; }
+
+  a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  code, .mono, kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  kbd { font-size: 11px; }
+
+  /* HERO */
+  .hero {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 32px;
+    margin-bottom: 0;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-2);
+    gap: 16px;
+  }
+  .hero-meta .col { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .hero-meta .val { font-family: 'Anton', sans-serif; font-size: 18px; line-height: 1; }
+
+  .section-mark {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-top: 60px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-mark .num {
+    font-family: 'Anton', sans-serif;
+    font-size: 40px;
+    color: var(--accent);
+    line-height: 0.9;
+  }
+  .section-mark h2 { margin-top: 0; flex: 1; }
+
+  /* LAYOUTS */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin: 16px 0;
+  }
+  .visual-col { display: flex; flex-direction: column; gap: 12px; }
+  .spec-col { font-size: 13px; }
+
+  /* CALLOUT */
+  .callout {
+    background: var(--dark);
+    color: #f7f5f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 16px 0;
+  }
+  .callout .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--accent); font-weight: 700; margin-bottom: 6px;
+  }
+  .callout p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+  .callout strong { color: var(--accent); font-weight: 600; }
+
+  /* TABLES */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    margin: 10px 0 20px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    font-weight: 700;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  td.token {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  td .pill {
+    display: inline-block;
+    font-size: 9.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 100px;
+    background: var(--ink); color: var(--paper);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  td .pill.accent { background: var(--accent); color: var(--accent-fg); }
+  td .pill.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); padding: 1px 7px; }
+
+  /* COLOR SWATCH */
+  .swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch .chip-sm {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  /* PIXEL SPEC MOCKUP — large CSS recreation of the splash on the page */
+  .splash-mock {
+    width: 320px;
+    height: 692px;
+    border: 8px solid #1a1813;
+    border-radius: 36px;
+    background: #0a0a09;
+    color: #f7f5f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.06);
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin: 0 auto;
+  }
+  .splash-mock .statusbar {
+    height: 30px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px;
+    font-size: 11px; font-weight: 600;
+    position: relative;
+  }
+  .splash-mock .statusbar .punch {
+    position: absolute; left: 50%; top: 7px;
+    transform: translateX(-50%);
+    width: 14px; height: 14px;
+    border-radius: 100px;
+    background: #000;
+  }
+  .splash-mock .gesture {
+    height: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .splash-mock .gesture i {
+    width: 100px; height: 4px; border-radius: 100px;
+    background: #f7f5f0; opacity: 0.6;
+  }
+  .splash-mock .content {
+    flex: 1;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .splash-mock .top { padding-top: 56px; }
+  .splash-mock .vbeta {
+    font-size: 8.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: oklch(0.88 0.22 125);
+  }
+  .splash-mock .title {
+    font-family: 'Anton', sans-serif;
+    font-size: 68px;
+    line-height: 0.85;
+    margin-top: 14px;
+    letter-spacing: 0.01em;
+  }
+  .splash-mock .title .acc { color: oklch(0.88 0.22 125); }
+  .splash-mock .subtitle {
+    font-size: 12.5px;
+    color: #a8a59a;
+    margin-top: 20px;
+    max-width: 220px;
+    line-height: 1.4;
+  }
+  .splash-mock .hero-art {
+    height: 138px;
+    border-radius: 14px;
+    background-image: repeating-linear-gradient(-45deg,
+      rgba(255,255,255,0.04) 0,
+      rgba(255,255,255,0.04) 8px,
+      rgba(255,255,255,0.08) 8px,
+      rgba(255,255,255,0.08) 16px);
+    background-color: #1f1c14;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .splash-mock .hero-art::after {
+    content: 'hero — athlete';
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: #696657; letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .splash-mock .cta-primary {
+    width: 100%;
+    background: oklch(0.88 0.22 125);
+    color: #0a0a09;
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: none;
+    padding: 17px 18px;
+    border-radius: 11px;
+    cursor: pointer;
+  }
+  .splash-mock .cta-ghost {
+    width: 100%;
+    background: transparent;
+    color: #f7f5f0;
+    font-family: 'Anton', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1.5px solid #2e2b22;
+    padding: 12px 18px;
+    border-radius: 11px;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+  .splash-mock .helper {
+    text-align: center;
+    margin-top: 10px;
+    color: #696657;
+    font-size: 9px;
+    line-height: 1.45;
+    max-width: 220px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ANNOTATION CALLOUTS */
+  .annot {
+    position: relative;
+  }
+  .annot-tag {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+
+  /* ZONE LIST */
+  .zone-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: zone;
+  }
+  .zone-list li {
+    counter-increment: zone;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .zone-list li:last-child { border-bottom: none; }
+  .zone-list li::before {
+    content: counter(zone, decimal-leading-zero);
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+    color: var(--accent);
+  }
+  .zone-list .zone-name {
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .zone-list .zone-detail {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+
+  /* CODE BLOCK */
+  pre.code {
+    background: var(--dark);
+    color: #e8e6e1;
+    padding: 18px 20px;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.55;
+    overflow-x: auto;
+    margin: 8px 0 20px;
+    border: 1px solid var(--ink);
+  }
+  pre.code .k { color: oklch(0.85 0.18 220); } /* keyword/jsx tag */
+  pre.code .a { color: oklch(0.88 0.22 125); } /* attribute */
+  pre.code .s { color: oklch(0.85 0.14 80); }  /* string */
+  pre.code .c { color: #6f6c5a; font-style: italic; } /* comment */
+  pre.code .n { color: #cfcdc1; }                /* number */
+
+  /* CHECKLIST */
+  ul.check { list-style: none; padding: 0; margin: 8px 0 16px; }
+  ul.check li {
+    padding: 6px 0 6px 26px;
+    position: relative;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  ul.check li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 12px;
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+  }
+
+  /* SIDE LABEL */
+  .side-tag {
+    font-family: 'Anton', sans-serif;
+    color: var(--accent);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  footer .signoff {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .doc { box-shadow: none; max-width: none; padding: 0; }
+    table, .callout, pre.code, .two-col { page-break-inside: avoid; }
+    h2 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="hero">
+    <div class="eyebrow">Claude Code handover · Pixel-perfect spec · v1.0</div>
+    <h1>Onboarding<br/>Splash<span style="color: var(--accent);">.</span></h1>
+    <p class="lede">
+      The first screen the user sees. Establishes brand tone (bold sport, lime accent, condensed
+      display type) and offers two paths: cloud sync via account, or skip-to-local. This document
+      contains everything needed to recreate this screen exactly — tokens, structure, spacing,
+      states, animations, edge cases — written so an implementer can build it without referring to
+      the original code.
+    </p>
+    <div class="hero-meta">
+      <div class="col">
+        <span class="lbl">Component</span>
+        <span class="val">&lt;Splash /&gt;</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Frame</span>
+        <span class="val">412 × 892</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Theme</span>
+        <span class="val">Dark default</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Step</span>
+        <span class="val">0 of 3</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ 01 PURPOSE & STATES ═══════ -->
+  <div class="section-mark"><span class="num">01</span><h2>Purpose &amp; behavior</h2></div>
+
+  <p>
+    The Splash screen is shown <strong>only once</strong> on first launch (or after the user
+    clears their account/storage). It is the entry to the onboarding flow.
+  </p>
+
+  <h4>Two outcomes — same next step</h4>
+  <ol>
+    <li><strong>Sign up / Sign in</strong> — primary lime CTA. Triggers the sign-in flow (out of scope for this prototype; both buttons advance to the same next step here). Final implementation should open a cloud-auth modal or a separate auth screen.</li>
+    <li><strong>Skip — keep it local</strong> — secondary ghost CTA. Bypasses auth entirely. Data is stored on-device only.</li>
+  </ol>
+
+  <p>Both buttons end up at the same next screen in this prototype: <code>SplitSelect</code> (Step 1 of 3). The branching auth flow is left for production implementation.</p>
+
+  <div class="callout">
+    <div class="label">Design intent</div>
+    <p>
+      The buttons are deliberately weighted to <strong>encourage account creation</strong> (the lime
+      CTA is high-attention) but <strong>not block local-first use</strong> (skipping is one tap
+      and clearly visible). The helper line below explains the trade-off in 18 words.
+    </p>
+  </div>
+
+  <!-- ═══════ 02 VISUAL REFERENCE ═══════ -->
+  <div class="section-mark"><span class="num">02</span><h2>Visual reference</h2></div>
+
+  <div class="two-col">
+    <div class="visual-col">
+      <div class="splash-mock" aria-hidden="true">
+        <div class="statusbar">
+          <span>9:30</span>
+          <div class="punch"></div>
+          <span style="font-family: monospace; font-size: 10px;">▲ ▲ ▮</span>
+        </div>
+        <div class="content">
+          <div class="top">
+            <div class="vbeta">v1.0 — beta</div>
+            <div class="title">Get<br/>Gym<br/><span class="acc">Done.</span></div>
+            <div class="subtitle">A logbook that knows what day it is, what's next, and how strong you're getting.</div>
+          </div>
+          <div>
+            <div class="hero-art"></div>
+            <button class="cta-primary">Sign up / Sign in</button>
+            <button class="cta-ghost">Skip — keep it local</button>
+            <div class="helper">Sign in to sync across devices · Skip to start logging now, all data stays on this phone</div>
+          </div>
+        </div>
+        <div class="gesture"><i></i></div>
+      </div>
+      <div style="font-size: 11px; color: var(--ink-3); text-align: center; margin-top: 4px;">
+        CSS recreation at ~78% scale of 412×892 frame
+      </div>
+    </div>
+    <div class="spec-col">
+      <h3>Anatomy — top to bottom</h3>
+      <ol class="zone-list">
+        <li>
+          <div>
+            <div class="zone-name">Status bar</div>
+            <div class="zone-detail">Phone chrome. Time left, camera punch-hole centered, signal/wifi/battery right.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Eyebrow label</div>
+            <div class="zone-detail">"v1.0 — beta" in lime accent. Sets the tone before the headline.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Display headline</div>
+            <div class="zone-detail">"Get / Gym / Done." in three lines. The period after "Done" is lime. Anton 88px.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Subtitle</div>
+            <div class="zone-detail">One-sentence value prop, capped at 280px width. Inter 16px, muted color.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Hero placeholder</div>
+            <div class="zone-detail">180px-tall striped placeholder, labeled "hero — athlete". To be swapped for real photo or video.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Primary CTA</div>
+            <div class="zone-detail">"Sign up / Sign in" — full-width lime button, Anton 26px.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Secondary CTA</div>
+            <div class="zone-detail">"Skip — keep it local" — full-width transparent button with thin line border, Anton 18px.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Helper line</div>
+            <div class="zone-detail">Two-clause explanation separated by "·". 11px, centered, max 280px wide.</div>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="zone-name">Gesture nav</div>
+            <div class="zone-detail">Android home indicator pill at bottom. 132×5px, foreground color at 60% opacity.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ═══════ 03 DESIGN TOKENS ═══════ -->
+  <div class="section-mark"><span class="num">03</span><h2>Design tokens used</h2></div>
+
+  <h3>Colors (dark theme)</h3>
+  <table>
+    <thead><tr><th>Token</th><th>Value</th><th>Used in this screen</th></tr></thead>
+    <tbody>
+      <tr><td><code>--bg</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #0a0a09;"></span>#0a0a09</span></td><td>Phone background</td></tr>
+      <tr><td><code>--surface-2</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #1f1c14;"></span>#1f1c14</span></td><td>Hero placeholder fill</td></tr>
+      <tr><td><code>--fg</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #f7f5f0;"></span>#f7f5f0</span></td><td>Headline + ghost-button text</td></tr>
+      <tr><td><code>--fg-2</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #a8a59a;"></span>#a8a59a</span></td><td>Subtitle text</td></tr>
+      <tr><td><code>--fg-3</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #696657;"></span>#696657</span></td><td>Helper line + striped placeholder label</td></tr>
+      <tr><td><code>--accent</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: oklch(0.88 0.22 125);"></span>oklch(.88 .22 125)</span></td><td>Eyebrow, "Done." period, primary CTA fill</td></tr>
+      <tr><td><code>--accent-fg</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #0a0a09;"></span>#0a0a09</span></td><td>Primary CTA text</td></tr>
+      <tr><td><code>--line</code></td><td class="token"><span class="swatch"><span class="chip-sm" style="background: #2e2b22;"></span>#2e2b22</span></td><td>Ghost button border</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Typography</h3>
+  <table>
+    <thead><tr><th>Role</th><th>Family</th><th>Weight</th><th>Size</th><th>Line-height</th><th>Tracking</th><th>Transform</th></tr></thead>
+    <tbody>
+      <tr><td>Eyebrow ("v1.0 — beta")</td><td>Inter</td><td>600</td><td>11px</td><td>1</td><td>0.14em</td><td>UPPERCASE</td></tr>
+      <tr><td>Display headline ("Get / Gym / Done.")</td><td>Anton</td><td>400</td><td>88px</td><td>0.85</td><td>0.01em</td><td>UPPERCASE</td></tr>
+      <tr><td>Subtitle</td><td>Inter</td><td>400</td><td>16px</td><td>1.4</td><td>0</td><td>none</td></tr>
+      <tr><td>Hero placeholder label</td><td>JetBrains Mono</td><td>500</td><td>11px</td><td>1</td><td>0.08em</td><td>lowercase</td></tr>
+      <tr><td>Primary CTA</td><td>Anton</td><td>400</td><td>26px</td><td>1</td><td>0.04em</td><td>UPPERCASE</td></tr>
+      <tr><td>Secondary CTA</td><td>Anton</td><td>400</td><td>18px</td><td>1</td><td>0.04em</td><td>UPPERCASE</td></tr>
+      <tr><td>Helper line</td><td>Inter</td><td>400</td><td>11px</td><td>1.45</td><td>0</td><td>none</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Geometry</h3>
+  <table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Phone frame</td><td>Outer size</td><td>412 × 892</td></tr>
+      <tr><td>Phone frame</td><td>Border radius</td><td>44px</td></tr>
+      <tr><td>Phone frame</td><td>Border</td><td>8px solid #1a1813</td></tr>
+      <tr><td>Status bar</td><td>Height</td><td>38px</td></tr>
+      <tr><td>Status bar</td><td>Horizontal padding</td><td>22px</td></tr>
+      <tr><td>Gesture nav</td><td>Height</td><td>24px</td></tr>
+      <tr><td>Gesture nav pill</td><td>Size</td><td>132 × 5</td></tr>
+      <tr><td>Splash content</td><td>Padding</td><td>24px (all sides)</td></tr>
+      <tr><td>Splash content</td><td>Top group offset</td><td>80px padding-top</td></tr>
+      <tr><td>Headline → subtitle</td><td>Gap</td><td>26px</td></tr>
+      <tr><td>Eyebrow → headline</td><td>Gap</td><td>18px</td></tr>
+      <tr><td>Hero placeholder</td><td>Height</td><td>180px</td></tr>
+      <tr><td>Hero placeholder</td><td>Border radius</td><td>18px</td></tr>
+      <tr><td>Hero placeholder</td><td>Margin-bottom</td><td>24px</td></tr>
+      <tr><td>Primary CTA</td><td>Padding</td><td>22px 24px</td></tr>
+      <tr><td>Primary CTA</td><td>Border radius</td><td>14px</td></tr>
+      <tr><td>Primary CTA → Ghost</td><td>Gap</td><td>10px (margin-top)</td></tr>
+      <tr><td>Ghost CTA</td><td>Padding</td><td>16px 24px</td></tr>
+      <tr><td>Ghost CTA</td><td>Border</td><td>1.5px solid var(--line)</td></tr>
+      <tr><td>Ghost CTA</td><td>Border radius</td><td>14px</td></tr>
+      <tr><td>Ghost → helper line</td><td>Gap</td><td>12px (margin-top)</td></tr>
+      <tr><td>Helper line</td><td>Max width</td><td>280px (centered)</td></tr>
+      <tr><td>Subtitle</td><td>Max width</td><td>280px</td></tr>
+      <tr><td>Bottom group</td><td>Margin-bottom</td><td>12px</td></tr>
+    </tbody>
+  </table>
+
+  <h3>The striped placeholder pattern</h3>
+  <p>
+    The hero image uses a reusable diagonal-stripe pattern, used throughout the app for any image
+    that will be replaced with real content. The pattern is identical to the one used for
+    exercise GIFs and muscle maps elsewhere — keep it consistent.
+  </p>
+  <pre class="code"><span class="c">/* Striped placeholder — base style */</span>
+.striped {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,0.04) 0,
+    rgba(255,255,255,0.04) 8px,
+    rgba(255,255,255,0.08) 8px,
+    rgba(255,255,255,0.08) 16px
+  );
+  background-color: var(<span class="a">--surface-2</span>);
+}
+.striped-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: <span class="s">'JetBrains Mono'</span>, monospace;
+  font-size: 11px; color: var(<span class="a">--fg-3</span>);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}</pre>
+
+  <!-- ═══════ 04 LAYOUT & STRUCTURE ═══════ -->
+  <div class="section-mark"><span class="num">04</span><h2>Layout &amp; structure</h2></div>
+
+  <p>
+    The Splash uses a vertical flex column with <code>justify-content: space-between</code>:
+    the top group (eyebrow + headline + subtitle) hugs the top of the safe area, and the bottom
+    group (hero art + 2 CTAs + helper) hugs the bottom. The space-between is what gives the screen
+    its editorial poster feel and what holds it up across screen heights.
+  </p>
+
+  <h4>Hierarchy</h4>
+  <pre class="code"><span class="k">&lt;PhoneFrame&gt;</span>
+  <span class="k">&lt;PhoneStatusBar /&gt;</span>                              <span class="c">// chrome — always rendered</span>
+  <span class="k">&lt;ScreenContainer</span> <span class="a">flex</span>=<span class="s">"column"</span> <span class="a">justify</span>=<span class="s">"space-between"</span> <span class="a">padding</span>=<span class="s">"24"</span><span class="k">&gt;</span>
+    <span class="k">&lt;TopGroup</span> <span class="a">paddingTop</span>=<span class="s">"80"</span><span class="k">&gt;</span>
+      <span class="k">&lt;Eyebrow</span> <span class="a">accent</span><span class="k">&gt;</span>v1.0 — beta<span class="k">&lt;/Eyebrow&gt;</span>
+      <span class="k">&lt;DisplayHeadline</span> <span class="a">size</span>=<span class="s">"88"</span><span class="k">&gt;</span>
+        Get<span class="k">&lt;br/&gt;</span>Gym<span class="k">&lt;br/&gt;</span><span class="k">&lt;span</span> <span class="a">color</span>=<span class="s">"accent"</span><span class="k">&gt;</span>Done.<span class="k">&lt;/span&gt;</span>
+      <span class="k">&lt;/DisplayHeadline&gt;</span>
+      <span class="k">&lt;Subtitle</span> <span class="a">maxWidth</span>=<span class="s">"280"</span><span class="k">&gt;</span>
+        A logbook that knows what day it is, what's next,
+        and how strong you're getting.
+      <span class="k">&lt;/Subtitle&gt;</span>
+    <span class="k">&lt;/TopGroup&gt;</span>
+
+    <span class="k">&lt;BottomGroup</span> <span class="a">marginBottom</span>=<span class="s">"12"</span><span class="k">&gt;</span>
+      <span class="k">&lt;HeroPlaceholder</span> <span class="a">height</span>=<span class="s">"180"</span> <span class="a">label</span>=<span class="s">"hero — athlete"</span> /<span class="k">&gt;</span>
+      <span class="k">&lt;PrimaryCTA</span> <span class="a">onClick</span>=<span class="s">{onSignIn}</span><span class="k">&gt;</span>Sign up / Sign in<span class="k">&lt;/PrimaryCTA&gt;</span>
+      <span class="k">&lt;GhostCTA</span> <span class="a">onClick</span>=<span class="s">{onSkip}</span><span class="k">&gt;</span>Skip — keep it local<span class="k">&lt;/GhostCTA&gt;</span>
+      <span class="k">&lt;HelperLine</span> <span class="a">maxWidth</span>=<span class="s">"280"</span><span class="k">&gt;</span>
+        Sign in to sync across devices · Skip to start logging now,
+        all data stays on this phone
+      <span class="k">&lt;/HelperLine&gt;</span>
+    <span class="k">&lt;/BottomGroup&gt;</span>
+  <span class="k">&lt;/ScreenContainer&gt;</span>
+  <span class="k">&lt;GestureNav /&gt;</span>
+<span class="k">&lt;/PhoneFrame&gt;</span></pre>
+
+  <h4>The full React/JSX implementation</h4>
+  <pre class="code"><span class="k">function</span> Splash({ onSignIn, onSkip }) {
+  <span class="k">return</span> (
+    <span class="k">&lt;div</span> <span class="a">style</span>=<span class="s">{{</span>
+      display: <span class="s">'flex'</span>, flexDirection: <span class="s">'column'</span>,
+      justifyContent: <span class="s">'space-between'</span>,
+      padding: <span class="n">24</span>, height: <span class="s">'100%'</span>,
+    <span class="s">}}</span><span class="k">&gt;</span>
+      <span class="k">&lt;div</span> <span class="a">style</span>=<span class="s">{{ paddingTop: 80 }}</span><span class="k">&gt;</span>
+        <span class="k">&lt;div</span> <span class="a">className</span>=<span class="s">"eyebrow"</span> <span class="a">style</span>=<span class="s">{{ color: 'var(--accent)' }}</span><span class="k">&gt;</span>
+          v1.0 — beta
+        <span class="k">&lt;/div&gt;</span>
+        <span class="k">&lt;div</span> <span class="a">className</span>=<span class="s">"display"</span> <span class="a">style</span>=<span class="s">{{</span>
+          fontSize: <span class="n">88</span>, color: <span class="s">'var(--fg)'</span>,
+          marginTop: <span class="n">18</span>, lineHeight: <span class="n">0.85</span>,
+        <span class="s">}}</span><span class="k">&gt;</span>
+          Get<span class="k">&lt;br/&gt;</span>Gym<span class="k">&lt;br/&gt;</span>
+          <span class="k">&lt;span</span> <span class="a">style</span>=<span class="s">{{ color: 'var(--accent)' }}</span><span class="k">&gt;</span>Done.<span class="k">&lt;/span&gt;</span>
+        <span class="k">&lt;/div&gt;</span>
+        <span class="k">&lt;div</span> <span class="a">style</span>=<span class="s">{{</span>
+          marginTop: <span class="n">26</span>, fontSize: <span class="n">16</span>,
+          color: <span class="s">'var(--fg-2)'</span>, maxWidth: <span class="n">280</span>,
+          lineHeight: <span class="n">1.4</span>,
+        <span class="s">}}</span><span class="k">&gt;</span>
+          A logbook that knows what day it is, what's next,
+          and how strong you're getting.
+        <span class="k">&lt;/div&gt;</span>
+      <span class="k">&lt;/div&gt;</span>
+
+      <span class="k">&lt;div</span> <span class="a">style</span>=<span class="s">{{ marginBottom: 12 }}</span><span class="k">&gt;</span>
+        <span class="k">&lt;div</span> <span class="a">className</span>=<span class="s">"striped"</span> <span class="a">style</span>=<span class="s">{{</span>
+          height: <span class="n">180</span>, borderRadius: <span class="n">18</span>,
+          marginBottom: <span class="n">24</span>, position: <span class="s">'relative'</span>,
+          overflow: <span class="s">'hidden'</span>,
+        <span class="s">}}</span><span class="k">&gt;</span>
+          <span class="k">&lt;div</span> <span class="a">className</span>=<span class="s">"striped-label"</span><span class="k">&gt;</span>hero — athlete<span class="k">&lt;/div&gt;</span>
+        <span class="k">&lt;/div&gt;</span>
+
+        <span class="k">&lt;button</span> <span class="a">className</span>=<span class="s">"btn-cta-huge"</span> <span class="a">onClick</span>=<span class="s">{onSignIn}</span><span class="k">&gt;</span>
+          Sign up / Sign in
+        <span class="k">&lt;/button&gt;</span>
+
+        <span class="k">&lt;button</span> <span class="a">onClick</span>=<span class="s">{onSkip}</span> <span class="a">style</span>=<span class="s">{{</span>
+          width: <span class="s">'100%'</span>, marginTop: <span class="n">10</span>,
+          padding: <span class="s">'16px 24px'</span>, borderRadius: <span class="n">14</span>,
+          background: <span class="s">'transparent'</span>,
+          color: <span class="s">'var(--fg)'</span>,
+          border: <span class="s">'1.5px solid var(--line)'</span>,
+          fontFamily: <span class="s">'Anton, sans-serif'</span>,
+          fontSize: <span class="n">18</span>, letterSpacing: <span class="s">'0.04em'</span>,
+          textTransform: <span class="s">'uppercase'</span>, cursor: <span class="s">'pointer'</span>,
+          transition: <span class="s">'border-color 120ms ease, color 120ms ease'</span>,
+        <span class="s">}}</span><span class="k">&gt;</span>
+          Skip — keep it local
+        <span class="k">&lt;/button&gt;</span>
+
+        <span class="k">&lt;div</span> <span class="a">style</span>=<span class="s">{{</span>
+          textAlign: <span class="s">'center'</span>, marginTop: <span class="n">12</span>,
+          color: <span class="s">'var(--fg-3)'</span>, fontSize: <span class="n">11</span>,
+          lineHeight: <span class="n">1.45</span>, maxWidth: <span class="n">280</span>,
+          marginLeft: <span class="s">'auto'</span>, marginRight: <span class="s">'auto'</span>,
+        <span class="s">}}</span><span class="k">&gt;</span>
+          Sign in to sync across devices · Skip to start logging now,
+          all data stays on this phone
+        <span class="k">&lt;/div&gt;</span>
+      <span class="k">&lt;/div&gt;</span>
+    <span class="k">&lt;/div&gt;</span>
+  );
+}</pre>
+
+  <!-- ═══════ 05 STATES & INTERACTIONS ═══════ -->
+  <div class="section-mark"><span class="num">05</span><h2>States &amp; interactions</h2></div>
+
+  <h3>Primary CTA — "Sign up / Sign in"</h3>
+  <table>
+    <thead><tr><th>State</th><th>Background</th><th>Color</th><th>Transform</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Default</td><td><span class="swatch"><span class="chip-sm" style="background: oklch(0.88 0.22 125);"></span>--accent</span></td><td>--accent-fg</td><td>none</td><td>—</td></tr>
+      <tr><td>Pressed</td><td>--accent</td><td>--accent-fg</td><td>scale(0.98)</td><td>120ms ease transition</td></tr>
+      <tr><td>Focus</td><td>--accent</td><td>--accent-fg</td><td>—</td><td>2px focus ring in --accent at 50% opacity, 2px offset</td></tr>
+      <tr><td>Disabled</td><td>--accent</td><td>--accent-fg</td><td>—</td><td>opacity 0.4, cursor not-allowed</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ghost CTA — "Skip — keep it local"</h3>
+  <table>
+    <thead><tr><th>State</th><th>Background</th><th>Border</th><th>Color</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Default</td><td>transparent</td><td>1.5px --line</td><td>--fg</td><td>—</td></tr>
+      <tr><td>Hover</td><td>transparent</td><td>1.5px --fg-2</td><td>--fg</td><td>Subtle border darken</td></tr>
+      <tr><td>Pressed</td><td>rgba(255,255,255,0.02)</td><td>1.5px --fg-2</td><td>--fg</td><td>scale(0.98)</td></tr>
+      <tr><td>Focus</td><td>transparent</td><td>1.5px --accent</td><td>--fg</td><td>Border becomes accent</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Tap targets</h3>
+  <ul>
+    <li>Both buttons are full-width (less the 24px screen padding = ~364px wide on a 412 frame).</li>
+    <li>Primary CTA height ≈ 64px (22+22 padding + 20px line).</li>
+    <li>Ghost CTA height ≈ 50px (16+16 padding + 18px line).</li>
+    <li>Both well above the 44×44px minimum tap target.</li>
+  </ul>
+
+  <h3>Motion</h3>
+  <ul>
+    <li>Screen entrance: 240ms slide-in from right with fade (CSS keyframe <code>slideIn</code>). Applied via <code>.screen-enter</code> class on the root.</li>
+    <li>Button press: 120ms ease scale(0.98).</li>
+    <li>No idle animations on this screen. The headline does <em>not</em> animate in — it's there immediately.</li>
+  </ul>
+
+  <!-- ═══════ 06 EDGE CASES ═══════ -->
+  <div class="section-mark"><span class="num">06</span><h2>Edge cases &amp; rules</h2></div>
+
+  <h4>Text wrapping</h4>
+  <ul>
+    <li><strong>Headline:</strong> hard-coded line breaks (Get / Gym / Done.) — do NOT allow CSS wrapping; the line breaks are part of the design.</li>
+    <li><strong>Subtitle:</strong> max-width 280px, natural wrap. On narrow phones (<360px) it will wrap to 3 lines instead of 2 — that's fine.</li>
+    <li><strong>Helper line:</strong> max-width 280px, centered, natural wrap. May wrap to 3 lines on smaller phones — that's fine.</li>
+  </ul>
+
+  <h4>Theme switching</h4>
+  <p>
+    The screen supports light theme automatically via the <code>data-theme="light"</code> CSS
+    attribute on <code>:root</code>. Token values flip; no markup changes. The lime accent
+    stays the same in both themes.
+  </p>
+  <table>
+    <thead><tr><th>Token</th><th>Dark value</th><th>Light value</th></tr></thead>
+    <tbody>
+      <tr><td>--bg</td><td>#0a0a09</td><td>#f5f3ee</td></tr>
+      <tr><td>--fg</td><td>#f7f5f0</td><td>#14130f</td></tr>
+      <tr><td>--fg-2</td><td>#a8a59a</td><td>#5a564a</td></tr>
+      <tr><td>--fg-3</td><td>#696657</td><td>#908a78</td></tr>
+      <tr><td>--surface-2</td><td>#1f1c14</td><td>#ebe8e0</td></tr>
+      <tr><td>--line</td><td>#2e2b22</td><td>#d6d2c4</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Branding tweaks</h4>
+  <p>
+    The accent color is controllable via the global Tweaks system. Five palettes ship: lime
+    (default), ember, electric, blood, mono. The Splash automatically reflects whichever palette
+    is active — no Splash-specific overrides.
+  </p>
+
+  <h4>Safe areas</h4>
+  <p>
+    The 80px top padding inside the splash content is in addition to the 38px status bar.
+    Together they ensure the eyebrow sits ~118px below the top of the phone — well clear of
+    the notch and any system overlay. The 12px bottom margin sits above the 24px gesture nav.
+  </p>
+
+  <h4>What NOT to add</h4>
+  <ul>
+    <li>No social-login buttons (Apple/Google) on this screen. Save those for a dedicated auth screen if needed.</li>
+    <li>No "Continue as guest" text — the second CTA already does that, more emphatically.</li>
+    <li>No version disclaimer in the helper text. The eyebrow at top is the only place version is shown.</li>
+    <li>No tagline above the headline. The lime eyebrow does that job.</li>
+  </ul>
+
+  <!-- ═══════ 07 ACCESSIBILITY ═══════ -->
+  <div class="section-mark"><span class="num">07</span><h2>Accessibility</h2></div>
+  <ul>
+    <li><strong>Color contrast:</strong> lime on near-black gives 12.8:1 (AAA). FG on bg gives 17:1.</li>
+    <li><strong>Focus order:</strong> primary CTA → ghost CTA. Helper line is non-focusable text.</li>
+    <li><strong>Touch targets:</strong> both buttons exceed 44×44px minimum.</li>
+    <li><strong>Screen reader labels:</strong> the headline should be marked up as <code>&lt;h1&gt;</code> in the production implementation (currently a styled <code>div</code> in the prototype). "Get Gym Done." is the page heading.</li>
+    <li><strong>Reduced motion:</strong> if <code>prefers-reduced-motion: reduce</code> is set, the 240ms slide-in entrance should be skipped. Buttons should still get a brief press feedback.</li>
+    <li><strong>Helper line:</strong> 11px is at the low end of legibility. The contrast is 4.6:1 (AA Large). If accessibility is paramount, consider 12px and lift to FG-2.</li>
+  </ul>
+
+  <!-- ═══════ 08 ASSETS & FONTS ═══════ -->
+  <div class="section-mark"><span class="num">08</span><h2>Assets &amp; fonts</h2></div>
+
+  <h4>Fonts</h4>
+  <ul>
+    <li><strong>Anton</strong> — Display headlines, all-caps numerals. Single weight (400). Self-hosted preferred; otherwise Google Fonts: <code>family=Anton</code>.</li>
+    <li><strong>Inter</strong> — All body, eyebrow, button, helper text. Weights 400, 500, 600, 700. Google Fonts: <code>family=Inter:wght@400;500;600;700</code>.</li>
+    <li><strong>JetBrains Mono</strong> — Placeholder labels and mono data (not used in production Splash text). Weight 500.</li>
+  </ul>
+
+  <h4>Images</h4>
+  <p>
+    The 180px hero is a striped placeholder. Replace with a real asset:
+  </p>
+  <ul>
+    <li><strong>Recommended:</strong> a looping 4–6 second MP4 of an athlete mid-lift, ~720×500 source, dark-friendly composition. Falls back to a JPG poster.</li>
+    <li><strong>Alternative:</strong> single hero photo, 1.85:1 aspect, optimized to ~80KB WebP.</li>
+    <li>Whichever asset is used, it must be clipped to <code>border-radius: 18px</code> and fill its container with <code>object-fit: cover</code>.</li>
+  </ul>
+
+  <!-- ═══════ 09 VERIFY ═══════ -->
+  <div class="section-mark"><span class="num">09</span><h2>Verify your build</h2></div>
+
+  <p>When implementing, your output should pass every item below. If any fails, the spec wasn't followed precisely.</p>
+
+  <ul class="check">
+    <li>Frame is exactly 412 × 892 with 44px outer radius and 8px dark border.</li>
+    <li>Status bar shows "9:30" left, a centered camera punch-hole circle, and three icons (signal / wifi / battery) right. Total height 38px.</li>
+    <li>The lime eyebrow "v1.0 — beta" sits 80+38 ≈ 118px from the top of the phone, in 11px Inter Bold uppercase, tracking 0.14em.</li>
+    <li>The headline reads "Get / Gym / Done." on three lines. "Done." is colored lime. Font is Anton 88px with 0.85 line-height. The period is part of the lime span.</li>
+    <li>The subtitle is exactly: <em>"A logbook that knows what day it is, what's next, and how strong you're getting."</em> No more, no less. Inter 16px in --fg-2, capped at 280px wide.</li>
+    <li>The hero placeholder is 180px tall, 18px corners, with diagonal stripes at -45°, and a lowercase mono label reading "hero — athlete".</li>
+    <li>The primary CTA reads exactly "Sign up / Sign in" — title-case, with a space-slash-space between the two phrases. Lime fill, Anton 26px, 22px×24px padding, 14px corners.</li>
+    <li>10px below sits the ghost CTA: "Skip — keep it local" — title case, em-dash, all-caps display style. 1.5px line border. 14px corners.</li>
+    <li>12px below sits the centered helper: <em>"Sign in to sync across devices · Skip to start logging now, all data stays on this phone"</em> — verbatim, with a middle-dot separator (· U+00B7).</li>
+    <li>Gesture nav pill at bottom: 132×5px, centered, foreground color at 60% opacity.</li>
+    <li>Pressing either CTA scales it to 0.98 momentarily.</li>
+    <li>Switching theme to light flips ground colors but keeps lime exactly the same.</li>
+    <li>Switching accent palette via Tweaks recolors lime everywhere (eyebrow, "Done." period, primary CTA) instantly.</li>
+  </ul>
+
+  <h4>Render-test prompts (paste these into Claude Code)</h4>
+  <pre class="code"><span class="c">// 1) Build the component from this spec.</span>
+Build a React component <span class="s">&lt;Splash onSignIn onSkip /&gt;</span> matching the
+spec in "Onboarding Handover.html". Use the design tokens from
+styles.css. Do NOT change the copy, type sizes, line breaks,
+or spacing — they're verbatim and intentional.
+
+<span class="c">// 2) Verify with a screenshot.</span>
+Render Splash at 412×892, light theme off, lime accent.
+Screenshot and compare to the visual reference in the
+handover doc.
+
+<span class="c">// 3) Variants check.</span>
+Render Splash with palette=ember, then palette=mono.
+The headline period color must change; everything else
+identical.</pre>
+
+  <!-- ═══════ 10 RELATION TO OTHER ONBOARDING SCREENS ═══════ -->
+  <div class="section-mark"><span class="num">10</span><h2>Where it fits</h2></div>
+
+  <p>
+    The Splash is the first of <strong>five</strong> onboarding screens. Both buttons advance to
+    the same next screen for now. Production builds may diverge — sign-in opens auth, skip jumps
+    straight to step 1.
+  </p>
+
+  <table>
+    <thead><tr><th>Order</th><th>Screen</th><th>Function</th><th>Reached by</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td><strong>Splash</strong> (this doc)</td><td>Brand + auth choice</td><td>First launch</td></tr>
+      <tr><td>1</td><td>SplitSelect</td><td>Choose a workout split (5-day, PPL, etc.)</td><td>Either CTA</td></tr>
+      <tr><td>2</td><td>MethodSelect</td><td>Curate-for-me vs. Build-my-own</td><td>SplitSelect "Continue →"</td></tr>
+      <tr><td>3</td><td>CustomizeRoutine</td><td>Per-day exercise picker (only if "Build my own")</td><td>MethodSelect "Build it →"</td></tr>
+      <tr><td>4</td><td>HomeScreen</td><td>App proper</td><td>End of routine setup, or "curated" skip</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="label">When recreating this screen</div>
+    <p>
+      The Splash is a poster — treat it with that level of restraint. <strong>Don't add anything
+      that isn't in this spec.</strong> Every element earns its place; padding sums and line-heights
+      are tuned. If you find yourself wanting a third button, an animated headline, or a small
+      illustration alongside the headline — stop and ask, don't add.
+    </p>
+  </div>
+
+  <footer>
+    <div>
+      <div class="signoff">Splash · v1.0</div>
+      <div style="margin-top: 4px;">Onboarding handover · May 17, 2026</div>
+    </div>
+    <div style="text-align: right;">
+      <div>Component: &lt;Splash /&gt;</div>
+      <div>File: onboarding.jsx</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  window.addEventListener('load', async () => {
+    try { await document.fonts.ready; } catch (e) {}
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+
+</body>
+</html>

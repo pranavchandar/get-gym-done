@@ -23,6 +23,7 @@ data class SeedDay(
     val name: String,
     val muscleGroups: List<String>,
     val exercises: List<SeedDayExercise>,
+    val isRestDay: Boolean = false,
 )
 
 @Serializable
