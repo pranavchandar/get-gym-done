@@ -59,6 +59,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.getgymdone.app.data.repository.SplitRepository
+import com.getgymdone.app.data.repository.UserPrefsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import com.getgymdone.app.ui.theme.AccentLime
 import com.getgymdone.app.ui.theme.AccentLimeFg
 import com.getgymdone.app.ui.theme.AntonFamily
@@ -72,7 +84,7 @@ import kotlinx.coroutines.launch
 // determines display order. ids match the seeded Split.id so navigation can route to
 // RoutineMethod with a real DB key. The "custom" entry is UI-only and routes to
 // CustomizeRoutine instead. ──────────────────────────────────────────────────────
-private data class SplitOption(
+data class SplitOption(
     val id: String,
     val name: String,
     val sub: String,
@@ -81,15 +93,8 @@ private data class SplitOption(
 )
 
 private val SPLIT_OPTIONS: List<SplitOption> = listOf(
-    SplitOption(
-        id = "5day_illustrated",
-        name = "5 Day Illustrated",
-        sub = "Your PDF split",
-        days = listOf("Upper", "Lower", "Shoulders & Arms", "Legs (Quad)", "Back & Chest"),
-        recommended = true,
-    ),
     SplitOption("ppl_6day", "Push Pull Legs", "3 or 6 day variants",
-        listOf("Push", "Pull", "Legs")),
+        listOf("Push", "Pull", "Legs"), recommended = true),
     SplitOption("upper_lower_4day", "Upper / Lower", "4 day classic",
         listOf("Upper", "Lower", "Upper", "Lower")),
     SplitOption("phul_4day", "PHUL", "Power + hypertrophy",
@@ -108,6 +113,36 @@ private val SPLIT_OPTIONS: List<SplitOption> = listOf(
 
 private const val CUSTOM_ID = "custom"
 private const val COMMIT_HOLD_MS = 180L
+
+@HiltViewModel
+class PickSplitViewModel @Inject constructor(
+    private val splits: SplitRepository,
+    private val prefs: UserPrefsRepository,
+) : ViewModel() {
+    // User-built (custom) splits, surfaced so a saved routine can be re-selected after switching
+    // away — otherwise it lives in the DB but is unreachable from this preset-only catalog.
+    private val _customSplits = MutableStateFlow<List<SplitOption>>(emptyList())
+    val customSplits: StateFlow<List<SplitOption>> = _customSplits.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _customSplits.value = splits.observeAll().first()
+                .filter { it.isCustom }
+                .map { s ->
+                    val days = splits.getDays(s.id).filter { !it.isRestDay }.map { it.name }
+                    SplitOption(id = s.id, name = s.name, sub = "Your routine", days = days)
+                }
+        }
+    }
+
+    /** Activate an already-built split as-is (no rebuild), then invoke [onDone] on the main thread. */
+    fun activate(splitId: String, onDone: () -> Unit) {
+        viewModelScope.launch {
+            prefs.update { it.copy(activeSplitId = splitId, onboardingComplete = true) }
+            onDone()
+        }
+    }
+}
 
 // ── Pixel-perfect type tokens. Tied to the handover §04 spec rather than the shared
 // Material typography so the screen survives theme tweaks without drift. ─────────
@@ -195,8 +230,11 @@ private fun fg3(): Color =
 fun PickSplitScreen(
     onPicked: (String) -> Unit,
     onPickCustom: () -> Unit,
+    onUseExisting: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val vm: PickSplitViewModel = hiltViewModel()
+    val customSplits by vm.customSplits.collectAsState()
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     var committing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -240,6 +278,23 @@ fun PickSplitScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (customSplits.isNotEmpty()) {
+                item(key = "__custom_header") { SectionHeader("Your routines") }
+                items(customSplits, key = { "custom_${it.id}" }) { opt ->
+                    SplitCardRow(
+                        option = opt,
+                        isSelected = selected == opt.id,
+                        onTap = {
+                            if (!committing) {
+                                committing = true
+                                selected = opt.id
+                                vm.activate(opt.id, onDone = onUseExisting)
+                            }
+                        },
+                    )
+                }
+                item(key = "__templates_header") { SectionHeader("Templates") }
+            }
             items(SPLIT_OPTIONS, key = { it.id }) { opt ->
                 SplitCardRow(
                     option = opt,
@@ -252,6 +307,16 @@ fun PickSplitScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = EyebrowStyle,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 6.dp, bottom = 2.dp),
+    )
 }
 
 // ─── §07 Top bar ──────────────────────────────────────────────────────────────────
@@ -480,7 +545,7 @@ private fun RecommendedBadge(modifier: Modifier = Modifier) {
             .padding(horizontal = 8.dp, vertical = 3.dp),
     ) {
         Text(
-            text = "FROM YOUR PDF",
+            text = "RECOMMENDED",
             style = BadgeStyle,
             color = AccentLimeFg,
         )

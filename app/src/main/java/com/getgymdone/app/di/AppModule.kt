@@ -7,6 +7,7 @@ import com.getgymdone.app.data.db.AppDatabase
 import com.getgymdone.app.data.db.dao.BodyMetricDao
 import com.getgymdone.app.data.db.dao.DayExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseDao
+import com.getgymdone.app.data.db.dao.ExerciseMediaDao
 import com.getgymdone.app.data.db.dao.SessionDao
 import com.getgymdone.app.data.db.dao.SetLogDao
 import com.getgymdone.app.data.db.dao.SplitDao
@@ -36,7 +37,12 @@ object AppModule {
         lateinit var dbRef: AppDatabase
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         dbRef = Room.databaseBuilder(ctx, AppDatabase::class.java, AppDatabase.NAME)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5,
+            )
             .addCallback(object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     scope.launch {
@@ -63,4 +69,5 @@ object AppModule {
     @Provides fun provideSetLogDao(db: AppDatabase): SetLogDao = db.setLogDao()
     @Provides fun provideBodyMetricDao(db: AppDatabase): BodyMetricDao = db.bodyMetricDao()
     @Provides fun provideUserPrefsDao(db: AppDatabase): UserPrefsDao = db.userPrefsDao()
+    @Provides fun provideExerciseMediaDao(db: AppDatabase): ExerciseMediaDao = db.exerciseMediaDao()
 }

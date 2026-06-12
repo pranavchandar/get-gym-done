@@ -25,13 +25,13 @@ enum class ThemeMode {
     }
 }
 
-private val DarkColors = darkColorScheme(
-    primary           = AccentLime,
-    onPrimary         = AccentLimeFg,
-    primaryContainer  = AccentLime,
-    onPrimaryContainer = AccentLimeFg,
-    secondary         = AccentCoral,
-    onSecondary       = AccentLimeFg,
+private fun darkColors(a: AccentPalette) = darkColorScheme(
+    primary           = a.primary,
+    onPrimary         = a.onAccent,
+    primaryContainer  = a.primary,
+    onPrimaryContainer = a.onAccent,
+    secondary         = a.secondary,
+    onSecondary       = a.onAccent,
     background        = GymBgDark,
     onBackground      = GymFgDark,
     surface           = GymSurfaceDark,
@@ -41,17 +41,17 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = GymSurface3Dark,
     outline           = GymLineDark,
     outlineVariant    = GymLineDark,
-    error             = AccentCoral,
-    onError           = AccentLimeFg,
+    error             = a.secondary,
+    onError           = a.onAccent,
 )
 
-private val LightColors = lightColorScheme(
-    primary           = AccentLime,
-    onPrimary         = AccentLimeFg,
-    primaryContainer  = AccentLime,
-    onPrimaryContainer = AccentLimeFg,
-    secondary         = AccentCoral,
-    onSecondary       = Color.White,
+private fun lightColors(a: AccentPalette) = lightColorScheme(
+    primary           = a.primary,
+    onPrimary         = a.onAccent,
+    primaryContainer  = a.primary,
+    onPrimaryContainer = a.onAccent,
+    secondary         = a.secondary,
+    onSecondary       = a.onAccent,
     background        = GymBgLight,
     onBackground      = GymFgLight,
     surface           = GymSurfaceLight,
@@ -61,13 +61,14 @@ private val LightColors = lightColorScheme(
     surfaceContainerHighest = GymSurface3Light,
     outline           = GymLineLight,
     outlineVariant    = GymLineLight,
-    error             = AccentCoral,
-    onError           = Color.White,
+    error             = a.secondary,
+    onError           = a.onAccent,
 )
 
 @Composable
 fun GymDoneTheme(
     themeMode: ThemeMode = ThemeMode.System,
+    accent: AccentPalette = AccentPalette.Lime,
     content: @Composable () -> Unit,
 ) {
     val systemDark = isSystemInDarkTheme()
@@ -76,7 +77,7 @@ fun GymDoneTheme(
         ThemeMode.Dark  -> true
         ThemeMode.System -> systemDark
     }
-    val colors = if (useDark) DarkColors else LightColors
+    val colors = if (useDark) darkColors(accent) else lightColors(accent)
 
     val view = LocalView.current
     if (!view.isInEditMode) {

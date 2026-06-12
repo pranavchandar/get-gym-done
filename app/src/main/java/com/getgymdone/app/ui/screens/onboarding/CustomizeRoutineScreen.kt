@@ -50,6 +50,8 @@ import com.getgymdone.app.data.repository.ExerciseRepository
 import com.getgymdone.app.data.repository.SplitRepository
 import com.getgymdone.app.data.repository.UserPrefsRepository
 import com.getgymdone.app.ui.components.BigCta
+import com.getgymdone.app.ui.components.CustomExerciseForm
+import com.getgymdone.app.ui.components.CustomExerciseInput
 import com.getgymdone.app.ui.components.GhostCta
 import com.getgymdone.app.ui.components.PillChip
 import com.getgymdone.app.ui.components.PillStyle
@@ -143,6 +145,23 @@ class CustomizeRoutineViewModel @Inject constructor(
         }
     }
 
+    fun addCustomExercise(input: CustomExerciseInput, onCreated: (Exercise) -> Unit) {
+        viewModelScope.launch {
+            val ex = exerciseRepo.addCustom(
+                name = input.name,
+                primaryMuscle = input.primaryMuscle,
+                secondaryMuscles = input.secondaryMuscles,
+                equipment = input.equipment,
+                formCues = input.formCues,
+                sets = input.sets,
+                repsLow = input.repsLow,
+                repsHigh = input.repsHigh,
+            )
+            _library.value = exerciseRepo.all()
+            onCreated(ex)
+        }
+    }
+
     private fun inferMuscleGroups(exercises: List<ExerciseDraft>): List<String> {
         val byId = _library.value.associateBy { it.id }
         return exercises.mapNotNull { byId[it.exerciseId]?.primaryMuscle }.distinct()
@@ -183,6 +202,7 @@ fun CustomizeRoutineScreen(
         library = library,
         seededFromPreset = seedSplitId != null,
         onCommit = { name, days -> vm.save(name, days) { onDone() } },
+        onCreateCustom = { input, onCreated -> vm.addCustomExercise(input, onCreated) },
         onBack = onBack,
     )
 }
@@ -193,6 +213,7 @@ private fun BuilderContent(
     library: List<Exercise>,
     seededFromPreset: Boolean,
     onCommit: (String, List<DayDraft>) -> Unit,
+    onCreateCustom: (CustomExerciseInput, (Exercise) -> Unit) -> Unit,
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -203,6 +224,36 @@ private fun BuilderContent(
     }
     var selectedDay by rememberSaveable { mutableIntStateOf(0) }
     var pickerOpenForDay by remember { mutableStateOf<Int?>(null) }
+    var creatingCustomForDay by remember { mutableStateOf<Int?>(null) }
+
+    fun addExerciseToDay(dayIndex: Int, ex: Exercise) {
+        val current = days[dayIndex]
+        days[dayIndex] = current.copy(
+            exercises = current.exercises + ExerciseDraft(
+                exerciseId = ex.id,
+                sets = ex.defaultSets,
+                repsLow = ex.defaultRepsLow,
+                repsHigh = ex.defaultRepsHigh,
+            ),
+        )
+    }
+
+    // Custom-exercise form short-circuits everything while active.
+    val creatingForDay = creatingCustomForDay
+    if (creatingForDay != null) {
+        CustomExerciseForm(
+            muscleOptions = library.map { it.primaryMuscle }.distinct().sorted(),
+            onSubmit = { input ->
+                onCreateCustom(input) { ex ->
+                    addExerciseToDay(creatingForDay, ex)
+                    creatingCustomForDay = null
+                    pickerOpenForDay = null
+                }
+            },
+            onCancel = { creatingCustomForDay = null },
+        )
+        return
+    }
 
     // Picker overlay short-circuits the main builder UI when active.
     val openPickerForDay = pickerOpenForDay
@@ -212,17 +263,10 @@ private fun BuilderContent(
             alreadyAdded = days[openPickerForDay].exercises.map { it.exerciseId }.toSet(),
             onPick = { exercise ->
                 val ex = library.firstOrNull { it.id == exercise.id } ?: return@ExercisePickerSheet
-                val current = days[openPickerForDay]
-                days[openPickerForDay] = current.copy(
-                    exercises = current.exercises + ExerciseDraft(
-                        exerciseId = ex.id,
-                        sets = ex.defaultSets,
-                        repsLow = ex.defaultRepsLow,
-                        repsHigh = ex.defaultRepsHigh,
-                    ),
-                )
+                addExerciseToDay(openPickerForDay, ex)
                 pickerOpenForDay = null
             },
+            onCreateCustom = { creatingCustomForDay = openPickerForDay },
             onClose = { pickerOpenForDay = null },
         )
         return
@@ -630,7 +674,7 @@ private fun MiniStepperButton(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun AddExerciseButton(onClick: () -> Unit) {
+private fun AddExerciseButton(onClick: () -> Unit, label: String = "+ ADD EXERCISE") {
     val shape = RoundedCornerShape(14.dp)
     Row(
         modifier = Modifier
@@ -644,7 +688,7 @@ private fun AddExerciseButton(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "+ ADD EXERCISE",
+            text = label,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
@@ -656,6 +700,7 @@ private fun ExercisePickerSheet(
     library: List<Exercise>,
     alreadyAdded: Set<String>,
     onPick: (Exercise) -> Unit,
+    onCreateCustom: () -> Unit,
     onClose: () -> Unit,
 ) {
     var query by remember { mutableStateOf(TextFieldValue("")) }
@@ -693,6 +738,8 @@ private fun ExercisePickerSheet(
             onValueChange = { query = it },
             placeholder = "Search by name or muscle",
         )
+        Spacer(Modifier.height(10.dp))
+        AddExerciseButton(onClick = onCreateCustom, label = "+ CREATE CUSTOM EXERCISE")
         Spacer(Modifier.height(12.dp))
 
         LazyColumn(

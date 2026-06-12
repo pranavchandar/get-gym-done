@@ -24,6 +24,28 @@ interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<Exercise>)
 
+    /**
+     * Refresh a catalog exercise's descriptive fields in place (no REPLACE, so day_exercise rows
+     * referencing it stay intact). Used to backfill form cues / muscles added to the seed later.
+     */
+    @Query(
+        "UPDATE exercise SET name = :name, primaryMuscle = :primaryMuscle, " +
+            "secondaryMuscles = :secondaryMuscles, formCues = :formCues, equipment = :equipment, " +
+            "defaultSets = :defaultSets, defaultRepsLow = :defaultRepsLow, defaultRepsHigh = :defaultRepsHigh " +
+            "WHERE id = :id",
+    )
+    suspend fun updateDetails(
+        id: String,
+        name: String,
+        primaryMuscle: String,
+        secondaryMuscles: List<String>,
+        formCues: List<String>,
+        equipment: String,
+        defaultSets: Int,
+        defaultRepsLow: Int,
+        defaultRepsHigh: Int,
+    )
+
     @Query("DELETE FROM exercise")
     suspend fun clear()
 }

@@ -8,6 +8,10 @@ import com.getgymdone.app.data.db.entities.BodyMetric
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.Session
 import com.getgymdone.app.data.db.entities.SetLog
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,8 +39,45 @@ class MetricsRepository @Inject constructor(
 
     suspend fun latestBodyMetric(): BodyMetric? = bodyMetricDao.getLatest()
 
+    /** Today's body-metric row, if one has already been logged this calendar day. */
+    suspend fun todayBodyMetric(): BodyMetric? {
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        return bodyMetricDao.getAll().firstOrNull {
+            Instant.ofEpochMilli(it.recordedAt).atZone(zone).toLocalDate() == today
+        }
+    }
+
+    /** All logged body metrics, oldest first. */
+    suspend fun bodyMetrics(): List<BodyMetric> =
+        bodyMetricDao.getAll().sortedBy { it.recordedAt }
+
     suspend fun bodyweightSeries(): List<BodyMetric> =
         bodyMetricDao.getAll().filter { it.bodyweightKg != null }.sortedBy { it.recordedAt }
+
+    /**
+     * Record a body-metric entry. Any combination of fields may be supplied; a no-op if all are
+     * null. One entry per calendar day: re-logging on the same day overwrites that day's row
+     * (only the fields provided this time change; others keep their existing value), so the day
+     * isn't duplicated on the graphs.
+     */
+    suspend fun logBodyMetric(bodyweightKg: Double?, bodyFatPct: Double?, muscleMassKg: Double?) {
+        if (bodyweightKg == null && bodyFatPct == null && muscleMassKg == null) return
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        val existing = bodyMetricDao.getAll().firstOrNull {
+            Instant.ofEpochMilli(it.recordedAt).atZone(zone).toLocalDate() == today
+        }
+        bodyMetricDao.insert(
+            BodyMetric(
+                id = existing?.id ?: UUID.randomUUID().toString(),
+                recordedAt = System.currentTimeMillis(),
+                bodyweightKg = bodyweightKg ?: existing?.bodyweightKg,
+                bodyFatPct = bodyFatPct ?: existing?.bodyFatPct,
+                muscleMassKg = muscleMassKg ?: existing?.muscleMassKg,
+            ),
+        )
+    }
 
     /** Total tonnage across every logged set, in kg. */
     suspend fun totalVolumeKg(): Double =
@@ -49,20 +90,25 @@ class MetricsRepository @Inject constructor(
     }
 
     /**
-     * Current streak in consecutive calendar days that ended on a completed session, counting
-     * back from the most recent one. A gap of more than a day breaks it.
+     * Current streak in calendar days, counting back from the most recent completed session.
+     * Strictly consecutive days extend it; a gap is bridged — and the skipped days counted toward
+     * the streak — only when it spans no more than [maxRestGap] days, the routine's longest run of
+     * scheduled rest days. So a planned rest day in the middle never breaks the streak, but missing
+     * more days than the schedule allows does.
      */
-    suspend fun currentStreakDays(): Int {
+    suspend fun currentStreakDays(maxRestGap: Int = 0): Int {
+        val zone = ZoneId.systemDefault()
         val days = completedSessions()
             .mapNotNull { it.completedAt }
-            .map { it / (24L * 60 * 60 * 1000) }
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().toEpochDay() }
             .distinct()
             .sortedDescending()
         if (days.isEmpty()) return 0
-        var streak = 1
+        var streak = 1L
         for (i in 1 until days.size) {
-            if (days[i - 1] - days[i] == 1L) streak++ else break
+            val gap = days[i - 1] - days[i]
+            if (gap in 1..(maxRestGap + 1L)) streak += gap else break
         }
-        return streak
+        return streak.toInt()
     }
 }

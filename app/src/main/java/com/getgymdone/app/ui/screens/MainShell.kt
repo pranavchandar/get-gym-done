@@ -46,7 +46,11 @@ fun MainShell(
         ) {
             Crossfade(targetState = tab, animationSpec = tween(200), label = "tab") { current ->
                 when (current) {
-                    MainTab.Today -> HomeScreen(onOpenDay = onOpenDay, onStartToday = onStartToday)
+                    MainTab.Today -> HomeScreen(
+                        onOpenDay = onOpenDay,
+                        onStartToday = onStartToday,
+                        onResetRoutine = onResetRoutine,
+                    )
                     MainTab.Workouts -> WorkoutsListScreen(onOpenDay = onOpenDay)
                     MainTab.Profile -> ProfileScreen()
                     MainTab.Settings -> SettingsScreen(

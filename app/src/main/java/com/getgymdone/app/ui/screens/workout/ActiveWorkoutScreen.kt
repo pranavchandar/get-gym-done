@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,18 +24,38 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.rounded.AddPhotoAlternate
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import java.io.File
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import android.Manifest
+import android.os.Build
+import com.getgymdone.app.notifications.RestTimerScheduler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.FlowRow
@@ -44,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,9 +73,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import android.net.Uri
 import com.getgymdone.app.data.db.entities.Exercise
+import com.getgymdone.app.data.db.entities.ExerciseMedia
+import com.getgymdone.app.data.repository.ExerciseMediaRepository
 import com.getgymdone.app.data.repository.ExerciseRepository
 import com.getgymdone.app.data.repository.SessionRepository
+import kotlinx.coroutines.flow.Flow
 import com.getgymdone.app.data.repository.SplitRepository
 import com.getgymdone.app.data.repository.UserPrefsRepository
 import com.getgymdone.app.domain.WeightUnit
@@ -87,6 +113,9 @@ data class ActiveExercise(
     val repsLow: Int,
     val repsHigh: Int,
     val sets: List<SetEntry>,
+    // Added on the fly during this workout; never written back to the split's prescription, so it
+    // won't reappear next time.
+    val isTemporary: Boolean = false,
 )
 
 data class ActiveWorkoutState(
@@ -101,7 +130,9 @@ data class ActiveWorkoutState(
     val restDurationSeconds: Int = 90,
 ) {
     val current: ActiveExercise? get() = exercises.getOrNull(currentIndex)
-    val totalSets: Int get() = exercises.sumOf { it.prescribedSets }
+    // Totals track the actual number of set rows (which can grow when the user adds a set),
+    // not just the original prescription, so progress stays accurate.
+    val totalSets: Int get() = exercises.sumOf { it.sets.size }
     val doneSets: Int get() = exercises.sumOf { ex -> ex.sets.count { it.done } }
     val isLastExercise: Boolean get() = currentIndex == exercises.lastIndex
     /** Index of the next set to log in the current exercise, or -1 when the exercise is done. */
@@ -116,7 +147,15 @@ class ActiveWorkoutViewModel @Inject constructor(
     private val exercises: ExerciseRepository,
     private val sessions: SessionRepository,
     private val prefs: UserPrefsRepository,
+    private val mediaRepo: ExerciseMediaRepository,
 ) : ViewModel() {
+
+    /** User-uploaded images/GIFs for an exercise (local only). */
+    fun media(exerciseId: String): Flow<List<ExerciseMedia>> = mediaRepo.observe(exerciseId)
+
+    fun addMedia(exerciseId: String, uri: Uri) = viewModelScope.launch { mediaRepo.add(exerciseId, uri) }
+
+    fun removeMedia(mediaId: String) = viewModelScope.launch { mediaRepo.remove(mediaId) }
 
     private val workoutDayId = handle.toRoute<Route.ActiveWorkout>().workoutDayId
     private val _state = MutableStateFlow(ActiveWorkoutState())
@@ -141,20 +180,53 @@ class ActiveWorkoutViewModel @Inject constructor(
                 return@launch
             }
             val items = splits.getDayExercises(workoutDayId).sortedBy { it.orderIndex }
+
+            // Resume an in-progress session for this day if one exists — every set is written to
+            // the DB the moment it's logged, so a kill mid-workout leaves a session we can pick
+            // back up. Sets already logged are restored as done; the rest start fresh.
+            val existing = sessions.getInProgressForDay(workoutDayId)
+            val session = existing ?: sessions.startSession(workoutDayId)
+            val loggedByExercise = existing
+                ?.let { sessions.getSetsForSession(it.id) }
+                ?.groupBy { it.exerciseId }
+                .orEmpty()
+
             val active = items.mapNotNull { de ->
                 val ex = exercises.getById(de.exerciseId) ?: return@mapNotNull null
-                val last = sessions.getLastSet(de.exerciseId)
-                val startWeight = last?.weightKg ?: 20.0
-                val startReps = last?.reps ?: de.prescribedRepsLow
+                val logged = loggedByExercise[de.exerciseId]?.associateBy { it.setNumber }.orEmpty()
+                // Per-set memory: each set prefills with what was logged for that same set number
+                // last time. Extra sets beyond last time's count fall back to the final set's
+                // weight; a brand-new exercise falls back to a sane starting load.
+                val prevSets = sessions.getLastSessionSets(de.exerciseId)
+                val prevByNumber = prevSets.associateBy { it.setNumber }
+                val prevFallback = prevSets.lastOrNull()
+                // Rebuild at least the prescribed sets, but also any extra sets the user logged
+                // beyond the prescription before the app was killed.
+                val setCount = maxOf(de.prescribedSets, logged.keys.maxOrNull() ?: 0)
                 ActiveExercise(
                     exercise = ex,
                     prescribedSets = de.prescribedSets,
                     repsLow = de.prescribedRepsLow,
                     repsHigh = de.prescribedRepsHigh,
-                    sets = List(de.prescribedSets) { SetEntry(weightKg = startWeight, reps = startReps) },
+                    sets = List(setCount) { idx ->
+                        val saved = logged[idx + 1]
+                        if (saved != null) {
+                            SetEntry(weightKg = saved.weightKg, reps = saved.reps, done = true, logId = saved.id)
+                        } else {
+                            val prev = prevByNumber[idx + 1] ?: prevFallback
+                            SetEntry(
+                                weightKg = prev?.weightKg ?: 20.0,
+                                reps = prev?.reps ?: de.prescribedRepsLow,
+                            )
+                        }
+                    },
                 )
             }
-            val session = sessions.startSession(workoutDayId)
+            // Jump to the first exercise that still has unlogged sets so a resumed workout opens
+            // where the user left off.
+            val resumeIndex = active.indexOfFirst { ex -> ex.sets.any { !it.done } }
+                .takeIf { it >= 0 } ?: 0
+
             _state.value = ActiveWorkoutState(
                 loading = false,
                 dayName = day?.name.orEmpty(),
@@ -162,7 +234,7 @@ class ActiveWorkoutViewModel @Inject constructor(
                 unit = unit,
                 sessionId = session.id,
                 exercises = active,
-                currentIndex = 0,
+                currentIndex = resumeIndex,
                 restDurationSeconds = restDuration,
             )
         }
@@ -241,6 +313,76 @@ class ActiveWorkoutViewModel @Inject constructor(
         }
     }
 
+    /** Append an extra set to the current exercise, prefilled from its last set. */
+    fun addSet() {
+        _state.update { st ->
+            val exIdx = st.currentIndex
+            val ex = st.exercises.getOrNull(exIdx) ?: return@update st
+            val template = ex.sets.lastOrNull()
+            val newSet = SetEntry(
+                weightKg = template?.weightKg ?: 20.0,
+                reps = template?.reps ?: ex.repsLow,
+            )
+            val newEx = st.exercises.toMutableList().also { it[exIdx] = ex.copy(sets = ex.sets + newSet) }
+            st.copy(exercises = newEx)
+        }
+    }
+
+    /** Exercise library for the "add exercise" picker. */
+    fun exerciseLibrary(): Flow<List<Exercise>> = exercises.observeAll()
+
+    /**
+     * Append an exercise to this workout only. Its sets prefill from last-session memory like the
+     * prescribed ones, but it's flagged temporary and never saved to the split, so it's gone next
+     * time. No-op if the exercise is already in the workout (logging is keyed by exercise + set
+     * number, so duplicates would collide).
+     */
+    fun addTemporaryExercise(exercise: Exercise) {
+        if (_state.value.exercises.any { it.exercise.id == exercise.id }) return
+        viewModelScope.launch {
+            val prevSets = sessions.getLastSessionSets(exercise.id)
+            val prevByNumber = prevSets.associateBy { it.setNumber }
+            val prevFallback = prevSets.lastOrNull()
+            val setCount = exercise.defaultSets.coerceAtLeast(1)
+            val newEx = ActiveExercise(
+                exercise = exercise,
+                prescribedSets = exercise.defaultSets,
+                repsLow = exercise.defaultRepsLow,
+                repsHigh = exercise.defaultRepsHigh,
+                sets = List(setCount) { idx ->
+                    val prev = prevByNumber[idx + 1] ?: prevFallback
+                    SetEntry(
+                        weightKg = prev?.weightKg ?: 20.0,
+                        reps = prev?.reps ?: exercise.defaultRepsLow,
+                    )
+                },
+                isTemporary = true,
+            )
+            _state.update { st ->
+                val list = st.exercises + newEx
+                st.copy(exercises = list, currentIndex = list.lastIndex)
+            }
+        }
+    }
+
+    /**
+     * Drop an exercise from this workout. Any sets already logged for it in this session are deleted
+     * so history stays clean; the split's prescription is untouched, so this is a per-session skip.
+     */
+    fun removeExercise(index: Int) {
+        val ex = _state.value.exercises.getOrNull(index) ?: return
+        viewModelScope.launch {
+            ex.sets.mapNotNull { it.logId }.forEach { sessions.deleteSet(it) }
+            _state.update { st ->
+                val list = st.exercises.toMutableList().also { it.removeAt(index) }
+                st.copy(
+                    exercises = list,
+                    currentIndex = st.currentIndex.coerceIn(0, (list.size - 1).coerceAtLeast(0)),
+                )
+            }
+        }
+    }
+
     fun nextExercise() {
         _state.update { if (it.currentIndex < it.exercises.lastIndex) it.copy(currentIndex = it.currentIndex + 1) else it }
     }
@@ -267,16 +409,79 @@ fun ActiveWorkoutScreen(
     val vm: ActiveWorkoutViewModel = hiltViewModel()
     val state by vm.state.collectAsState()
 
+    val context = LocalContext.current
     var keypadTarget by remember { mutableStateOf<KeypadField?>(null) }
-    var restSeconds by remember { mutableIntStateOf(0) }
     var toast by remember { mutableStateOf<String?>(null) }
+    var pickerOpen by remember { mutableStateOf(false) }
 
-    // Rest countdown — ticks once per second while > 0.
-    LaunchedEffect(restSeconds) {
-        if (restSeconds > 0) {
-            delay(1000)
-            restSeconds -= 1
+    // Local image/GIF upload for the current exercise. Picked items are copied into app storage;
+    // nothing is sent to the cloud. The target exercise is captured at launch time.
+    var mediaTargetId by remember { mutableStateOf<String?>(null) }
+    val mediaPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(10),
+    ) { uris ->
+        mediaTargetId?.let { id -> uris.forEach { vm.addMedia(id, it) } }
+    }
+
+    // Rest timer is anchored to a wall-clock end time rather than a tick counter, so it stays
+    // correct after the OS freezes the app in the background. [now] is refreshed on a loop only to
+    // animate the dial; the remaining seconds are always derived from (endAt − now).
+    var restEndAt by remember { mutableStateOf<Long?>(null) }
+    var restTotal by remember { mutableIntStateOf(0) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val restRemaining = restEndAt?.let { (((it - now) + 999) / 1000).coerceAtLeast(0).toInt() } ?: 0
+
+    val startRest: (Int) -> Unit = { seconds ->
+        val end = System.currentTimeMillis() + seconds * 1000L
+        restTotal = seconds
+        now = System.currentTimeMillis()
+        restEndAt = end
+        RestTimerScheduler.schedule(context, end)
+    }
+    val stopRest: () -> Unit = {
+        restEndAt = null
+        restTotal = 0
+        RestTimerScheduler.cancel(context)
+    }
+    // Shift the running timer by ±delta and reschedule the background alert.
+    val adjustRest: (Int) -> Unit = { delta ->
+        val newRemaining = (restRemaining + delta).coerceAtLeast(0)
+        if (newRemaining <= 0) {
+            stopRest()
+        } else {
+            val end = System.currentTimeMillis() + newRemaining * 1000L
+            restTotal = (restTotal + delta).coerceAtLeast(newRemaining)
+            now = System.currentTimeMillis()
+            restEndAt = end
+            RestTimerScheduler.schedule(context, end)
         }
+    }
+
+    // Ask for notification permission (Android 13+) so the background rest alert can be posted.
+    val notifPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {}
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Drive the on-screen dial from wall-clock time; clears itself (and the alarm) when rest ends.
+    LaunchedEffect(restEndAt) {
+        val end = restEndAt ?: return@LaunchedEffect
+        while (System.currentTimeMillis() < end) {
+            now = System.currentTimeMillis()
+            delay(200)
+        }
+        now = System.currentTimeMillis()
+        restEndAt = null
+        restTotal = 0
+        RestTimerScheduler.cancel(context)
+    }
+    // Leaving the workout screen cancels any pending rest alert.
+    DisposableEffect(Unit) {
+        onDispose { RestTimerScheduler.cancel(context) }
     }
     // Auto-dismiss the set-logged toast.
     LaunchedEffect(toast) {
@@ -324,6 +529,13 @@ fun ActiveWorkoutScreen(
                 title = state.dayName,
                 position = "${state.currentIndex + 1} / ${state.exercises.size}",
                 onClose = onBack,
+                onAddExercise = { pickerOpen = true },
+                onRemoveExercise = {
+                    val name = current.exercise.name
+                    vm.removeExercise(state.currentIndex)
+                    toast = "Removed $name"
+                },
+                canRemove = state.exercises.size > 1,
             )
             ProgressBar(fraction = if (state.totalSets == 0) 0f else state.doneSets.toFloat() / state.totalSets)
             ExerciseDots(
@@ -340,7 +552,22 @@ fun ActiveWorkoutScreen(
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 14.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                item("hero") { ExerciseHero(current, state.currentIndex) }
+                item("hero") {
+                    val mediaFlow = remember(current.exercise.id) { vm.media(current.exercise.id) }
+                    val mediaList by mediaFlow.collectAsState(initial = emptyList())
+                    ExerciseHero(
+                        ex = current,
+                        index = state.currentIndex,
+                        media = mediaList,
+                        onAddMedia = {
+                            mediaTargetId = current.exercise.id
+                            mediaPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                            )
+                        },
+                        onRemoveMedia = { vm.removeMedia(it) },
+                    )
+                }
                 item("targets") { TargetsCard(current.exercise) }
                 if (current.exercise.formCues.isNotEmpty()) {
                     item("cues") { FormCuesCard(current.exercise.formCues) }
@@ -358,6 +585,9 @@ fun ActiveWorkoutScreen(
                         onRepsStep = vm::adjustReps,
                     )
                 }
+                if (current.sets.isNotEmpty() && current.sets.all { it.done }) {
+                    item("add-set") { AddSetButton(onClick = vm::addSet) }
+                }
             }
 
             BottomBar(
@@ -366,18 +596,33 @@ fun ActiveWorkoutScreen(
                     val setNo = state.activeSetIndex + 1
                     vm.completeActiveSet()
                     if (!(state.isLastExercise && state.activeSetIndex == current.sets.lastIndex)) {
-                        restSeconds = state.restDurationSeconds
+                        startRest(state.restDurationSeconds)
                         toast = "Set $setNo logged · ${state.restDurationSeconds}s rest"
                     } else {
                         toast = "Set $setNo logged"
                     }
                 },
                 onNextExercise = {
-                    restSeconds = 0
+                    stopRest()
                     vm.nextExercise()
                 },
                 onFinish = { vm.finish(onComplete) },
                 onUndo = vm::undoLastSet,
+            )
+        }
+
+        if (pickerOpen) {
+            val libraryFlow = remember { vm.exerciseLibrary() }
+            val library by libraryFlow.collectAsState(initial = emptyList())
+            AddExercisePicker(
+                library = library,
+                alreadyInWorkout = state.exercises.mapTo(HashSet()) { it.exercise.id },
+                onPick = { ex ->
+                    vm.addTemporaryExercise(ex)
+                    pickerOpen = false
+                    toast = "Added ${ex.name}"
+                },
+                onClose = { pickerOpen = false },
             )
         }
 
@@ -402,7 +647,7 @@ fun ActiveWorkoutScreen(
         }
 
         AnimatedVisibility(
-            visible = restSeconds > 0,
+            visible = restEndAt != null,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -410,17 +655,17 @@ fun ActiveWorkoutScreen(
                 .padding(top = 80.dp),
         ) {
             RestTimerOverlay(
-                remaining = restSeconds,
-                total = state.restDurationSeconds,
+                remaining = restRemaining,
+                total = restTotal,
                 onMinus = {
                     vm.adjustRestDuration(-REST_STEP_SECONDS)
-                    restSeconds = (restSeconds - REST_STEP_SECONDS).coerceAtLeast(0)
+                    adjustRest(-REST_STEP_SECONDS)
                 },
                 onPlus = {
                     vm.adjustRestDuration(REST_STEP_SECONDS)
-                    restSeconds += REST_STEP_SECONDS
+                    adjustRest(REST_STEP_SECONDS)
                 },
-                onSkip = { restSeconds = 0 },
+                onSkip = stopRest,
             )
         }
 
@@ -454,7 +699,14 @@ private fun Toast(text: String) {
 // ── Chrome ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun TopBar(title: String, position: String, onClose: () -> Unit) {
+private fun TopBar(
+    title: String,
+    position: String,
+    onClose: () -> Unit,
+    onAddExercise: () -> Unit,
+    onRemoveExercise: () -> Unit,
+    canRemove: Boolean,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -479,7 +731,40 @@ private fun TopBar(title: String, position: String, onClose: () -> Unit) {
             Text(title.uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(position, style = MaterialTheme.typography.headlineSmall)
         }
-        Spacer(Modifier.size(40.dp))
+        Box {
+            var menuOpen by remember { mutableStateOf(false) }
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
+                    .clickable { menuOpen = true },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Rounded.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(20.dp))
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("Add exercise") },
+                    leadingIcon = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                    onClick = {
+                        menuOpen = false
+                        onAddExercise()
+                    },
+                )
+                if (canRemove) {
+                    DropdownMenuItem(
+                        text = { Text("Remove this exercise") },
+                        leadingIcon = { Icon(Icons.Rounded.DeleteOutline, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            onRemoveExercise()
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -535,19 +820,83 @@ private fun ExerciseDots(exercises: List<ActiveExercise>, current: Int, onPick: 
 }
 
 @Composable
-private fun ExerciseHero(ex: ActiveExercise, index: Int) {
+private fun ExerciseHero(
+    ex: ActiveExercise,
+    index: Int,
+    media: List<ExerciseMedia>,
+    onAddMedia: () -> Unit,
+    onRemoveMedia: (String) -> Unit,
+) {
     Column {
-        StripedPlaceholder(
-            label = "exercise gif · ${ex.exercise.illustrationFilename}",
+        val shape = RoundedCornerShape(14.dp)
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.9f),
-        )
+                .aspectRatio(1.9f)
+                .clip(shape),
+        ) {
+            if (media.isEmpty()) {
+                StripedPlaceholder(
+                    label = "add photos / GIFs",
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                val pagerState = rememberPagerState(pageCount = { media.size })
+                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+                    AsyncImage(
+                        model = File(media[page].filePath),
+                        contentDescription = "Exercise media",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+                // Page indicator dots.
+                if (media.size > 1) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        repeat(media.size) { i ->
+                            val active = i == pagerState.currentPage
+                            Box(
+                                Modifier
+                                    .size(if (active) 8.dp else 6.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .background(
+                                        if (active) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
+                                    ),
+                            )
+                        }
+                    }
+                }
+                // Delete the currently-shown item.
+                HeroCircleButton(
+                    icon = Icons.Rounded.Close,
+                    contentDescription = "Remove photo",
+                    onClick = { media.getOrNull(pagerState.currentPage)?.let { onRemoveMedia(it.id) } },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                )
+            }
+            // Add more media.
+            HeroCircleButton(
+                icon = Icons.Rounded.AddPhotoAlternate,
+                contentDescription = "Add photo or GIF",
+                onClick = onAddMedia,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+            )
+        }
         Spacer(Modifier.height(14.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "EXERCISE ${index + 1}",
+                    text = if (ex.isTemporary) "EXERCISE ${index + 1} · ADDED" else "EXERCISE ${index + 1}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -567,6 +916,25 @@ private fun ExerciseHero(ex: ActiveExercise, index: Int) {
                 Text("PRESCRIPTION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+@Composable
+private fun HeroCircleButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(RoundedCornerShape(100.dp))
+            .background(Color.Black.copy(alpha = 0.45f))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = contentDescription, tint = Color.White, modifier = Modifier.size(20.dp))
     }
 }
 
@@ -725,6 +1093,27 @@ private fun SetRow(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AddSetButton(onClick: () -> Unit) {
+    val shape = RoundedCornerShape(10.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, MaterialTheme.colorScheme.primary, shape)
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            "+ ADD SET",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
     }
 }
 
@@ -960,6 +1349,9 @@ private fun KeypadSheet(
     var buffer by remember {
         mutableStateOf(if (field == KeypadField.Reps) initial.toInt().toString() else formatWeight(initial))
     }
+    // The prefilled value is shown but treated as a placeholder: the first key press (or quick-add)
+    // clears it and starts fresh, so you don't have to backspace the old number first.
+    var pristine by remember { mutableStateOf(true) }
     val allowDecimal = field == KeypadField.Weight
     val quickAdds = if (field == KeypadField.Weight) {
         if (unit == WeightUnit.Kg) listOf(2.5, 5.0, 10.0) else listOf(5.0, 10.0, 25.0)
@@ -998,6 +1390,7 @@ private fun KeypadSheet(
                     QuickAddChip("+${formatWeight(add)}") {
                         val base = buffer.toDoubleOrNull() ?: 0.0
                         buffer = if (allowDecimal) formatWeight(base + add) else (base + add).toInt().toString()
+                        pristine = false
                     }
                 }
             }
@@ -1010,7 +1403,8 @@ private fun KeypadSheet(
                 ) {
                     rowKeys.forEach { key ->
                         KeypadKey(key, Modifier.weight(1f)) {
-                            buffer = applyKey(buffer, key, allowDecimal)
+                            buffer = applyKey(if (pristine) "" else buffer, key, allowDecimal)
+                            pristine = false
                         }
                     }
                 }
@@ -1065,3 +1459,138 @@ private fun QuickAddChip(label: String, onClick: () -> Unit) {
 
 private fun formatWeight(value: Double): String =
     if (value % 1.0 == 0.0) value.toInt().toString() else "%.1f".format(value)
+
+// ── Add-exercise picker (temporary, this workout only) ───────────────────────
+
+@Composable
+private fun AddExercisePicker(
+    library: List<Exercise>,
+    alreadyInWorkout: Set<String>,
+    onPick: (Exercise) -> Unit,
+    onClose: () -> Unit,
+) {
+    var query by remember { mutableStateOf("") }
+    val filtered = remember(library, query) {
+        val q = query.trim().lowercase()
+        if (q.isEmpty()) library
+        else library.filter { it.name.lowercase().contains(q) || it.primaryMuscle.lowercase().contains(q) }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 18.dp)
+            .padding(top = 48.dp, bottom = 18.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("ADD EXERCISE", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                "Cancel",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.clickable(onClick = onClose).padding(8.dp),
+            )
+        }
+        Text(
+            "Just for this workout — won't change your routine.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+        SearchField(value = query, onValueChange = { query = it })
+        Spacer(Modifier.height(12.dp))
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val grouped = filtered.groupBy { it.primaryMuscle }.toSortedMap()
+            grouped.forEach { (muscle, exs) ->
+                item(key = "h_$muscle") {
+                    Text(
+                        muscle.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+                items(items = exs, key = { it.id }) { ex ->
+                    PickerRow(ex, ex.id in alreadyInWorkout) { onPick(ex) }
+                }
+            }
+            if (filtered.isEmpty()) {
+                item {
+                    Text(
+                        "No exercises match.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickerRow(exercise: Exercise, alreadyInWorkout: Boolean, onPick: () -> Unit) {
+    val shape = RoundedCornerShape(10.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .clickable(enabled = !alreadyInWorkout, onClick = onPick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                exercise.name,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (alreadyInWorkout) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground,
+            )
+            Text(
+                "${exercise.equipment} · ${exercise.defaultSets}×${exercise.defaultRepsLow}-${exercise.defaultRepsHigh}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (alreadyInWorkout) {
+            Text("IN WORKOUT", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun SearchField(value: String, onValueChange: (String) -> Unit) {
+    val shape = RoundedCornerShape(10.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        if (value.isEmpty()) {
+            Text(
+                "Search by name or muscle",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}

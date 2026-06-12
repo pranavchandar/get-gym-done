@@ -25,7 +25,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val vm: AppViewModel = hiltViewModel()
             val mode by vm.themeMode.collectAsState()
-            GymDoneTheme(themeMode = mode) {
+            val accent by vm.accent.collectAsState()
+            GymDoneTheme(themeMode = mode, accent = accent) {
                 Surface(
                     modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
                     color = MaterialTheme.colorScheme.background,

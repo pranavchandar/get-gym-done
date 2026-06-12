@@ -28,6 +28,10 @@ interface SplitDao {
     @Query("UPDATE split SET dayCount = :dayCount WHERE id = :id")
     suspend fun setDayCount(id: String, dayCount: Int)
 
+    /** Flag a split as user-owned so the seed reconcile stops overwriting its day layout. */
+    @Query("UPDATE split SET isCustom = 1 WHERE id = :id")
+    suspend fun markCustom(id: String)
+
     @Query("DELETE FROM split")
     suspend fun clear()
 }

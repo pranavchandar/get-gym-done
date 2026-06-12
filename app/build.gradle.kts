@@ -81,6 +81,9 @@ dependencies {
 
     implementation(libs.vico.compose.m3)
 
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso)

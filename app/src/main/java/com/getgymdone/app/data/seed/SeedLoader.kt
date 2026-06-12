@@ -29,6 +29,7 @@ class SeedLoader(
             db.userPrefsDao().upsert(UserPrefs())
         }
         if (db.exerciseDao().getAll().isNotEmpty()) {
+            mergeNewExercises()
             reconcileCatalogDays()
             return
         }
@@ -69,6 +70,35 @@ class SeedLoader(
     }
 
     /**
+     * Insert any catalog exercises added to the seed since this install was first seeded. Only
+     * brand-new ids are inserted (existing rows are left untouched — they may be referenced by
+     * day_exercise via a RESTRICT foreign key, so a REPLACE-upsert could fail). This lets the
+     * exercise picker pick up additions without wiping user data.
+     */
+    private suspend fun mergeNewExercises() {
+        val existing = db.exerciseDao().getAll().map { it.id }.toSet()
+        val text = context.resources.openRawResource(R.raw.seed_data).bufferedReader().use { it.readText() }
+        val seed = json.decodeFromString(SeedFile.serializer(), text)
+        val newOnes = seed.exercises.filter { it.id !in existing }.map { it.toEntity() }
+        if (newOnes.isNotEmpty()) db.exerciseDao().upsertAll(newOnes)
+        // Backfill descriptive fields (form cues, muscles, defaults) onto catalog exercises that
+        // were seeded before those details existed. In-place update keeps day_exercise FKs intact.
+        seed.exercises.filter { it.id in existing }.forEach { se ->
+            db.exerciseDao().updateDetails(
+                id = se.id,
+                name = se.name,
+                primaryMuscle = se.primaryMuscle,
+                secondaryMuscles = se.secondaryMuscles,
+                formCues = se.formCues,
+                equipment = se.equipment,
+                defaultSets = se.defaultSets,
+                defaultRepsLow = se.defaultRepsLow,
+                defaultRepsHigh = se.defaultRepsHigh,
+            )
+        }
+    }
+
+    /**
      * Converge an already-seeded catalog onto the current seed's day layout (interspersed rest
      * days, renumbered training days). Idempotent and safe for installs with workout history: we
      * only ever INSERT new rest rows and UPDATE dayNumber/dayCount in place — never REPLACE an
@@ -85,6 +115,8 @@ class SeedLoader(
 
         seed.splits.forEach { s ->
             val split = db.splitDao().getById(s.id) ?: return@forEach
+            // Once the user has edited a preset's day layout we mark it custom; don't fight them.
+            if (split.isCustom) return@forEach
             val newRows = mutableListOf<WorkoutDay>()
             s.days.forEach { d ->
                 val current = byId[d.id]
@@ -110,7 +142,6 @@ class SeedLoader(
         // catalog grows: existing installs auto-reseed on next launch because they're
         // missing the new marker, then settle (no further triggers fire).
         private val SEED_MARKERS = setOf(
-            "5day_illustrated",
             "arnold_6day",
             "phul_4day",
             "glute_focused_5day",

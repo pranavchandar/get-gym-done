@@ -38,13 +38,19 @@ class StartDestinationViewModel @Inject constructor(
 
 @Composable
 fun AppNavigation() {
-    val nav = rememberNavController()
     val startVm: StartDestinationViewModel = hiltViewModel()
     val onboardingComplete by startVm.onboardingComplete.collectAsState()
 
+    // Hold off rendering until prefs load: NavHost can't change its start route after first
+    // composition, so a null (still-loading) flag must resolve before we pick a start. Once
+    // onboarding is complete the splash is bypassed and we open straight on Home; the splash
+    // only ever shows on the first run, as part of onboarding.
+    val complete = onboardingComplete ?: return
+
+    val nav = rememberNavController()
     NavHost(
         navController = nav,
-        startDestination = Route.Splash,
+        startDestination = if (complete) Route.Home else Route.Splash,
     ) {
         composable<Route.Splash> {
             SplashScreen(
@@ -66,6 +72,11 @@ fun AppNavigation() {
             PickSplitScreen(
                 onPicked = { splitId -> nav.navigate(Route.RoutineMethod(splitId)) },
                 onPickCustom = { nav.navigate(Route.CustomizeRoutine(seedSplitId = null)) },
+                onUseExisting = {
+                    nav.navigate(Route.Home) {
+                        popUpTo(Route.Splash) { inclusive = true }
+                    }
+                },
                 onBack = { if (!nav.popBackStack()) nav.navigate(Route.Splash) },
             )
         }

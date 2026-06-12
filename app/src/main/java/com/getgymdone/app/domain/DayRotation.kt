@@ -37,3 +37,21 @@ fun nextWorkoutDay(days: List<WorkoutDay>, lastCompletedDayNumber: Int?): Workou
     }
     return trainable.minByOrNull { it.dayNumber }
 }
+
+/**
+ * Longest run of consecutive rest days in the cyclic rotation. Streak and consistency use this to
+ * decide how wide a calendar gap between logged days they may bridge without breaking: a scheduled
+ * rest day in the middle of the week shouldn't end a streak. Considers the wrap-around (the rest
+ * block straddling the last and first day of the cycle), and is 0 for a split with no rest days.
+ */
+fun maxConsecutiveRestDays(days: List<WorkoutDay>): Int {
+    val flags = days.sortedBy { it.dayNumber }.map { it.isRestDay }
+    if (flags.none { it }) return 0
+    if (flags.all { it }) return flags.size
+    var best = 0
+    var cur = 0
+    for (r in flags + flags) {
+        if (r) { cur++; best = maxOf(best, cur) } else cur = 0
+    }
+    return minOf(best, flags.size)
+}

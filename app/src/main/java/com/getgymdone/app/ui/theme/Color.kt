@@ -26,3 +26,7 @@ val GymFg3Light      = Color(0xFF908A78)
 val AccentLime       = Color(0xFFC1F038)  // oklch(0.88 0.22 125)
 val AccentLimeFg     = Color(0xFF0A0A09)
 val AccentCoral      = Color(0xFFF76E5C)  // oklch(0.70 0.22 25)
+
+// Body-metric trend arrows.
+val TrendUp          = Color(0xFF55C46E)  // green — value rose vs the previous entry
+val TrendDown        = AccentCoral        // red — value fell vs the previous entry

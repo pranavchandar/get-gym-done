@@ -21,6 +21,9 @@ interface SessionDao {
     @Query("SELECT * FROM session WHERE completedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
     suspend fun getInProgress(): Session?
 
+    @Query("SELECT * FROM session WHERE workoutDayId = :workoutDayId AND completedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
+    suspend fun getInProgressForDay(workoutDayId: String): Session?
+
     @Query("SELECT * FROM session WHERE completedAt IS NOT NULL ORDER BY completedAt DESC")
     fun observeHistory(): Flow<List<Session>>
 
@@ -29,4 +32,7 @@ interface SessionDao {
 
     @Query("SELECT * FROM session")
     suspend fun getAll(): List<Session>
+
+    @Query("SELECT COUNT(*) FROM session WHERE workoutDayId = :workoutDayId")
+    suspend fun countForDay(workoutDayId: String): Int
 }

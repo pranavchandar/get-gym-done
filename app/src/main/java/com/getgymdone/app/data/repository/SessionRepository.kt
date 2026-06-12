@@ -9,11 +9,28 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 
+/** Marks a session as a logged rest day rather than a workout, so counts can exclude it. */
+const val REST_SESSION_NOTE = "rest"
+
 @Singleton
 class SessionRepository @Inject constructor(
     private val sessionDao: SessionDao,
     private val setLogDao: SetLogDao,
 ) {
+    /** Record a rest day as completed for today — shows on the calendar, but logs no sets. */
+    suspend fun completeRestDay(workoutDayId: String) {
+        val now = System.currentTimeMillis()
+        sessionDao.insert(
+            Session(
+                id = UUID.randomUUID().toString(),
+                workoutDayId = workoutDayId,
+                startedAt = now,
+                completedAt = now,
+                notes = REST_SESSION_NOTE,
+            ),
+        )
+    }
+
     suspend fun startSession(workoutDayId: String): Session {
         val s = Session(
             id = UUID.randomUUID().toString(),
@@ -31,6 +48,7 @@ class SessionRepository @Inject constructor(
 
     suspend fun getById(id: String): Session? = sessionDao.getById(id)
     suspend fun getInProgress(): Session? = sessionDao.getInProgress()
+    suspend fun getInProgressForDay(workoutDayId: String): Session? = sessionDao.getInProgressForDay(workoutDayId)
     suspend fun getLastCompleted(): Session? = sessionDao.getLastCompleted()
     fun observeHistory(): Flow<List<Session>> = sessionDao.observeHistory()
 
@@ -67,4 +85,8 @@ class SessionRepository @Inject constructor(
 
     suspend fun getLastSet(exerciseId: String): SetLog? =
         setLogDao.getRecent(exerciseId, limit = 1).firstOrNull()
+
+    /** Sets from the last completed session of this exercise, for per-set weight/rep memory. */
+    suspend fun getLastSessionSets(exerciseId: String): List<SetLog> =
+        setLogDao.getLastCompletedSessionSets(exerciseId)
 }
