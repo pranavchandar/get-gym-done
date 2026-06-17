@@ -83,6 +83,10 @@ class SessionRepository @Inject constructor(
     suspend fun getProgression(exerciseId: String): List<SetLog> =
         setLogDao.getProgressionForExercise(exerciseId)
 
+    /** Progression history limited to completed sessions — used for progressive-overload advice. */
+    suspend fun getCompletedProgression(exerciseId: String): List<SetLog> =
+        setLogDao.getCompletedProgression(exerciseId)
+
     suspend fun getLastSet(exerciseId: String): SetLog? =
         setLogDao.getRecent(exerciseId, limit = 1).firstOrNull()
 

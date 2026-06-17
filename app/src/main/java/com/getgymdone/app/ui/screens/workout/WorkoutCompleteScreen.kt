@@ -46,6 +46,7 @@ import com.getgymdone.app.data.repository.UserPrefsRepository
 import com.getgymdone.app.domain.WeightUnit
 import com.getgymdone.app.domain.displayToKg
 import com.getgymdone.app.domain.kgToDisplay
+import com.getgymdone.app.ui.WorkoutCelebrationSignal
 import com.getgymdone.app.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -76,6 +77,7 @@ class WorkoutCompleteViewModel @Inject constructor(
     private val splits: SplitRepository,
     private val metrics: MetricsRepository,
     private val prefs: UserPrefsRepository,
+    private val celebration: WorkoutCelebrationSignal,
 ) : ViewModel() {
 
     private val sessionId = handle.toRoute<Route.WorkoutComplete>().sessionId
@@ -116,6 +118,9 @@ class WorkoutCompleteViewModel @Inject constructor(
             )
         }
     }
+
+    /** Arm the Today-screen confetti, played once the user lands back home. */
+    fun armCelebration() = celebration.arm()
 
     /** Log today's bodyweight (entered in display units) and mark it recorded. */
     fun logBodyweight(display: Double) {
@@ -220,7 +225,10 @@ fun WorkoutCompleteScreen(
                 .height(60.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(MaterialTheme.colorScheme.primary)
-                .clickable(onClick = onDone),
+                .clickable {
+                    vm.armCelebration()
+                    onDone()
+                },
             contentAlignment = Alignment.Center,
         ) {
             Text(

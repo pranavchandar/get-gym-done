@@ -21,6 +21,18 @@ interface SetLogDao {
     """)
     suspend fun getProgressionForExercise(exerciseId: String): List<SetLog>
 
+    /**
+     * Like [getProgressionForExercise] but only from *completed* sessions, so an in-progress workout's
+     * own sets don't feed back into progression advice. Ordered oldest → newest.
+     */
+    @Query("""
+        SELECT sl.* FROM set_log sl
+         JOIN session s ON s.id = sl.sessionId
+         WHERE sl.exerciseId = :exerciseId AND s.completedAt IS NOT NULL
+         ORDER BY sl.completedAt ASC
+    """)
+    suspend fun getCompletedProgression(exerciseId: String): List<SetLog>
+
     @Query("""
         SELECT * FROM set_log
          WHERE exerciseId = :exerciseId

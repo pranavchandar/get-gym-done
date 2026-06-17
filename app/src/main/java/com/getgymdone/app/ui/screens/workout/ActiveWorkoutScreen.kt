@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.MoreVert
@@ -82,9 +83,11 @@ import com.getgymdone.app.data.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
 import com.getgymdone.app.data.repository.SplitRepository
 import com.getgymdone.app.data.repository.UserPrefsRepository
+import com.getgymdone.app.domain.WeightSuggestion
 import com.getgymdone.app.domain.WeightUnit
 import com.getgymdone.app.domain.displayToKg
 import com.getgymdone.app.domain.kgToDisplay
+import com.getgymdone.app.domain.weightIncreaseSuggestion
 import com.getgymdone.app.ui.components.StripedPlaceholder
 import com.getgymdone.app.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -116,6 +119,8 @@ data class ActiveExercise(
     // Added on the fly during this workout; never written back to the split's prescription, so it
     // won't reappear next time.
     val isTemporary: Boolean = false,
+    // Progressive-overload nudge derived from past completed sessions; null when nothing has stalled.
+    val weightSuggestion: WeightSuggestion? = null,
 )
 
 data class ActiveWorkoutState(
@@ -191,6 +196,9 @@ class ActiveWorkoutViewModel @Inject constructor(
                 ?.groupBy { it.exerciseId }
                 .orEmpty()
 
+            // Smallest natural plate jump in the user's unit, for progressive-overload advice.
+            val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
+
             val active = items.mapNotNull { de ->
                 val ex = exercises.getById(de.exerciseId) ?: return@mapNotNull null
                 val logged = loggedByExercise[de.exerciseId]?.associateBy { it.setNumber }.orEmpty()
@@ -203,6 +211,11 @@ class ActiveWorkoutViewModel @Inject constructor(
                 // Rebuild at least the prescribed sets, but also any extra sets the user logged
                 // beyond the prescription before the app was killed.
                 val setCount = maxOf(de.prescribedSets, logged.keys.maxOrNull() ?: 0)
+                val suggestion = weightIncreaseSuggestion(
+                    history = sessions.getCompletedProgression(de.exerciseId),
+                    repsHigh = de.prescribedRepsHigh,
+                    incrementKg = incrementKg,
+                )
                 ActiveExercise(
                     exercise = ex,
                     prescribedSets = de.prescribedSets,
@@ -220,6 +233,7 @@ class ActiveWorkoutViewModel @Inject constructor(
                             )
                         }
                     },
+                    weightSuggestion = suggestion,
                 )
             }
             // Jump to the first exercise that still has unlogged sets so a resumed workout opens
@@ -267,6 +281,18 @@ class ActiveWorkoutViewModel @Inject constructor(
 
     fun setWeightDisplay(display: Double) = mutateActiveSet {
         it.copy(weightKg = display.displayToKg(currentUnit()).coerceAtLeast(0.0))
+    }
+
+    /** Apply a weight (display units) to every not-yet-logged set of the current exercise. */
+    fun applyWeightToActiveExercise(display: Double) {
+        _state.update { st ->
+            val exIdx = st.currentIndex
+            val ex = st.exercises.getOrNull(exIdx) ?: return@update st
+            val kg = display.displayToKg(st.unit).coerceAtLeast(0.0)
+            val newSets = ex.sets.map { if (it.done) it else it.copy(weightKg = kg) }
+            val newEx = st.exercises.toMutableList().also { it[exIdx] = ex.copy(sets = newSets) }
+            st.copy(exercises = newEx)
+        }
     }
 
     fun adjustReps(delta: Int) = mutateActiveSet { it.copy(reps = (it.reps + delta).coerceIn(0, 99)) }
@@ -344,6 +370,13 @@ class ActiveWorkoutViewModel @Inject constructor(
             val prevByNumber = prevSets.associateBy { it.setNumber }
             val prevFallback = prevSets.lastOrNull()
             val setCount = exercise.defaultSets.coerceAtLeast(1)
+            val unit = _state.value.unit
+            val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
+            val suggestion = weightIncreaseSuggestion(
+                history = sessions.getCompletedProgression(exercise.id),
+                repsHigh = exercise.defaultRepsHigh,
+                incrementKg = incrementKg,
+            )
             val newEx = ActiveExercise(
                 exercise = exercise,
                 prescribedSets = exercise.defaultSets,
@@ -357,6 +390,7 @@ class ActiveWorkoutViewModel @Inject constructor(
                     )
                 },
                 isTemporary = true,
+                weightSuggestion = suggestion,
             )
             _state.update { st ->
                 val list = st.exercises + newEx
@@ -571,6 +605,19 @@ fun ActiveWorkoutScreen(
                 item("targets") { TargetsCard(current.exercise) }
                 if (current.exercise.formCues.isNotEmpty()) {
                     item("cues") { FormCuesCard(current.exercise.formCues) }
+                }
+                current.weightSuggestion?.let { sug ->
+                    // Hide once the remaining sets have been bumped to (or past) the suggested load.
+                    val needed = current.sets.any { !it.done && it.weightKg < sug.suggestedWeightKg - 1e-3 }
+                    if (needed) {
+                        item("suggestion") {
+                            WeightSuggestionCard(
+                                suggestion = sug,
+                                unit = state.unit,
+                                onApply = { vm.applyWeightToActiveExercise(sug.suggestedWeightKg.kgToDisplay(state.unit)) },
+                            )
+                        }
+                    }
                 }
                 item("sets-head") { SetsHeader(current) }
                 items(current.sets.withIndex().toList(), key = { it.index }) { (idx, set) ->
@@ -1020,6 +1067,48 @@ private fun SetsHeader(ex: ActiveExercise) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+// ── Progressive-overload nudge ───────────────────────────────────────────────
+
+@Composable
+private fun WeightSuggestionCard(
+    suggestion: WeightSuggestion,
+    unit: WeightUnit,
+    onApply: () -> Unit,
+) {
+    val shape = RoundedCornerShape(14.dp)
+    val current = formatWeight(suggestion.currentWeightKg.kgToDisplay(unit))
+    val next = formatWeight(suggestion.suggestedWeightKg.kgToDisplay(unit))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), shape)
+            .border(1.dp, MaterialTheme.colorScheme.primary, shape)
+            .padding(14.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Icons.Rounded.ArrowUpward, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            Text("TIME TO ADD WEIGHT", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "You hit $current ${unit.label} × ${suggestion.reps} the last 2 sessions — try $next ${unit.label}.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(Modifier.height(12.dp))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                .clickable(onClick = onApply)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            Text("BUMP TO $next ${unit.label}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
+        }
     }
 }
 
