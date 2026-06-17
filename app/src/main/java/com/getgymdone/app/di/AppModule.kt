@@ -8,6 +8,7 @@ import com.getgymdone.app.data.db.dao.BodyMetricDao
 import com.getgymdone.app.data.db.dao.DayExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseMediaDao
+import com.getgymdone.app.data.db.dao.FriendDao
 import com.getgymdone.app.data.db.dao.SessionDao
 import com.getgymdone.app.data.db.dao.SetLogDao
 import com.getgymdone.app.data.db.dao.SplitDao
@@ -42,6 +43,9 @@ object AppModule {
                 AppDatabase.MIGRATION_2_3,
                 AppDatabase.MIGRATION_3_4,
                 AppDatabase.MIGRATION_4_5,
+                AppDatabase.MIGRATION_5_6,
+                AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8,
             )
             .addCallback(object : androidx.room.RoomDatabase.Callback() {
                 override fun onCreate(db: SupportSQLiteDatabase) {
@@ -70,4 +74,5 @@ object AppModule {
     @Provides fun provideBodyMetricDao(db: AppDatabase): BodyMetricDao = db.bodyMetricDao()
     @Provides fun provideUserPrefsDao(db: AppDatabase): UserPrefsDao = db.userPrefsDao()
     @Provides fun provideExerciseMediaDao(db: AppDatabase): ExerciseMediaDao = db.exerciseMediaDao()
+    @Provides fun provideFriendDao(db: AppDatabase): FriendDao = db.friendDao()
 }

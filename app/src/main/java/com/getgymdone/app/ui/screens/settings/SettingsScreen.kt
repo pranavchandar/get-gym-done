@@ -1,6 +1,5 @@
 package com.getgymdone.app.ui.screens.settings
 
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -29,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -69,10 +67,9 @@ class SettingsViewModel @Inject constructor(
 }
 
 @Composable
-fun SettingsScreen(onResetRoutine: () -> Unit, onOpenDebug: () -> Unit) {
+fun SettingsScreen(onResetRoutine: () -> Unit, onOpenDebug: () -> Unit, onOpenSocial: () -> Unit) {
     val vm: SettingsViewModel = hiltViewModel()
     val p by vm.prefsFlow.collectAsState()
-    val context = LocalContext.current
 
     val createDoc = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json"),
@@ -92,22 +89,20 @@ fun SettingsScreen(onResetRoutine: () -> Unit, onOpenDebug: () -> Unit) {
         Text("SETTINGS", style = MaterialTheme.typography.displaySmall)
         Spacer(Modifier.height(20.dp))
 
-        SettingsGroup("Account") {
+        SettingsGroup("Friends") {
             Text(
-                text = "Sign in to sync across devices. Everything stays on this phone until you do.",
+                text = if (p.socialEnabled) {
+                    "Signed in as ${p.socialHandle ?: "you"}. Only your streak and session counts are shared — your logs stay on this phone."
+                } else {
+                    "Add friends by QR for a private streak leaderboard. Everything stays on this phone until you turn it on."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             GhostCta(
-                label = "Sign up / Sign in",
-                onClick = {
-                    Toast.makeText(
-                        context,
-                        "Cloud sync is coming soon. Your data stays local for now.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                },
+                label = if (p.socialEnabled) "Friends & leaderboard" else "Set up Friends",
+                onClick = onOpenSocial,
             )
         }
 

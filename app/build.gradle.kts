@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -71,6 +72,9 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.work.runtime)
 
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -83,6 +87,14 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

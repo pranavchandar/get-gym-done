@@ -10,3 +10,6 @@ local.properties
 .externalNativeBuild/
 .DS_Store
 gradle-wrapper.jar.lock
+
+# Firebase config (per-project; keep out of a potentially-public repo)
+google-services.json

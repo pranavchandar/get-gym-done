@@ -17,6 +17,7 @@ import com.getgymdone.app.ui.screens.onboarding.CustomizeRoutineScreen
 import com.getgymdone.app.ui.screens.onboarding.PickSplitScreen
 import com.getgymdone.app.ui.screens.onboarding.RoutineMethodScreen
 import com.getgymdone.app.ui.screens.onboarding.SplashScreen
+import com.getgymdone.app.ui.screens.social.SocialScreen
 import com.getgymdone.app.ui.screens.workout.ActiveWorkoutScreen
 import com.getgymdone.app.ui.screens.workout.WorkoutCompleteScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,6 +65,7 @@ fun AppNavigation() {
                         popUpTo(Route.Splash) { inclusive = true }
                     }
                 },
+                onSignIn = { nav.navigate(Route.Social) },
                 isOnboardingComplete = onboardingComplete == true,
             )
         }
@@ -119,7 +121,12 @@ fun AppNavigation() {
                     }
                 },
                 onOpenDebug = { nav.navigate(Route.DebugData) },
+                onOpenSocial = { nav.navigate(Route.Social) },
             )
+        }
+
+        composable<Route.Social> {
+            SocialScreen(onBack = { nav.popBackStack() })
         }
 
         composable<Route.DayOverview> { entry ->

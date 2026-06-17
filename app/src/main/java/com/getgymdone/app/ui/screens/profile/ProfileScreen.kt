@@ -36,10 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +58,8 @@ import com.getgymdone.app.domain.WeightUnit
 import com.getgymdone.app.domain.displayToKg
 import com.getgymdone.app.domain.maxConsecutiveRestDays
 import com.getgymdone.app.domain.kgToDisplay
+import com.getgymdone.app.ui.components.Avatar
+import com.getgymdone.app.ui.components.ProfileFields
 import com.getgymdone.app.ui.components.Trend
 import com.getgymdone.app.ui.components.TrendArrow
 import com.getgymdone.app.ui.components.trendOf
@@ -140,6 +139,9 @@ enum class TimeRange(val label: String, val days: Int?) {
 
 data class ProfileState(
     val loading: Boolean = true,
+    val profileName: String = "",
+    val profileColor: String = "lime",
+    val profilePhoto: String? = null,
     val totalVolumeLabel: String = "0",
     val sessionCount: Int = 0,
     val unitLabel: String = "kg",
@@ -155,7 +157,7 @@ data class ProfileState(
     val bodyweight: MetricSeries = MetricSeries("—", "", emptyList()),
     val bodyFat: MetricSeries = MetricSeries("—", "", emptyList()),
     val muscleMass: MetricSeries = MetricSeries("—", "", emptyList()),
-    /** Latest values as plain display numbers (no unit suffix) for prefilling the log sheet. */
+    /** Latest values as plain display numbers (no unit suffix), shown as hints in the log sheet. */
     val bodyweightInput: String = "",
     val bodyFatInput: String = "",
     val muscleMassInput: String = "",
@@ -294,6 +296,9 @@ class ProfileViewModel @Inject constructor(
 
             _state.value = ProfileState(
                 loading = false,
+                profileName = p.socialHandle.orEmpty(),
+                profileColor = p.socialColor ?: "lime",
+                profilePhoto = p.avatarPhoto,
                 totalVolumeLabel = compactVolume(totalVolume.kgToDisplay(unit)),
                 sessionCount = sessions.count { it.notes != REST_SESSION_NOTE },
                 unitLabel = unit.label,
@@ -330,6 +335,13 @@ class ProfileViewModel @Inject constructor(
         if (series.size < 2 || series.first() <= 0f) return ""
         val pct = ((series.last() - series.first()) / series.first() * 100).toInt()
         return if (pct >= 0) "+$pct%" else "$pct%"
+    }
+
+    /** Save the profile identity (name, color, photo). Propagated to friends on the next sync. */
+    fun saveProfile(name: String, color: String, photo: String?) {
+        viewModelScope.launch {
+            prefs.update { it.copy(socialHandle = name.trim(), socialColor = color, avatarPhoto = photo) }
+        }
     }
 
     /** Persist a body-metric entry; values arrive as display units (kg/lbs) and percent. */
@@ -409,6 +421,7 @@ fun ProfileScreen() {
     val vm: ProfileViewModel = hiltViewModel()
     val state by vm.state.collectAsState()
     var logSheetOpen by remember { mutableStateOf(false) }
+    var editOpen by remember { mutableStateOf(false) }
     var bodyExpanded by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
@@ -419,7 +432,13 @@ fun ProfileScreen() {
             .padding(horizontal = 22.dp)
             .padding(top = 56.dp, bottom = 24.dp),
     ) {
-        ProfileHeader(sessionCount = state.sessionCount)
+        ProfileHeader(
+            name = state.profileName,
+            photo = state.profilePhoto,
+            color = state.profileColor,
+            sessionCount = state.sessionCount,
+            onEdit = { editOpen = true },
+        )
 
         Spacer(Modifier.height(18.dp))
 
@@ -491,9 +510,9 @@ fun ProfileScreen() {
         if (logSheetOpen) {
             LogBodyMetricsSheet(
                 unitLabel = state.unitLabel,
-                initialBodyweight = state.bodyweightInput,
-                initialBodyFat = state.bodyFatInput,
-                initialMuscleMass = state.muscleMassInput,
+                lastBodyweight = state.bodyweightInput,
+                lastBodyFat = state.bodyFatInput,
+                lastMuscleMass = state.muscleMassInput,
                 onSave = { bw, bf, mm ->
                     vm.logBodyMetrics(bw, bf, mm)
                     logSheetOpen = false
@@ -501,29 +520,103 @@ fun ProfileScreen() {
                 onDismiss = { logSheetOpen = false },
             )
         }
+
+        if (editOpen) {
+            ProfileEditSheet(
+                initialName = state.profileName,
+                initialColor = state.profileColor,
+                initialPhoto = state.profilePhoto,
+                onSave = { n, c, p ->
+                    vm.saveProfile(n, c, p)
+                    editOpen = false
+                },
+                onDismiss = { editOpen = false },
+            )
+        }
     }
 }
 
 @Composable
-private fun ProfileHeader(sessionCount: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(100.dp))
-                .background(MaterialTheme.colorScheme.primary),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("YOU", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary)
-        }
+private fun ProfileHeader(name: String, photo: String?, color: String, sessionCount: Int, onEdit: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onEdit),
+    ) {
+        Avatar(
+            photo = photo,
+            colorKey = color,
+            name = name.ifBlank { "You" },
+            size = 56.dp,
+            initialsStyle = MaterialTheme.typography.titleLarge,
+        )
         Spacer(Modifier.size(14.dp))
-        Column {
-            Text("ATHLETE", style = MaterialTheme.typography.headlineMedium)
+        Column(Modifier.weight(1f)) {
+            Text(name.ifBlank { "ATHLETE" }.uppercase(), style = MaterialTheme.typography.headlineMedium, maxLines = 1)
             Text(
                 "$sessionCount sessions logged",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        Text(
+            "EDIT",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .clip(RoundedCornerShape(100.dp))
+                .clickable(onClick = onEdit)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        )
+    }
+}
+
+@Composable
+private fun ProfileEditSheet(
+    initialName: String,
+    initialColor: String,
+    initialPhoto: String?,
+    onSave: (String, String, String?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf(initialName) }
+    var color by remember { mutableStateOf(initialColor) }
+    var photo by remember { mutableStateOf(initialPhoto) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.55f))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable(enabled = false) {}
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+                .padding(bottom = 16.dp),
+        ) {
+            Text("EDIT PROFILE", style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Your name and photo show on your profile and to friends.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(18.dp))
+            ProfileFields(
+                name = name, onName = { name = it },
+                color = color, onColor = { color = it },
+                photo = photo, onPhoto = { photo = it },
+            )
+            Spacer(Modifier.height(20.dp))
+            SaveButton(enabled = true) { onSave(name, color, photo) }
         }
     }
 }
@@ -785,15 +878,17 @@ private fun LogChip(onClick: () -> Unit) {
 @Composable
 private fun LogBodyMetricsSheet(
     unitLabel: String,
-    initialBodyweight: String,
-    initialBodyFat: String,
-    initialMuscleMass: String,
+    lastBodyweight: String,
+    lastBodyFat: String,
+    lastMuscleMass: String,
     onSave: (Double?, Double?, Double?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var bodyweight by remember { mutableStateOf(initialBodyweight) }
-    var bodyFat by remember { mutableStateOf(initialBodyFat) }
-    var muscleMass by remember { mutableStateOf(initialMuscleMass) }
+    // Start every field blank so only what's actually typed gets logged; the repository upsert keeps
+    // the day's other metrics untouched. The last reading shows as a hint for reference, not a value.
+    var bodyweight by remember { mutableStateOf("") }
+    var bodyFat by remember { mutableStateOf("") }
+    var muscleMass by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -814,16 +909,16 @@ private fun LogBodyMetricsSheet(
             Text("LOG BODY METRICS", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
-                "Leave a field blank to skip it.",
+                "Fill in only what you want to log — blank fields are skipped.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(16.dp))
-            NumericField(label = "Bodyweight ($unitLabel)", initial = initialBodyweight, onValueChange = { bodyweight = it })
+            NumericField(label = "Bodyweight ($unitLabel)", hint = lastBodyweight, onValueChange = { bodyweight = it })
             Spacer(Modifier.height(12.dp))
-            NumericField(label = "Body fat (%)", initial = initialBodyFat, onValueChange = { bodyFat = it })
+            NumericField(label = "Body fat (%)", hint = lastBodyFat, onValueChange = { bodyFat = it })
             Spacer(Modifier.height(12.dp))
-            NumericField(label = "Muscle mass ($unitLabel)", initial = initialMuscleMass, onValueChange = { muscleMass = it })
+            NumericField(label = "Muscle mass ($unitLabel)", hint = lastMuscleMass, onValueChange = { muscleMass = it })
             Spacer(Modifier.height(20.dp))
             val anyValue = listOf(bodyweight, bodyFat, muscleMass).any { it.toDoubleOrNull() != null }
             SaveButton(enabled = anyValue) {
@@ -834,12 +929,10 @@ private fun LogBodyMetricsSheet(
 }
 
 @Composable
-private fun NumericField(label: String, initial: String, onValueChange: (String) -> Unit) {
+private fun NumericField(label: String, hint: String, onValueChange: (String) -> Unit) {
     Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(6.dp))
-    // Hold a TextFieldValue so we can select the whole prefilled number when the field is focused —
-    // the next keystroke then replaces it instead of appending to the old value.
-    var field by remember { mutableStateOf(TextFieldValue(initial)) }
+    var text by remember { mutableStateOf("") }
     val shape = RoundedCornerShape(10.dp)
     Box(
         modifier = Modifier
@@ -849,30 +942,21 @@ private fun NumericField(label: String, initial: String, onValueChange: (String)
             .border(1.dp, MaterialTheme.colorScheme.outline, shape)
             .padding(horizontal = 14.dp, vertical = 14.dp),
     ) {
-        if (field.text.isEmpty()) {
-            Text("0", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (text.isEmpty()) {
+            // The last logged value as a greyed hint — reference only, never saved unless retyped.
+            Text(hint.ifEmpty { "0" }, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         BasicTextField(
-            value = field,
+            value = text,
             onValueChange = { input ->
-                val filtered = input.text.filter { it.isDigit() || it == '.' }
-                field = input.copy(
-                    text = filtered,
-                    selection = TextRange(filtered.length.coerceAtMost(input.selection.end)),
-                )
-                onValueChange(filtered)
+                text = input.filter { it.isDigit() || it == '.' }
+                onValueChange(text)
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onBackground),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-            modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { focus ->
-                    if (focus.isFocused) {
-                        field = field.copy(selection = TextRange(0, field.text.length))
-                    }
-                },
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

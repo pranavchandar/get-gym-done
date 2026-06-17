@@ -32,6 +32,7 @@ fun MainShell(
     onStartToday: (String) -> Unit,
     onResetRoutine: () -> Unit,
     onOpenDebug: () -> Unit,
+    onOpenSocial: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableStateOf(MainTab.Today) }
 
@@ -56,6 +57,7 @@ fun MainShell(
                     MainTab.Settings -> SettingsScreen(
                         onResetRoutine = onResetRoutine,
                         onOpenDebug = onOpenDebug,
+                        onOpenSocial = onOpenSocial,
                     )
                 }
             }

@@ -1,6 +1,5 @@
 package com.getgymdone.app.ui.screens.onboarding
 
-import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,7 +47,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -156,18 +154,11 @@ class SplashThemeViewModel @Inject constructor(
 fun SplashScreen(
     onContinue: () -> Unit,
     onSkipToHome: () -> Unit,
+    onSignIn: () -> Unit,
     isOnboardingComplete: Boolean,
 ) {
-    val context = LocalContext.current
     val themeVm: SplashThemeViewModel = hiltViewModel()
     val skip: () -> Unit = if (isOnboardingComplete) onSkipToHome else onContinue
-    val onSignIn: () -> Unit = {
-        Toast.makeText(
-            context,
-            "Cloud sync is coming soon. Skip to keep going with local storage.",
-            Toast.LENGTH_SHORT,
-        ).show()
-    }
 
     // Read the screen height from the configuration so SpaceBetween still works on tall
     // phones (matching the spec's "magazine poster" feel), while verticalScroll engages

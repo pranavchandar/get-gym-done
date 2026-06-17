@@ -95,6 +95,10 @@ class MetricsRepository @Inject constructor(
      * the streak — only when it spans no more than [maxRestGap] days, the routine's longest run of
      * scheduled rest days. So a planned rest day in the middle never breaks the streak, but missing
      * more days than the schedule allows does.
+     *
+     * The same allowance applies to the gap between today and the most recent session: once you've
+     * been away longer than the schedule's rest run permits, the streak is **lost** and this returns
+     * 0 — it no longer reflects a stale run that ended days ago.
      */
     suspend fun currentStreakDays(maxRestGap: Int = 0): Int {
         val zone = ZoneId.systemDefault()
@@ -104,11 +108,35 @@ class MetricsRepository @Inject constructor(
             .distinct()
             .sortedDescending()
         if (days.isEmpty()) return 0
+        // Lost if the last session is further back than a planned rest run could bridge.
+        if (LocalDate.now(zone).toEpochDay() - days.first() > maxRestGap + 1L) return 0
         var streak = 1L
         for (i in 1 until days.size) {
             val gap = days[i - 1] - days[i]
             if (gap in 1..(maxRestGap + 1L)) streak += gap else break
         }
         return streak.toInt()
+    }
+
+    /**
+     * Longest streak ever achieved, in calendar days, under the same rest-aware bridging rule as
+     * [currentStreakDays]. Unlike the current streak this never "expires" — it's a personal best.
+     */
+    suspend fun longestStreakDays(maxRestGap: Int = 0): Int {
+        val zone = ZoneId.systemDefault()
+        val days = completedSessions()
+            .mapNotNull { it.completedAt }
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().toEpochDay() }
+            .distinct()
+            .sorted()
+        if (days.isEmpty()) return 0
+        var longest = 1L
+        var run = 1L
+        for (i in 1 until days.size) {
+            val gap = days[i] - days[i - 1]
+            run = if (gap in 1..(maxRestGap + 1L)) run + gap else 1L
+            if (run > longest) longest = run
+        }
+        return longest.toInt()
     }
 }

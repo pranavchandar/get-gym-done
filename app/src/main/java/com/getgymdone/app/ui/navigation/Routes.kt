@@ -24,6 +24,9 @@ sealed interface Route {
     // ── Main shell (bottom tabs: Today / Workouts / Profile / Settings) ──
     @Serializable data object Home : Route
 
+    // ── Friends (opt-in social layer: QR friend-add + leaderboard) ──
+    @Serializable data object Social : Route
+
     // ── Day & workout ─────────────────────────────────────────────
     @Serializable data class DayOverview(val workoutDayId: String) : Route
     @Serializable data class ActiveWorkout(val workoutDayId: String) : Route

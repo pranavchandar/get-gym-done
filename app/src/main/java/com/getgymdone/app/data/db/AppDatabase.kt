@@ -9,6 +9,7 @@ import com.getgymdone.app.data.db.dao.BodyMetricDao
 import com.getgymdone.app.data.db.dao.DayExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseMediaDao
+import com.getgymdone.app.data.db.dao.FriendDao
 import com.getgymdone.app.data.db.dao.SessionDao
 import com.getgymdone.app.data.db.dao.SetLogDao
 import com.getgymdone.app.data.db.dao.SplitDao
@@ -18,6 +19,7 @@ import com.getgymdone.app.data.db.entities.BodyMetric
 import com.getgymdone.app.data.db.entities.DayExercise
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.ExerciseMedia
+import com.getgymdone.app.data.db.entities.Friend
 import com.getgymdone.app.data.db.entities.Session
 import com.getgymdone.app.data.db.entities.SetLog
 import com.getgymdone.app.data.db.entities.Split
@@ -35,8 +37,9 @@ import com.getgymdone.app.data.db.entities.WorkoutDay
         BodyMetric::class,
         UserPrefs::class,
         ExerciseMedia::class,
+        Friend::class,
     ],
-    version = 5,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -50,6 +53,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bodyMetricDao(): BodyMetricDao
     abstract fun userPrefsDao(): UserPrefsDao
     abstract fun exerciseMediaDao(): ExerciseMediaDao
+    abstract fun friendDao(): FriendDao
 
     companion object {
         const val NAME = "gymdone.db"
@@ -89,6 +93,39 @@ abstract class AppDatabase : RoomDatabase() {
                     "CREATE INDEX IF NOT EXISTS `index_exercise_media_exerciseId` " +
                         "ON `exercise_media` (`exerciseId`)",
                 )
+            }
+        }
+
+        /** Adds the Friends social layer: UserPrefs identity columns + the on-device friend table. */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN socialEnabled INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN socialUserId TEXT")
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN socialHandle TEXT")
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN socialColor TEXT")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `friend` (" +
+                        "`userId` TEXT NOT NULL, `handle` TEXT NOT NULL, `color` TEXT NOT NULL, " +
+                        "`addedAt` INTEGER NOT NULL, `currentStreak` INTEGER NOT NULL, " +
+                        "`longestStreak` INTEGER NOT NULL, `weekSessions` INTEGER NOT NULL, " +
+                        "`weekTarget` INTEGER NOT NULL, `totalSessions` INTEGER NOT NULL, " +
+                        "`lastActiveAt` INTEGER, `statsUpdatedAt` INTEGER, PRIMARY KEY(`userId`))",
+                )
+            }
+        }
+
+        /** Adds Friend.streakAtRisk — a friend's published "streak in danger today" flag, for nudges. */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE friend ADD COLUMN streakAtRisk INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /** Adds the display-picture columns: UserPrefs.avatarPhoto + Friend.photo (base64 thumbnails). */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE user_prefs ADD COLUMN avatarPhoto TEXT")
+                db.execSQL("ALTER TABLE friend ADD COLUMN photo TEXT")
             }
         }
     }

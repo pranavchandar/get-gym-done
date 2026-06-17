@@ -30,12 +30,14 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.SentimentVeryDissatisfied
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +68,8 @@ import com.getgymdone.app.domain.WeightUnit
 import com.getgymdone.app.domain.kgToDisplay
 import com.getgymdone.app.domain.maxConsecutiveRestDays
 import com.getgymdone.app.domain.nextWorkoutDay
+import com.getgymdone.app.ui.WorkoutCelebrationSignal
+import com.getgymdone.app.ui.components.ConfettiOverlay
 import com.getgymdone.app.ui.components.Trend
 import com.getgymdone.app.ui.components.TrendArrow
 import com.getgymdone.app.ui.components.trendOf
@@ -93,6 +97,8 @@ data class HomeState(
     val nextDaySets: Int = 0,
     val dayMeta: Map<String, DayMeta> = emptyMap(),
     val streakDays: Int = 0,
+    /** True when a streak was broken by missing training: 0 days now, but training history exists. */
+    val streakLost: Boolean = false,
     val sessionsThisWeek: Int = 0,
     val sessionCount: Int = 0,
     val bodyweight: String = "—",
@@ -114,10 +120,16 @@ class HomeViewModel @Inject constructor(
     private val splits: SplitRepository,
     private val sessions: SessionRepository,
     private val metrics: MetricsRepository,
+    private val celebration: WorkoutCelebrationSignal,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state.asStateFlow()
+
+    /** One-shot confetti signal armed by the workout-complete screen; played once on arrival. */
+    val celebrate: StateFlow<Boolean> = celebration.pending
+
+    fun consumeCelebration() = celebration.consume()
 
     /** Guards the auto rest-day log so overlapping refreshes don't double-log the same day. */
     private var autoLoggedRestDay: Long = -1L
@@ -196,13 +208,22 @@ class HomeViewModel @Inject constructor(
                     Instant.ofEpochMilli(it).atZone(zone).toLocalDate().toEpochDay()
                 } == todayEpochDay
             }
+            val trainedToday = completed.any { s ->
+                s.notes != REST_SESSION_NOTE && s.completedAt?.let {
+                    Instant.ofEpochMilli(it).atZone(zone).toLocalDate().toEpochDay()
+                } == todayEpochDay
+            }
             if (restCandidate != null && lastCompletedEpochDay != todayEpochDay &&
                 autoLoggedRestDay != todayEpochDay
             ) {
                 autoLoggedRestDay = todayEpochDay
                 sessions.completeRestDay(restCandidate.id)
             }
-            val todayIsRest = restCandidate != null || restLoggedToday
+            // Today is a rest day only when a rest is on the calendar for today (or one is due now)
+            // AND no workout was logged today. Training today always wins, so the card never lingers
+            // on a day you actually trained — even if a rest was auto-logged earlier that same day.
+            val todayIsRest = !trainedToday &&
+                (restLoggedToday || (restCandidate != null && lastCompletedEpochDay != todayEpochDay))
 
             // Use the bodyweight history (not just the latest row, which might only carry body-fat
             // or muscle) so the value and its trend reflect the last two actual weigh-ins.
@@ -210,6 +231,8 @@ class HomeViewModel @Inject constructor(
             val bw = bwSeries.lastOrNull()?.bodyweightKg
             val bwText = bw?.let { "%.1f %s".format(it.kgToDisplay(unit), unit.label) } ?: "—"
             val bwTrend = trendOf(bwSeries.getOrNull(bwSeries.size - 2)?.bodyweightKg, bw)
+
+            val streak = metrics.currentStreakDays(maxConsecutiveRestDays(days))
 
             _state.value = HomeState(
                 loading = false,
@@ -220,7 +243,8 @@ class HomeViewModel @Inject constructor(
                 nextDayExercises = nextDay?.let { dayMeta[it.id]?.exercises } ?: 0,
                 nextDaySets = nextDay?.let { dayMeta[it.id]?.sets } ?: 0,
                 dayMeta = dayMeta,
-                streakDays = metrics.currentStreakDays(maxConsecutiveRestDays(days)),
+                streakDays = streak,
+                streakLost = streak == 0 && trainingCompleted.isNotEmpty(),
                 sessionsThisWeek = trainingCompleted.count { (it.completedAt ?: 0) >= weekCutoffMs },
                 sessionCount = trainingCompleted.size,
                 bodyweight = bwText,
@@ -260,10 +284,19 @@ fun HomeScreen(
 ) {
     val vm: HomeViewModel = hiltViewModel()
     val state by vm.state.collectAsState()
+    val celebrate by vm.celebrate.collectAsState()
     val weekday = remember { LocalDate.now().dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()) }
     var confirmReset by remember { mutableStateOf(false) }
     var editingRoutine by remember { mutableStateOf(false) }
+    var showConfetti by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    LaunchedEffect(celebrate) {
+        if (celebrate) {
+            showConfetti = true
+            vm.consumeCelebration()
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
     Column(
@@ -305,7 +338,16 @@ fun HomeScreen(
                 .padding(horizontal = 22.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            StatPill("Streak", if (state.streakDays > 0) "${state.streakDays}d" else "—", Icons.Rounded.LocalFireDepartment, Modifier.weight(1f))
+            StatPill(
+                label = if (state.streakLost) "Streak lost" else "Streak",
+                value = when {
+                    state.streakDays > 0 -> "${state.streakDays}d"
+                    state.streakLost -> "0d"
+                    else -> "—"
+                },
+                icon = if (state.streakLost) Icons.Rounded.SentimentVeryDissatisfied else Icons.Rounded.LocalFireDepartment,
+                modifier = Modifier.weight(1f),
+            )
             StatPill("This week", "${state.sessionsThisWeek}/${state.days.count { !it.isRestDay }.coerceAtLeast(1)}", Icons.Rounded.Check, Modifier.weight(1f))
             StatPill("Bodyweight", state.bodyweight, Icons.Rounded.TrendingUp, Modifier.weight(1f), trend = state.bodyweightTrend)
         }
@@ -408,6 +450,10 @@ fun HomeScreen(
                 },
                 onDismiss = { confirmReset = false },
             )
+        }
+
+        if (showConfetti) {
+            ConfettiOverlay(onFinished = { showConfetti = false })
         }
     }
 }
