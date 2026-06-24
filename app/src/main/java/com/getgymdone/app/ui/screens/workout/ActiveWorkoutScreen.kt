@@ -29,6 +29,8 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.RemoveCircleOutline
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -69,6 +71,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -339,6 +343,27 @@ class ActiveWorkoutViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Drop a single set from the current exercise. If it was already logged, its DB row is deleted so
+     * history stays clean. Removing every set leaves the exercise with none, which the UI reads as
+     * "done" so the Next exercise / Finish button appears.
+     */
+    fun removeSet(index: Int) {
+        val st = _state.value
+        val exIdx = st.currentIndex
+        val ex = st.exercises.getOrNull(exIdx) ?: return
+        val set = ex.sets.getOrNull(index) ?: return
+        viewModelScope.launch {
+            set.logId?.let { sessions.deleteSet(it) }
+            _state.update { s ->
+                val e = s.exercises.getOrNull(exIdx) ?: return@update s
+                val newSets = e.sets.toMutableList().also { it.removeAt(index) }
+                val newEx = s.exercises.toMutableList().also { it[exIdx] = e.copy(sets = newSets) }
+                s.copy(exercises = newEx)
+            }
+        }
+    }
+
     /** Append an extra set to the current exercise, prefilled from its last set. */
     fun addSet() {
         _state.update { st ->
@@ -366,37 +391,62 @@ class ActiveWorkoutViewModel @Inject constructor(
     fun addTemporaryExercise(exercise: Exercise) {
         if (_state.value.exercises.any { it.exercise.id == exercise.id }) return
         viewModelScope.launch {
-            val prevSets = sessions.getLastSessionSets(exercise.id)
-            val prevByNumber = prevSets.associateBy { it.setNumber }
-            val prevFallback = prevSets.lastOrNull()
-            val setCount = exercise.defaultSets.coerceAtLeast(1)
-            val unit = _state.value.unit
-            val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
-            val suggestion = weightIncreaseSuggestion(
-                history = sessions.getCompletedProgression(exercise.id),
-                repsHigh = exercise.defaultRepsHigh,
-                incrementKg = incrementKg,
-            )
-            val newEx = ActiveExercise(
-                exercise = exercise,
-                prescribedSets = exercise.defaultSets,
-                repsLow = exercise.defaultRepsLow,
-                repsHigh = exercise.defaultRepsHigh,
-                sets = List(setCount) { idx ->
-                    val prev = prevByNumber[idx + 1] ?: prevFallback
-                    SetEntry(
-                        weightKg = prev?.weightKg ?: 20.0,
-                        reps = prev?.reps ?: exercise.defaultRepsLow,
-                    )
-                },
-                isTemporary = true,
-                weightSuggestion = suggestion,
-            )
+            val newEx = buildActiveExercise(exercise)
             _state.update { st ->
                 val list = st.exercises + newEx
                 st.copy(exercises = list, currentIndex = list.lastIndex)
             }
         }
+    }
+
+    /**
+     * Swap the exercise at [index] for [exercise], keeping its position in the workout. Sets already
+     * logged for the old exercise are deleted (like [removeExercise]); the replacement is per-session
+     * only and never touches the split's prescription. No-op if the new exercise is already elsewhere
+     * in the workout (logging is keyed by exercise + set number, so duplicates would collide).
+     */
+    fun replaceExercise(index: Int, exercise: Exercise) {
+        val old = _state.value.exercises.getOrNull(index) ?: return
+        if (old.exercise.id == exercise.id) return
+        if (_state.value.exercises.any { it.exercise.id == exercise.id }) return
+        viewModelScope.launch {
+            old.sets.mapNotNull { it.logId }.forEach { sessions.deleteSet(it) }
+            val newEx = buildActiveExercise(exercise)
+            _state.update { st ->
+                val list = st.exercises.toMutableList().also { if (index in it.indices) it[index] = newEx }
+                st.copy(exercises = list)
+            }
+        }
+    }
+
+    /** Build a fresh per-session [ActiveExercise], prefilling sets from last-session memory. */
+    private suspend fun buildActiveExercise(exercise: Exercise): ActiveExercise {
+        val prevSets = sessions.getLastSessionSets(exercise.id)
+        val prevByNumber = prevSets.associateBy { it.setNumber }
+        val prevFallback = prevSets.lastOrNull()
+        val setCount = exercise.defaultSets.coerceAtLeast(1)
+        val unit = _state.value.unit
+        val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
+        val suggestion = weightIncreaseSuggestion(
+            history = sessions.getCompletedProgression(exercise.id),
+            repsHigh = exercise.defaultRepsHigh,
+            incrementKg = incrementKg,
+        )
+        return ActiveExercise(
+            exercise = exercise,
+            prescribedSets = exercise.defaultSets,
+            repsLow = exercise.defaultRepsLow,
+            repsHigh = exercise.defaultRepsHigh,
+            sets = List(setCount) { idx ->
+                val prev = prevByNumber[idx + 1] ?: prevFallback
+                SetEntry(
+                    weightKg = prev?.weightKg ?: 20.0,
+                    reps = prev?.reps ?: exercise.defaultRepsLow,
+                )
+            },
+            isTemporary = true,
+            weightSuggestion = suggestion,
+        )
     }
 
     /**
@@ -447,6 +497,7 @@ fun ActiveWorkoutScreen(
     var keypadTarget by remember { mutableStateOf<KeypadField?>(null) }
     var toast by remember { mutableStateOf<String?>(null) }
     var pickerOpen by remember { mutableStateOf(false) }
+    var replaceMode by remember { mutableStateOf(false) }
 
     // Local image/GIF upload for the current exercise. Picked items are copied into app storage;
     // nothing is sent to the cloud. The target exercise is captured at launch time.
@@ -563,7 +614,14 @@ fun ActiveWorkoutScreen(
                 title = state.dayName,
                 position = "${state.currentIndex + 1} / ${state.exercises.size}",
                 onClose = onBack,
-                onAddExercise = { pickerOpen = true },
+                onAddExercise = {
+                    replaceMode = false
+                    pickerOpen = true
+                },
+                onReplaceExercise = {
+                    replaceMode = true
+                    pickerOpen = true
+                },
                 onRemoveExercise = {
                     val name = current.exercise.name
                     vm.removeExercise(state.currentIndex)
@@ -630,9 +688,10 @@ fun ActiveWorkoutScreen(
                         onRepsTap = { keypadTarget = KeypadField.Reps },
                         onWeightStep = vm::adjustWeight,
                         onRepsStep = vm::adjustReps,
+                        onRemove = { vm.removeSet(idx) },
                     )
                 }
-                if (current.sets.isNotEmpty() && current.sets.all { it.done }) {
+                if (current.sets.all { it.done }) {
                     item("add-set") { AddSetButton(onClick = vm::addSet) }
                 }
             }
@@ -662,12 +721,19 @@ fun ActiveWorkoutScreen(
             val libraryFlow = remember { vm.exerciseLibrary() }
             val library by libraryFlow.collectAsState(initial = emptyList())
             AddExercisePicker(
+                replace = replaceMode,
                 library = library,
                 alreadyInWorkout = state.exercises.mapTo(HashSet()) { it.exercise.id },
                 onPick = { ex ->
-                    vm.addTemporaryExercise(ex)
+                    if (replaceMode) {
+                        val old = current.exercise.name
+                        vm.replaceExercise(state.currentIndex, ex)
+                        toast = "Replaced $old with ${ex.name}"
+                    } else {
+                        vm.addTemporaryExercise(ex)
+                        toast = "Added ${ex.name}"
+                    }
                     pickerOpen = false
-                    toast = "Added ${ex.name}"
                 },
                 onClose = { pickerOpen = false },
             )
@@ -751,6 +817,7 @@ private fun TopBar(
     position: String,
     onClose: () -> Unit,
     onAddExercise: () -> Unit,
+    onReplaceExercise: () -> Unit,
     onRemoveExercise: () -> Unit,
     canRemove: Boolean,
 ) {
@@ -798,6 +865,14 @@ private fun TopBar(
                     onClick = {
                         menuOpen = false
                         onAddExercise()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("Replace exercise") },
+                    leadingIcon = { Icon(Icons.Rounded.SwapHoriz, contentDescription = null) },
+                    onClick = {
+                        menuOpen = false
+                        onReplaceExercise()
                     },
                 )
                 if (canRemove) {
@@ -874,6 +949,7 @@ private fun ExerciseHero(
     onAddMedia: () -> Unit,
     onRemoveMedia: (String) -> Unit,
 ) {
+    var viewerIndex by remember { mutableStateOf<Int?>(null) }
     Column {
         val shape = RoundedCornerShape(14.dp)
         Box(
@@ -894,7 +970,9 @@ private fun ExerciseHero(
                         model = File(media[page].filePath),
                         contentDescription = "Exercise media",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { viewerIndex = page },
                     )
                 }
                 // Page indicator dots.
@@ -938,6 +1016,37 @@ private fun ExerciseHero(
                     .align(Alignment.TopEnd)
                     .padding(8.dp),
             )
+        }
+        viewerIndex?.let { idx ->
+            media.getOrNull(idx)?.let { item ->
+                Dialog(
+                    onDismissRequest = { viewerIndex = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.95f))
+                            .clickable { viewerIndex = null },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AsyncImage(
+                            model = File(item.filePath),
+                            contentDescription = "Exercise media",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        HeroCircleButton(
+                            icon = Icons.Rounded.Close,
+                            contentDescription = "Close",
+                            onClick = { viewerIndex = null },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp),
+                        )
+                    }
+                }
+            }
         }
         Spacer(Modifier.height(14.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -1124,6 +1233,7 @@ private fun SetRow(
     onRepsTap: () -> Unit,
     onWeightStep: (Double) -> Unit,
     onRepsStep: (Int) -> Unit,
+    onRemove: () -> Unit,
 ) {
     val shape = RoundedCornerShape(10.dp)
     val borderColor = when {
@@ -1160,6 +1270,16 @@ private fun SetRow(
             } else if (!isActive) {
                 Text("—", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Spacer(Modifier.size(10.dp))
+            Icon(
+                Icons.Rounded.RemoveCircleOutline,
+                contentDescription = "Remove set",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(RoundedCornerShape(100.dp))
+                    .clickable(onClick = onRemove),
+            )
         }
         if (isActive) {
             Spacer(Modifier.height(12.dp))
@@ -1557,6 +1677,7 @@ private fun AddExercisePicker(
     alreadyInWorkout: Set<String>,
     onPick: (Exercise) -> Unit,
     onClose: () -> Unit,
+    replace: Boolean = false,
 ) {
     var query by remember { mutableStateOf("") }
     val filtered = remember(library, query) {
@@ -1576,7 +1697,7 @@ private fun AddExercisePicker(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("ADD EXERCISE", style = MaterialTheme.typography.headlineSmall)
+            Text(if (replace) "REPLACE EXERCISE" else "ADD EXERCISE", style = MaterialTheme.typography.headlineSmall)
             Text(
                 "Cancel",
                 style = MaterialTheme.typography.labelLarge,
@@ -1585,7 +1706,8 @@ private fun AddExercisePicker(
             )
         }
         Text(
-            "Just for this workout — won't change your routine.",
+            if (replace) "Swaps the current exercise for this workout — won't change your routine."
+            else "Just for this workout — won't change your routine.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

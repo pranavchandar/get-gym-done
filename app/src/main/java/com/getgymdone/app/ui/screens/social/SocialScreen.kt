@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,6 +58,7 @@ import com.getgymdone.app.ui.components.BigCta
 import com.getgymdone.app.ui.components.GhostCta
 import com.getgymdone.app.ui.components.ProfileFields
 import com.getgymdone.app.ui.components.QrCode
+import com.getgymdone.app.ui.components.decodeQrFromUri
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -160,6 +162,17 @@ fun SocialScreen(onBack: () -> Unit) {
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
         vm.onScanned(result.contents)
     }
+    val uploadLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val decoded = decodeQrFromUri(context, uri)
+        if (decoded == null) Toast.makeText(context, "No QR code found in that image.", Toast.LENGTH_SHORT).show()
+        else vm.onScanned(decoded)
+    }
+    val launchUpload: () -> Unit = {
+        uploadLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
     // Ask for notification permission when opting in, so friend nudges can actually reach you.
     val notifPermLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
     val onEnable: (String, String, String?) -> Unit = { handle, color, photo ->
@@ -174,7 +187,8 @@ fun SocialScreen(onBack: () -> Unit) {
                 setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 setPrompt("Scan your friend's code")
                 setBeepEnabled(false)
-                setOrientationLocked(true)
+                setOrientationLocked(false)
+                captureActivity = PortraitCaptureActivity::class.java
             },
         )
     }
@@ -212,6 +226,7 @@ fun SocialScreen(onBack: () -> Unit) {
                     photo = state.myStats?.photo,
                     color = state.myStats?.color ?: "lime",
                     onScan = launchScanner,
+                    onUpload = launchUpload,
                 )
                 Spacer(Modifier.height(20.dp))
                 LeaderboardSection(
@@ -311,7 +326,7 @@ private fun OptInPanel(onEnable: (String, String, String?) -> Unit) {
 }
 
 @Composable
-private fun MyCodeCard(code: String?, handle: String, photo: String?, color: String, onScan: () -> Unit) {
+private fun MyCodeCard(code: String?, handle: String, photo: String?, color: String, onScan: () -> Unit, onUpload: () -> Unit) {
     val shape = RoundedCornerShape(18.dp)
     Column(
         modifier = Modifier
@@ -352,6 +367,8 @@ private fun MyCodeCard(code: String?, handle: String, photo: String?, color: Str
         )
         Spacer(Modifier.height(14.dp))
         GhostCta(label = "Scan a friend's code", onClick = onScan)
+        Spacer(Modifier.height(10.dp))
+        GhostCta(label = "Upload a code from photo", onClick = onUpload)
     }
 }
 
