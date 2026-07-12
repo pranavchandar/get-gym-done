@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Get Gym Done — Handover</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --paper: #ffffff;
+    --ink: #14130f;
+    --ink-2: #5a564a;
+    --ink-3: #908a78;
+    --line: #d6d2c4;
+    --accent: oklch(0.88 0.22 125);
+    --accent-fg: #0a0a09;
+    --dark: #0a0a09;
+    --surface-dark: #16140f;
+    --line-dark: #2e2b22;
+  }
+
+  @page { size: A4; margin: 1.4cm; }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 56px 64px;
+    background: var(--paper);
+  }
+
+  @media screen {
+    body { padding: 24px 0; }
+    .doc { box-shadow: 0 8px 40px rgba(0,0,0,0.08); }
+  }
+
+  /* ─── Type ─── */
+  h1, h2, h3, h4 {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 0.95;
+    margin: 0;
+  }
+  h1 { font-size: 56px; }
+  h2 { font-size: 34px; margin-top: 56px; }
+  h3 { font-size: 22px; margin-top: 28px; letter-spacing: 0.03em; }
+  h4 { font-size: 15px; font-family: 'Inter'; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-2); margin-top: 18px; margin-bottom: 8px; }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+  }
+  .lede {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 620px;
+    margin-top: 16px;
+  }
+  p { margin: 0 0 12px; }
+  p + p { margin-top: 0; }
+  a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  code, .mono { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; background: #ebe8e0; padding: 1px 6px; border-radius: 4px; }
+
+  /* ─── Hero ─── */
+  .hero {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 32px;
+    margin-bottom: 0;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .hero-meta .col { display: flex; flex-direction: column; gap: 2px; }
+  .hero-meta .lbl { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); font-weight: 700; }
+  .hero-meta .val { font-family: 'Anton', sans-serif; font-size: 18px; }
+
+  /* ─── Section markers ─── */
+  .section-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 64px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-mark .num {
+    font-family: 'Anton', sans-serif;
+    font-size: 40px;
+    color: var(--accent);
+    text-shadow: 0 0 0 #000;
+    line-height: 0.9;
+  }
+  .section-mark h2 { margin-top: 0; flex: 1; }
+
+  /* ─── Tables ─── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0 20px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    font-weight: 700;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  td.num {
+    font-family: 'Anton', sans-serif;
+    color: var(--ink-2);
+    font-size: 16px;
+    width: 36px;
+  }
+  td .pill {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--ink);
+    color: var(--paper);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  td .pill.accent { background: var(--accent); color: var(--accent-fg); }
+  td .pill.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+
+  /* ─── Color swatches ─── */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 16px 0 8px;
+  }
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .swatch .chip {
+    height: 68px;
+  }
+  .swatch .meta {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .swatch .name {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .swatch .val {
+    color: var(--ink-3);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ─── Type spec ─── */
+  .type-spec {
+    display: grid;
+    grid-template-columns: 120px 1fr 100px;
+    gap: 12px 16px;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .type-spec + .type-spec { margin-top: 0; }
+  .type-spec .role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-3); font-weight: 700; }
+  .type-spec .sample-anton { font-family: 'Anton', sans-serif; font-size: 32px; line-height: 1; letter-spacing: 0.01em; }
+  .type-spec .sample-anton-small { font-family: 'Anton', sans-serif; font-size: 22px; line-height: 1; }
+  .type-spec .sample-inter-l { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; }
+  .type-spec .sample-inter-m { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; }
+  .type-spec .sample-mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; }
+  .type-spec .spec { font-size: 10px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-align: right; line-height: 1.5; }
+
+  /* ─── Flow diagrams ─── */
+  .flow {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 14px 0 18px;
+    padding: 16px;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+  .flow .node {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .flow .node.accent {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .flow .node.lime {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+  .flow .arrow {
+    color: var(--ink-3);
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+  }
+  .flow .branch {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* ─── Two-column layouts ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 16px 0;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  /* ─── Spec cards ─── */
+  .spec-card {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--line);
+  }
+  .spec-card .title {
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .spec-card .sub {
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .spec-card ul {
+    margin: 0;
+    padding-left: 18px;
+  }
+  .spec-card li {
+    font-size: 12.5px;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+
+  /* ─── File tree ─── */
+  .tree {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    border: 1px solid var(--line);
+  }
+  .tree .file { color: var(--ink); }
+  .tree .note { color: var(--ink-3); margin-left: 12px; }
+  .tree .folder { color: var(--ink-2); font-weight: 700; }
+
+  /* ─── Callouts ─── */
+  .callout {
+    background: var(--dark);
+    color: var(--paper);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    position: relative;
+  }
+  .callout .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .callout p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+  .callout strong { color: var(--accent); font-weight: 600; }
+
+  /* ─── Tags ─── */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--ink);
+    color: var(--paper);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+  }
+  .tag.lime { background: var(--accent); color: var(--accent-fg); }
+  .tag.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--line); padding: 2px 7px; }
+
+  /* ─── Numbered list with display style ─── */
+  ol.styled {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 12px 0 0;
+  }
+  ol.styled li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  ol.styled li:last-child { border-bottom: none; }
+  ol.styled li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: 'Anton', sans-serif;
+    font-size: 20px;
+    color: var(--accent);
+  }
+  ol.styled .step-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  ol.styled .step-body {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ─── Footer ─── */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 2px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+  footer .signoff {
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  /* ─── Variant grid ─── */
+  .variant-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .variant {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    background: var(--paper);
+  }
+  .variant .name {
+    font-family: 'Anton', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .variant .for {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-fg);
+    background: var(--accent);
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .variant .desc {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ─── Mini-mock sketch (CSS-only) ─── */
+  .mock-row {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #ebe8e0;
+    margin-bottom: 4px;
+  }
+  .mock-bar {
+    height: 8px;
+    background: var(--ink);
+    border-radius: 2px;
+    flex: 1;
+  }
+  .mock-bar.lime { background: var(--accent); }
+
+  ul.tight { margin: 8px 0 14px; padding-left: 20px; }
+  ul.tight li { margin-bottom: 6px; font-size: 13px; }
+
+  .print-hint {
+    text-align: center;
+    padding: 10px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 11px;
+    border-radius: 6px;
+    margin-top: 24px;
+    letter-spacing: 0.04em;
+  }
+  @media print {
+    .print-hint { display: none; }
+    body { background: white; padding: 0; }
+    .doc { box-shadow: none; max-width: none; padding: 0; }
+    h2 { page-break-after: avoid; }
+    table, .spec-card, .flow, .swatch-grid, .variant-grid { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc">
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section class="hero">
+    <div class="eyebrow">Project handover · Engineering & design</div>
+    <h1>
+      Get<br/>Gym<br/><span style="color: var(--accent);">Done.</span>
+    </h1>
+    <p class="lede">
+      Android-first workout logbook that knows what day it is, what exercise is next, and how
+      strong you're getting. Built from a 5-day illustrated split. This document covers the
+      shipped prototype, design system, user flows, file structure, and how to extend.
+    </p>
+    <div class="hero-meta">
+      <div class="col">
+        <span class="lbl">Status</span>
+        <span class="val">v1.0 Prototype</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Platform</span>
+        <span class="val">Android · 412 × 892</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Screens</span>
+        <span class="val">17 designed</span>
+      </div>
+      <div class="col">
+        <span class="lbl">Updated</span>
+        <span class="val">May 16, 2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ 01 OVERVIEW ═══════════════════ -->
+  <div class="section-mark"><span class="num">01</span><h2>Overview</h2></div>
+
+  <h3>What it is</h3>
+  <p>
+    Get Gym Done is a clickable hi-fi prototype of a workout-tracking Android app. The reference
+    program comes from the user's own illustrated 5-day split PDF — Upper / Lower / Shoulders &amp;
+    Arms / Legs (Quad) / Back &amp; Chest — and is preloaded with 26 exercises, form cues, and
+    recommended sets &amp; reps. The prototype is fully interactive: log real sets, swipe between
+    exercises, watch progression charts update, and live-switch between four workout-screen layouts
+    via the Tweaks panel.
+  </p>
+
+  <h3>Goals</h3>
+  <ul class="tight">
+    <li><strong>One screen, one job.</strong> Each screen does one thing well — picking, logging, reviewing.</li>
+    <li><strong>Big numerals, fast logging.</strong> Sweaty hands, between-set timing — large tap targets and pre-filled defaults from the previous session.</li>
+    <li><strong>Calendar-first.</strong> The home screen is the calendar — the app picks the next day automatically but you can override on any tap.</li>
+    <li><strong>Honest placeholders.</strong> Where real GIFs/anatomy art belongs, we show labeled striped placeholders rather than fake illustrations.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="label">North star</div>
+    <p><strong>"Open app → know what to lift → log it → leave."</strong> Anything that delays that loop is wrong. The huge "Complete Set" CTA is the most-used pixel in the app.</p>
+  </div>
+
+  <!-- ═══════════════════ 02 DESIGN SYSTEM ═══════════════════ -->
+  <div class="section-mark"><span class="num">02</span><h2>Design system</h2></div>
+
+  <h3>Aesthetic</h3>
+  <p>
+    Bold sport. Warm near-black ground, electric lime as the only accent, condensed display
+    type for headlines and numerals. The look is the opposite of clinical gym apps — closer
+    to a sports magazine cover than a health tracker.
+  </p>
+
+  <h3>Color</h3>
+  <div class="swatch-grid">
+    <div class="swatch">
+      <div class="chip" style="background: #0a0a09;"></div>
+      <div class="meta"><div class="name">Background</div><div class="val">#0a0a09</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #16140f;"></div>
+      <div class="meta"><div class="name">Surface</div><div class="val">#16140f</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #1f1c14;"></div>
+      <div class="meta"><div class="name">Surface 2</div><div class="val">#1f1c14</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #f7f5f0;"></div>
+      <div class="meta"><div class="name">Foreground</div><div class="val">#f7f5f0</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: oklch(0.88 0.22 125);"></div>
+      <div class="meta"><div class="name">Accent — Lime</div><div class="val">oklch(.88 .22 125)</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: oklch(0.70 0.22 25);"></div>
+      <div class="meta"><div class="name">Accent 2 — Coral</div><div class="val">oklch(.70 .22 25)</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #a8a59a;"></div>
+      <div class="meta"><div class="name">FG 2 — Muted</div><div class="val">#a8a59a</div></div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background: #696657;"></div>
+      <div class="meta"><div class="name">FG 3 — Subtle</div><div class="val">#696657</div></div>
+    </div>
+  </div>
+  <p style="font-size: 12px; color: var(--ink-2);">
+    Five alternate accent palettes are exposed via the Tweaks panel: <code>lime</code> (default),
+    <code>ember</code>, <code>electric</code>, <code>blood</code>, <code>mono</code>. A full
+    light theme reroutes ground colors to warm off-whites.
+  </p>
+
+  <h3>Typography</h3>
+  <div class="type-spec">
+    <div class="role">Display</div>
+    <div class="sample-anton">GET GYM DONE</div>
+    <div class="spec">Anton<br/>Reg 400 · UC</div>
+  </div>
+  <div class="type-spec">
+    <div class="role">Numerals</div>
+    <div class="sample-anton-small">120 KG × 8</div>
+    <div class="spec">Anton<br/>22–110px</div>
+  </div>
+  <div class="type-spec">
+    <div class="role">Body / UI</div>
+    <div class="sample-inter-l">Wide Grip Pulldown</div>
+    <div class="spec">Inter 600<br/>14–16px</div>
+  </div>
+  <div class="type-spec">
+    <div class="role">Caption</div>
+    <div class="sample-inter-m">3×6–8 · Lats · Biceps</div>
+    <div class="spec">Inter 500<br/>11–13px</div>
+  </div>
+  <div class="type-spec">
+    <div class="role">Mono / data</div>
+    <div class="sample-mono">2026-05-16 +12%</div>
+    <div class="spec">JetBrains Mono<br/>10–13px</div>
+  </div>
+
+  <h3>Surface &amp; motion</h3>
+  <div class="three-col">
+    <div class="spec-card">
+      <div class="title">Radius</div>
+      <div class="sub">Roundness scale</div>
+      <ul>
+        <li><strong>4px</strong> — chips, micro</li>
+        <li><strong>10px</strong> — buttons, set rows</li>
+        <li><strong>14px</strong> — cards, sheets</li>
+        <li><strong>22px</strong> — hero cards</li>
+        <li><strong>44px</strong> — phone frame</li>
+      </ul>
+    </div>
+    <div class="spec-card">
+      <div class="title">Spacing</div>
+      <div class="sub">Phone padding</div>
+      <ul>
+        <li><strong>22px</strong> screen gutters</li>
+        <li><strong>14–18px</strong> card padding</li>
+        <li><strong>10–12px</strong> stack gaps</li>
+        <li><strong>44px</strong> min tap target</li>
+      </ul>
+    </div>
+    <div class="spec-card">
+      <div class="title">Motion</div>
+      <div class="sub">Tied to lift cadence</div>
+      <ul>
+        <li><strong>120ms</strong> press scale</li>
+        <li><strong>200ms</strong> sheet rise</li>
+        <li><strong>240ms</strong> screen slide</li>
+        <li><strong>1.6s</strong> pulse loop</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Component vocabulary</h3>
+  <ul class="tight">
+    <li><strong>Striped placeholder.</strong> Used for exercise GIFs and any imagery we don't have — labeled in lowercase mono so it's clearly a placeholder.</li>
+    <li><strong>Set row.</strong> Set number + weight stepper + reps stepper + done checkmark. Active state outlined in lime, done state filled with lime tint.</li>
+    <li><strong>Pill chip.</strong> Two variants: <em>solid</em> (lime, for primary muscles) and <em>outline</em> (for secondary muscles, units, filters).</li>
+    <li><strong>Cards.</strong> Surface 1 with thin line border. Hero cards switch to full lime fill for the "next-up" emphasis.</li>
+    <li><strong>Bottom sheet.</strong> Used for keypad, day-override, exercise picker. Rises from bottom with 240ms cubic-bezier.</li>
+    <li><strong>Big CTA.</strong> Bottom-pinned 22px-padded button in Anton 26pt. The Complete-Set CTA shows weight × reps inline so you can confirm before tapping.</li>
+  </ul>
+
+  <!-- ═══════════════════ 03 INFORMATION ARCHITECTURE ═══════════════════ -->
+  <div class="section-mark"><span class="num">03</span><h2>IA &amp; navigation</h2></div>
+
+  <h3>Top-level shell</h3>
+  <p>Four bottom-tab destinations, plus modal flows that take over the full screen.</p>
+  <div class="flow">
+    <span class="node lime">Today</span>
+    <span class="arrow">·</span>
+    <span class="node">Workouts</span>
+    <span class="arrow">·</span>
+    <span class="node">Profile</span>
+    <span class="arrow">·</span>
+    <span class="node">Settings</span>
+  </div>
+
+  <h3>Onboarding flow</h3>
+  <p>Linear, 3 steps, with a branching step 3 if the user chose "Build my own".</p>
+  <div class="flow">
+    <span class="node">Splash</span>
+    <span class="arrow">→</span>
+    <span class="node">Pick split</span>
+    <span class="arrow">→</span>
+    <span class="node">Method</span>
+    <span class="arrow">→</span>
+    <div class="branch">
+      <span class="node lime">Curate (skip)</span>
+      <span class="node">Customize</span>
+    </div>
+    <span class="arrow">→</span>
+    <span class="node accent">Home</span>
+  </div>
+
+  <h3>Workout flow</h3>
+  <p>The core loop. The Day overview is optional — tapping the home CTA goes straight into the active workout.</p>
+  <div class="flow">
+    <span class="node lime">Home</span>
+    <span class="arrow">→</span>
+    <span class="node">Day overview</span>
+    <span class="arrow">→</span>
+    <span class="node">Warmup tab</span>
+    <span class="arrow">→</span>
+    <span class="node accent">Active workout</span>
+    <span class="arrow">↻</span>
+    <span class="node">Per-exercise</span>
+    <span class="arrow">→</span>
+    <span class="node lime">Complete</span>
+  </div>
+
+  <!-- ═══════════════════ 04 SCREENS ═══════════════════ -->
+  <div class="section-mark"><span class="num">04</span><h2>Screen inventory</h2></div>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Screen</th>
+        <th>Purpose</th>
+        <th style="width: 120px;">Group</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="num">01</td><td><strong>Splash</strong></td><td>Cold-launch welcome, primary "Let's Lift" CTA</td><td><span class="pill">Onboarding</span></td></tr>
+      <tr><td class="num">02</td><td><strong>Pick a split</strong></td><td>5-day, PPL, Upper/Lower, Bro, Full body, or Custom. PDF split is recommended.</td><td><span class="pill">Onboarding</span></td></tr>
+      <tr><td class="num">03</td><td><strong>Routine method</strong></td><td>Curate for me (preloaded) vs. Build my own</td><td><span class="pill">Onboarding</span></td></tr>
+      <tr><td class="num">04</td><td><strong>Customize routine</strong></td><td>Per-day exercise list with picker sheet</td><td><span class="pill">Onboarding</span></td></tr>
+      <tr><td class="num">05</td><td><strong>Home / Today</strong></td><td>Calendar with completed days marked, "Up next" hero card, week schedule</td><td><span class="pill accent">Main</span></td></tr>
+      <tr><td class="num">06</td><td><strong>Day overview — Exercises</strong></td><td>Pre-workout briefing of the day's exercises</td><td><span class="pill accent">Main</span></td></tr>
+      <tr><td class="num">07</td><td><strong>Day overview — Warmup</strong></td><td>Recommended warmup steps</td><td><span class="pill accent">Main</span></td></tr>
+      <tr><td class="num">08</td><td><strong>Override day sheet</strong></td><td>Modal to swap to a different day on the fly</td><td><span class="pill ghost">Modal</span></td></tr>
+      <tr><td class="num">09</td><td><strong>Workouts list</strong></td><td>All 5 days with completion counts and exercise summaries</td><td><span class="pill accent">Main</span></td></tr>
+      <tr><td class="num">10</td><td><strong>Active workout — Stacked</strong></td><td>GIF → name → muscle map → cues → sets (default variant)</td><td><span class="pill" style="background: var(--accent); color: var(--accent-fg);">Workout</span></td></tr>
+      <tr><td class="num">11</td><td><strong>Active workout — Focus</strong></td><td>Huge numerals, minimal chrome</td><td><span class="pill" style="background: var(--accent); color: var(--accent-fg);">Workout</span></td></tr>
+      <tr><td class="num">12</td><td><strong>Active workout — Coach</strong></td><td>One form cue at a time, swipeable</td><td><span class="pill" style="background: var(--accent); color: var(--accent-fg);">Workout</span></td></tr>
+      <tr><td class="num">13</td><td><strong>Active workout — Compact</strong></td><td>Everything on one screen, dense</td><td><span class="pill" style="background: var(--accent); color: var(--accent-fg);">Workout</span></td></tr>
+      <tr><td class="num">14</td><td><strong>Keypad sheet</strong></td><td>Edit weight or reps with +/- quick chips and numeric keypad</td><td><span class="pill ghost">Modal</span></td></tr>
+      <tr><td class="num">15</td><td><strong>Workout complete</strong></td><td>Celebration, PR + volume delta callout</td><td><span class="pill" style="background: var(--accent); color: var(--accent-fg);">Workout</span></td></tr>
+      <tr><td class="num">16</td><td><strong>Profile / Metrics</strong></td><td>Progression chart per exercise, bodyweight, consistency heatmap, PRs</td><td><span class="pill accent">Main</span></td></tr>
+      <tr><td class="num">17</td><td><strong>Settings</strong></td><td>Routine, workout experience, units, theme, account</td><td><span class="pill accent">Main</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ═══════════════════ 05 KEY FLOWS DETAIL ═══════════════════ -->
+  <div class="section-mark"><span class="num">05</span><h2>Key flows in detail</h2></div>
+
+  <h3>Flow A · First-launch onboarding</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">Splash</div><div class="step-body">Brand reveal. CTA "Let's Lift →" advances.</div></div></li>
+    <li><div><div class="step-title">Pick a split</div><div class="step-body">5 split options shown. The user's PDF split is tagged "From your PDF" and pre-selected. Day chips preview what each day looks like.</div></div></li>
+    <li><div><div class="step-title">Choose a method</div><div class="step-body">"Curate for me" loads the 26 exercises from the PDF and skips step 4. "Build my own" continues.</div></div></li>
+    <li><div><div class="step-title">Customize routine (optional)</div><div class="step-body">Day tabs (D1–D5). Each row is an exercise with a small GIF placeholder, primary muscle, prescription. Tap "Add exercise" to open the picker.</div></div></li>
+    <li><div><div class="step-title">Picker sheet</div><div class="step-body">Bottom sheet with muscle filters and the full exercise library. Each row shows a mini muscle map highlighting what it hits. Multi-select.</div></div></li>
+    <li><div><div class="step-title">Lock it in →</div><div class="step-body">Drops the user into Home with day 1 queued.</div></div></li>
+  </ol>
+
+  <h3>Flow B · Daily workout session</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">Open app — Home</div><div class="step-body">App reads the workout log and computes the next day in the rotation. The big lime "Up next" card shows it. Tap "Start workout" to skip overview, or tap the side icon to open day overview.</div></div></li>
+    <li><div><div class="step-title">Optionally — Day overview</div><div class="step-body">Two tabs: Exercises (preview of all the day's lifts with prescriptions) and Warmup (recommended primer for the muscles being trained).</div></div></li>
+    <li><div><div class="step-title">Active workout</div><div class="step-body">First exercise opens. GIF, name, muscle map, prescription, form cues, and set rows are all visible. Layout depends on the user's Tweaks setting (Stacked is default).</div></div></li>
+    <li><div><div class="step-title">Log a set</div><div class="step-body">The "current" set is outlined in lime. Adjust weight (±2.5 kg) or reps (±1) with the stepper buttons, or tap the number to open the keypad. Tap the huge "Complete Set N" CTA to log it.</div></div></li>
+    <li><div><div class="step-title">Rest timer</div><div class="step-body">A 90s countdown bar appears at the top after each completed set. Skip with one tap.</div></div></li>
+    <li><div><div class="step-title">Next exercise</div><div class="step-body">After the last set of an exercise, the CTA becomes "Next exercise →". The progress dots at the top fill in.</div></div></li>
+    <li><div><div class="step-title">Add a set if needed</div><div class="step-body">Dashed "+ Add set" button below the set list lets the user extend on the fly. New set inherits the previous set's weight and reps.</div></div></li>
+    <li><div><div class="step-title">Workout complete</div><div class="step-body">After the last exercise's last set, the celebration screen appears with PR + volume callouts.</div></div></li>
+  </ol>
+
+  <h3>Flow C · Override the planned day</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">From Home</div><div class="step-body">Tap the swap icon on the Up-next card, OR tap any other day in the "This week" list.</div></div></li>
+    <li><div><div class="step-title">Override sheet</div><div class="step-body">Bottom sheet lists all 5 days with the current one tagged. Pick another to switch.</div></div></li>
+    <li><div><div class="step-title">Active workout opens</div><div class="step-body">Workout loads the chosen day's exercises. The log will record whichever day was actually performed, not the originally queued one.</div></div></li>
+  </ol>
+
+  <h3>Flow D · Reviewing progress</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">Profile tab</div><div class="step-body">Header with name, height, sessions. Two big stats: total volume, PRs this month.</div></div></li>
+    <li><div><div class="step-title">Exercise progression</div><div class="step-body">Default chart is Incline Smith Press. Tap any chip below to switch to another exercise. Current PR + 8-week % delta callout.</div></div></li>
+    <li><div><div class="step-title">Bodyweight</div><div class="step-body">Same chart treatment, coral accent. 8 weeks of weekly weigh-ins.</div></div></li>
+    <li><div><div class="step-title">Consistency heatmap</div><div class="step-body">7×8 grid of the last 8 weeks. Lime cells = trained, neutral = rest. Summary line with sessions, avg/week, streak.</div></div></li>
+    <li><div><div class="step-title">Recent PRs list</div><div class="step-body">Last few personal records with how long ago.</div></div></li>
+  </ol>
+
+  <!-- ═══════════════════ 06 WORKOUT LAYOUT VARIANTS ═══════════════════ -->
+  <div class="section-mark"><span class="num">06</span><h2>Workout layout variants</h2></div>
+  <p>
+    The active-workout screen is the highest-traffic surface in the app. We designed four
+    variants in parallel — switchable live via the Tweaks panel — so the user can pick the
+    approach that fits their training style. The variant is a global preference (set once, applied
+    to every exercise).
+  </p>
+
+  <div class="variant-grid">
+    <div class="variant">
+      <div class="for">Default</div>
+      <div class="name">Stacked</div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div><div class="mock-bar lime"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div><div class="mock-bar"></div></div>
+      <div class="desc">Classic vertical scroll. GIF on top → name → muscle map → form cues → set tracker. Familiar for first-time users.</div>
+    </div>
+    <div class="variant">
+      <div class="for">Minimal</div>
+      <div class="name">Focus</div>
+      <div class="mock-row" style="height: 32px; align-items: center;"><div class="mock-bar lime" style="height: 18px;"></div><div class="mock-bar lime" style="height: 18px;"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="desc">110px-tall numerals dominate. Weight × reps with tap-to-edit. Form cues collapse behind a single chevron toggle. For experienced lifters.</div>
+    </div>
+    <div class="variant">
+      <div class="for">Form-first</div>
+      <div class="name">Coach</div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="mock-row" style="background: var(--accent);"><div class="mock-bar" style="background: var(--accent-fg);"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="desc">One form cue at a time in a giant lime card. Swipe through cues like flashcards. For users learning new lifts.</div>
+    </div>
+    <div class="variant">
+      <div class="for">Dense</div>
+      <div class="name">Compact</div>
+      <div class="mock-row"><div class="mock-bar"></div><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="mock-row"><div class="mock-bar"></div></div>
+      <div class="desc">Everything in one scroll-free screen. 2×2 cue grid, compact set rows. For users who just want to log fast.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ 07 STATE & DATA ═══════════════════ -->
+  <div class="section-mark"><span class="num">07</span><h2>State &amp; data model</h2></div>
+
+  <h3>Reference data <span class="tag ghost">data.js</span></h3>
+  <table>
+    <thead><tr><th>Name</th><th>Shape</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td><code>SPLIT_OPTIONS</code></td><td><code>{id, name, sub, days[], recommended}</code></td><td>Split picker</td></tr>
+      <tr><td><code>EXERCISES</code></td><td><code>{id, name, primary[], secondary[], cues[]}</code></td><td>Everywhere an exercise is shown</td></tr>
+      <tr><td><code>WORKOUT_DAYS</code></td><td><code>{id, name, color, exercises[], warmup[]}</code></td><td>Day overview, active workout</td></tr>
+      <tr><td><code>WORKOUT_LOG</code></td><td><code>[{date, day}]</code></td><td>Calendar, heatmap, next-day logic</td></tr>
+      <tr><td><code>EXERCISE_HISTORY</code></td><td><code>{exId: [{date, weight}]}</code></td><td>Progression charts</td></tr>
+      <tr><td><code>BODYWEIGHT</code></td><td><code>[{date, kg}]</code></td><td>Bodyweight chart</td></tr>
+      <tr><td><code>LAST_WEIGHT</code></td><td><code>{exId: kg}</code></td><td>Pre-fill for "Complete Set" CTA</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Live state (App component)</h3>
+  <table>
+    <thead><tr><th>State</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>screen</code></td><td>Top-level state machine: <code>splash | split | method | customize | app</code></td></tr>
+      <tr><td><code>tab</code></td><td>Active bottom tab within the app shell</td></tr>
+      <tr><td><code>appView</code></td><td>Within the app: <code>home | day-overview | workout | complete</code></td></tr>
+      <tr><td><code>openDayIdx</code></td><td>Which day (0–4) is being viewed or worked</td></tr>
+      <tr><td><code>workoutLog</code></td><td>Local copy of the workout log that mutates when sessions complete</td></tr>
+      <tr><td><code>tweaks</code></td><td>Palette, theme, layout variant, units, font size — persisted via the host's <code>EDITMODE</code> block</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Next-day computation</h3>
+  <p>
+    The home screen reads the last log entry and queues <code>(lastDay % 5) + 1</code> as the
+    next workout. After day 5, the rotation wraps back to day 1. The user can override this on
+    any tap, and the override is what gets logged.
+  </p>
+
+  <!-- ═══════════════════ 08 TWEAKS ═══════════════════ -->
+  <div class="section-mark"><span class="num">08</span><h2>Tweaks panel</h2></div>
+  <p>
+    The Tweaks panel (toggled from the toolbar) exposes design knobs for live exploration.
+    All values persist via the host's <code>EDITMODE</code> protocol — refreshing the page
+    keeps the chosen palette, theme, and layout.
+  </p>
+  <table>
+    <thead><tr><th>Tweak</th><th>Values</th><th>Affects</th></tr></thead>
+    <tbody>
+      <tr><td>Accent</td><td>Lime · Ember · Electric · Blood · Mono</td><td>All <code>--accent</code> usage</td></tr>
+      <tr><td>Theme</td><td>Dark · Light</td><td>All ground colors via <code>data-theme</code></td></tr>
+      <tr><td>Layout variant</td><td>Stacked · Focus · Coach · Compact</td><td>Active workout screen</td></tr>
+      <tr><td>Auto rest timer</td><td>On / Off</td><td>90s timer after Complete Set</td></tr>
+      <tr><td>Show muscle map</td><td>On / Off</td><td>Body diagrams on workout + picker</td></tr>
+      <tr><td>Unit</td><td>KG · LBS</td><td>All weight displays</td></tr>
+      <tr><td>Type size</td><td>Regular · Large</td><td>Body font-size base</td></tr>
+    </tbody>
+  </table>
+  <p>Plus a "Demo jump-to" section with shortcuts to active workout, day overview, profile, and onboarding restart — for demoing specific states without walking the full flow.</p>
+
+  <!-- ═══════════════════ 09 FILE STRUCTURE ═══════════════════ -->
+  <div class="section-mark"><span class="num">09</span><h2>File structure</h2></div>
+  <div class="tree">
+<span class="folder">Get Gym Done.html</span>          <span class="note">// entry — loads everything in order</span>
+<span class="folder">Get Gym Done — Offline.html</span> <span class="note">// standalone single-file build</span>
+<span class="folder">Get Gym Done-print.html</span>    <span class="note">// PDF export page</span>
+<span class="folder">─────────────────────────</span>
+<span class="file">styles.css</span>           <span class="note">// global tokens, components, themes</span>
+<span class="file">data.js</span>              <span class="note">// SPLIT_OPTIONS, EXERCISES, WORKOUT_DAYS, history</span>
+<span class="file">ui.jsx</span>               <span class="note">// Icons, TabBar, TopBar, LineChart, MuscleMap</span>
+<span class="file">tweaks-panel.jsx</span>     <span class="note">// useTweaks hook + Tweak* controls</span>
+<span class="file">onboarding.jsx</span>       <span class="note">// Splash, SplitSelect, MethodSelect, CustomizeRoutine</span>
+<span class="file">home.jsx</span>             <span class="note">// HomeScreen, DayOverview, SwitchDaySheet</span>
+<span class="file">workout.jsx</span>          <span class="note">// WorkoutSession + 4 Layout* variants + SetRow + KeypadSheet</span>
+<span class="file">profile.jsx</span>          <span class="note">// ProfileScreen with charts & heatmap</span>
+<span class="file">settings.jsx</span>         <span class="note">// SettingsScreen, SettingsGroup, SettingsRow</span>
+<span class="file">app.jsx</span>              <span class="note">// App — state machine, screen routing, tweaks wiring</span>
+  </div>
+  <p style="margin-top: 12px; font-size: 12px; color: var(--ink-2);">
+    Components are exported to <code>window</code> at the bottom of each file (Babel scope-per-file
+    workaround). Load order in <code>Get Gym Done.html</code> matters — <code>data.js</code>
+    must run before any consumer, and <code>app.jsx</code> must be last.
+  </p>
+
+  <!-- ═══════════════════ 10 EXTENSION NOTES ═══════════════════ -->
+  <div class="section-mark"><span class="num">10</span><h2>How to extend</h2></div>
+
+  <h3>Add a new exercise</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">Add the entry</div><div class="step-body">In <code>data.js</code>, add a new entry to <code>EXERCISES</code> with <code>id</code>, <code>name</code>, <code>primary[]</code>, <code>secondary[]</code>, and <code>cues[]</code>.</div></div></li>
+    <li><div><div class="step-title">Reference it in a day</div><div class="step-body">In <code>WORKOUT_DAYS</code>, add <code>{id, sets, reps}</code> to one of the day's <code>exercises</code> arrays.</div></div></li>
+    <li><div><div class="step-title">Optional: history</div><div class="step-body">Add an entry to <code>EXERCISE_HISTORY</code> and <code>LAST_WEIGHT</code> so the chart and pre-fill work.</div></div></li>
+  </ol>
+
+  <h3>Add a new workout-screen variant</h3>
+  <ol class="styled">
+    <li><div><div class="step-title">Write a new Layout* function</div><div class="step-body">In <code>workout.jsx</code>, model on <code>LayoutStacked</code>. It receives one <code>props</code> object with all session state and callbacks.</div></div></li>
+    <li><div><div class="step-title">Register it</div><div class="step-body">Add to the variant switch inside <code>WorkoutSession</code> and to the <code>TweakSelect</code> options in <code>app.jsx</code>.</div></div></li>
+    <li><div><div class="step-title">Export</div><div class="step-body">Include the new function name in the <code>Object.assign(window, {...})</code> at the bottom of <code>workout.jsx</code>.</div></div></li>
+  </ol>
+
+  <h3>Hook up real persistence</h3>
+  <p>
+    All "log" mutations (completing a set, finishing a workout) currently update React state and
+    in-memory data only. To productionize:
+  </p>
+  <ul class="tight">
+    <li>Replace the in-memory <code>WORKOUT_LOG</code>, <code>EXERCISE_HISTORY</code>, <code>BODYWEIGHT</code> with read/write methods against a local DB (Room on Android).</li>
+    <li>Wrap state updates in <code>WorkoutSession.completeSet</code> with a write call that records weight, reps, timestamp, and exercise id.</li>
+    <li>Charts in <code>profile.jsx</code> already accept any array of <code>{date, weight}</code> — point them at the live store.</li>
+    <li>Tweak preferences should be moved from the EDITMODE block to SharedPreferences/Datastore.</li>
+  </ul>
+
+  <h3>What's still placeholder</h3>
+  <ul class="tight">
+    <li><strong>Exercise GIFs.</strong> Striped placeholders need to be replaced with real animated demos.</li>
+    <li><strong>Muscle anatomy.</strong> The <code>MuscleMap</code> SVG is a stylized silhouette — fine for prototyping, but consider a real anatomical art system for production.</li>
+    <li><strong>User profile photo.</strong> Currently a lime monogram chip ("AX").</li>
+    <li><strong>Notifications, sync, exports.</strong> Settings rows exist but no logic.</li>
+  </ul>
+
+  <!-- ═══════════════════ 11 OPEN QUESTIONS ═══════════════════ -->
+  <div class="section-mark"><span class="num">11</span><h2>Open questions for next iteration</h2></div>
+  <ul class="tight">
+    <li>Do we need supersets / drop sets / AMRAP support in the set tracker?</li>
+    <li>How should "deload" weeks affect the next-day rotation logic?</li>
+    <li>Should the Profile tab include muscle-group volume per week, not just per-exercise progression?</li>
+    <li>Onboarding skip — should we let returning users (already logged in) bypass it entirely?</li>
+    <li>Tablet / foldable layouts — we've designed only for 412×892 so far.</li>
+    <li>Plate calculator — common in serious lifting apps, not yet included.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="label">Hand-off summary</div>
+    <p>
+      The prototype is feature-complete for a first pass: onboarding, daily workout loop, progress
+      review, and settings all work end-to-end on real interaction. <strong>Next biggest unlocks:</strong>
+      real persistence layer, real GIFs/anatomy art, and decisions on superset / advanced-set
+      patterns. The four workout-layout variants are explicitly meant to be A/B tested with real
+      users — don't pick a winner from the office.
+    </p>
+  </div>
+
+  <footer>
+    <div>
+      <div class="signoff">Get Gym Done.</div>
+      <div style="margin-top: 4px;">Handover document · v1.0 · May 16, 2026</div>
+    </div>
+    <div style="text-align: right;">
+      <div>17 screens · 4 workout variants</div>
+      <div>9 source files · ~2000 LoC</div>
+    </div>
+  </footer>
+
+  <div class="print-hint">
+    Press <strong>Cmd/Ctrl + P</strong> and choose "Save as PDF" to export.
+  </div>
+
+</div>
+
+<script>
+  // Auto-trigger print dialog once fonts + layout are ready
+  window.addEventListener('load', async () => {
+    try { await document.fonts.ready; } catch (e) {}
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+
+</body>
+</html>

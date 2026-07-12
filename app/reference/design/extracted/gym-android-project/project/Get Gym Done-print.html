@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Get Gym Done — Screens Reference</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  @page { size: A4 portrait; margin: 0.6cm; }
+
+  html, body {
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+    color: #14130f;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide tweaks panel */
+  .twk-panel { display: none !important; }
+
+  /* A page per screen */
+  .print-page {
+    width: 100%;
+    min-height: 96vh;
+    padding: 18px 0 24px;
+    page-break-after: always;
+    break-after: page;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+  }
+  .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .page-2up {
+    min-height: 0;
+  }
+
+  .print-header {
+    width: 100%;
+    max-width: 720px;
+    padding: 0 24px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .print-eyebrow {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #8a8576;
+  }
+  .print-title {
+    font-family: 'Anton', sans-serif;
+    font-size: 30px;
+    line-height: 0.95;
+    color: #14130f;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .print-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 36px;
+    color: oklch(0.88 0.22 125);
+    text-shadow: 0 0 0 #000;
+  }
+  .print-sub {
+    font-size: 11.5px;
+    color: #5a564a;
+    margin-top: 6px;
+    max-width: 520px;
+    line-height: 1.4;
+  }
+
+  /* Phone scoped to dark theme regardless of system root */
+  .print-phone {
+    /* The phone is 412x892. Keep it at native size for crispness. */
+  }
+
+  /* Cover */
+  .cover {
+    background: #0a0a09;
+    color: #f7f5f0;
+    min-height: 99vh;
+    page-break-after: always;
+    break-after: page;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 56px 60px;
+    box-sizing: border-box;
+  }
+  .cover-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: oklch(0.88 0.22 125);
+  }
+  .cover-title {
+    font-family: 'Anton', sans-serif;
+    font-size: 200px;
+    line-height: 0.82;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    margin-top: 28px;
+  }
+  .cover-accent { color: oklch(0.88 0.22 125); }
+  .cover-tagline {
+    font-size: 18px;
+    line-height: 1.45;
+    max-width: 480px;
+    color: rgba(247,245,240,0.74);
+  }
+  .cover-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 40px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(247,245,240,0.5);
+  }
+  .cover-count {
+    font-family: 'Anton', sans-serif;
+    font-size: 32px;
+    color: oklch(0.88 0.22 125);
+    letter-spacing: 0.04em;
+  }
+
+  /* Stripe of mini-thumbnails on cover */
+  .cover-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-top: 28px;
+    margin-bottom: 28px;
+  }
+  .cover-cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: #1f1c14;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Anton', sans-serif;
+    font-size: 22px;
+    color: rgba(247,245,240,0.4);
+  }
+  .cover-cell.accent {
+    background: oklch(0.88 0.22 125);
+    color: #0a0a09;
+  }
+
+  /* Section divider page (chapter intro) */
+  .section-page {
+    background: #f5f3ee;
+    min-height: 96vh;
+    page-break-after: always;
+    break-after: page;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px;
+    box-sizing: border-box;
+  }
+  .section-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 280px;
+    line-height: 0.8;
+    color: oklch(0.88 0.22 125);
+    letter-spacing: 0.01em;
+  }
+  .section-title {
+    font-family: 'Anton', sans-serif;
+    font-size: 64px;
+    line-height: 0.9;
+    color: #14130f;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin-top: 16px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: #5a564a;
+    max-width: 460px;
+    margin-top: 16px;
+    line-height: 1.55;
+  }
+
+  /* Force the phone frame to render at full size for print */
+  .print-phone .phone-frame {
+    box-shadow:
+      0 8px 24px -8px rgba(0,0,0,0.18),
+      0 0 0 1px rgba(0,0,0,0.06);
+  }
+
+  /* Tweak labels */
+  .pill {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 100px;
+    background: #1f1c14;
+    color: #f7f5f0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pill.accent {
+    background: oklch(0.88 0.22 125);
+    color: #0a0a09;
+  }
+
+  /* Reset root layout for print */
+  #print-root {
+    background: white;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+    display: block;
+  }
+
+  @media screen {
+    body { background: #2a2620; padding: 24px 0; }
+    .print-page, .section-page, .cover {
+      max-width: 794px;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="print-root"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="data.js"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="ui.jsx"></script>
+<script type="text/babel" src="onboarding.jsx"></script>
+<script type="text/babel" src="home.jsx"></script>
+<script type="text/babel" src="workout.jsx"></script>
+<script type="text/babel" src="profile.jsx"></script>
+<script type="text/babel" src="settings.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+
+<script type="text/babel">
+// Apply dark theme + lime palette to the document root
+document.documentElement.setAttribute('data-theme', 'dark');
+
+// Wrap phone content with the standard chrome (statusbar + gesture nav)
+function PrintPhone({ children }) {
+  return (
+    <div className="print-phone">
+      <div className="phone-frame">
+        <div className="phone-content">
+          <PhoneStatusBar />
+          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {children}
+          </div>
+          <GestureNav />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenPage({ num, title, sub, label, children }) {
+  return (
+    <div className="print-page">
+      <div className="print-header">
+        <div>
+          <div className="print-eyebrow">{label}</div>
+          <div className="print-title">{title}</div>
+          {sub && <div className="print-sub">{sub}</div>}
+        </div>
+        <div className="print-num">{num}</div>
+      </div>
+      <PrintPhone>{children}</PrintPhone>
+    </div>
+  );
+}
+
+// Tab shell so tab screens (Home, Workouts, Profile, Settings) have the bottom nav
+function TabShell({ children, tab }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {children}
+      </div>
+      <TabBar current={tab} onChange={() => {}} />
+    </div>
+  );
+}
+
+// DayOverview wrapper that auto-clicks the Warmup tab after mount
+function DayOverviewWarmup(props) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!ref.current) return;
+    const buttons = ref.current.querySelectorAll('button');
+    for (const b of buttons) {
+      if (b.textContent.trim() === 'Warmup') { b.click(); break; }
+    }
+  }, []);
+  return <div ref={ref} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}><DayOverview {...props} /></div>;
+}
+
+// Switch-day-sheet wrapper for the override modal
+function DayOverviewWithSheet(props) {
+  return (
+    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <DayOverview {...props} />
+      <SwitchDaySheet currentDay={0} onPick={() => {}} onClose={() => {}} />
+    </div>
+  );
+}
+
+// Workout-session wrapper with first-set logged so the active state is visible
+function WorkoutWithActivity({ dayIndex, layoutVariant, unit }) {
+  // Pre-mark first set complete via DOM click after mount, so the Complete Set CTA still shows
+  // (Skip: just render fresh with first set active)
+  return (
+    <WorkoutSession
+      key={dayIndex + '-' + layoutVariant}
+      dayIndex={dayIndex}
+      unit={unit}
+      layoutVariant={layoutVariant}
+      onExit={() => {}}
+      onComplete={() => {}}
+    />
+  );
+}
+
+function noop() {}
+
+function PrintDeck() {
+  // Build sample logs / props
+  const workoutLog = WORKOUT_LOG;
+  const nextDayIndex = 0;
+
+  const cells = [];
+  for (let i = 0; i < 18; i++) cells.push(i);
+
+  return (
+    <>
+      {/* COVER */}
+      <div className="cover">
+        <div>
+          <div className="cover-eyebrow">Android Prototype · v1.0 · May 2026</div>
+          <div className="cover-title">
+            Get<br/>Gym<br/><span className="cover-accent">Done.</span>
+          </div>
+        </div>
+        <div>
+          <div className="cover-grid">
+            {cells.map((i) => (
+              <div key={i} className={`cover-cell ${[1,5,9,13].includes(i) ? 'accent' : ''}`}>
+                {(i + 1).toString().padStart(2, '0')}
+              </div>
+            ))}
+          </div>
+          <div className="cover-tagline">
+            A logbook that knows what day it is, what's next, and how strong you're getting. Bold sport aesthetic, 5-day split, full prototype.
+          </div>
+          <div className="cover-meta">
+            <span>Screens reference</span>
+            <span className="cover-count">17 screens</span>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 1 */}
+      <div className="section-page">
+        <div>
+          <div className="section-num">01</div>
+          <div className="section-title">Onboarding</div>
+          <div className="section-desc">Splash, split select, routine-method choice, and a per-day exercise picker. Step 1 of 3 → 3 of 3.</div>
+        </div>
+      </div>
+
+      <ScreenPage num="01" label="Onboarding · 1 of 4" title="Splash" sub="Cold-launch welcome. Lime CTA, condensed display type sets the brand tone.">
+        <Splash onStart={noop} />
+      </ScreenPage>
+
+      <ScreenPage num="02" label="Onboarding · 2 of 4" title="Pick a split" sub='The user\u2019s PDF split is recommended and labeled "From your PDF".'>
+        <SplitSelect
+          selected="5day-illustrated"
+          setSelected={noop}
+          onBack={noop}
+          onNext={noop}
+        />
+      </ScreenPage>
+
+      <ScreenPage num="03" label="Onboarding · 3 of 4" title="Routine method" sub="Curate with the proven 5-day program, or build day by day.">
+        <MethodSelect method="curated" setMethod={noop} onBack={noop} onNext={noop} />
+      </ScreenPage>
+
+      <ScreenPage num="04" label="Onboarding · 4 of 4" title="Build your routine" sub='Day-by-day exercise picker. Tap "Add exercise" to open the muscle-filtered picker sheet.'>
+        <CustomizeRoutine customDays={WORKOUT_DAYS} setCustomDays={noop} onBack={noop} onNext={noop} />
+      </ScreenPage>
+
+      {/* SECTION 2 */}
+      <div className="section-page">
+        <div>
+          <div className="section-num">02</div>
+          <div className="section-title">Today<br/>& routine</div>
+          <div className="section-desc">Home calendar with the next-up day card. Day overview with exercises and a warmup tab. Override-day sheet for going off-schedule.</div>
+        </div>
+      </div>
+
+      <ScreenPage num="05" label="Tab · Today" title="Home" sub='Calendar with completed days marked. Big "Up next" card drives directly into the workout.'>
+        <TabShell tab="home">
+          <HomeScreen workoutLog={workoutLog} nextDayIndex={nextDayIndex} unit="kg" onStartWorkout={noop} onOpenDay={noop} />
+        </TabShell>
+      </ScreenPage>
+
+      <ScreenPage num="06" label="Day flow · 1 of 2" title="Day overview — Exercises" sub="Pre-workout overview. Tap any exercise to preview, or tap Start.">
+        <DayOverview dayIndex={0} onBack={noop} onStart={noop} onSwitchDay={noop} />
+      </ScreenPage>
+
+      <ScreenPage num="07" label="Day flow · 2 of 2" title="Day overview — Warmup" sub="Recommended warmup primer for the muscles you'll hit today.">
+        <DayOverviewWarmup dayIndex={0} onBack={noop} onStart={noop} onSwitchDay={noop} />
+      </ScreenPage>
+
+      <ScreenPage num="08" label="Modal" title="Override today" sub="Bottom sheet to swap to a different day if you're feeling something else.">
+        <DayOverviewWithSheet dayIndex={0} onBack={noop} onStart={noop} onSwitchDay={noop} />
+      </ScreenPage>
+
+      <ScreenPage num="09" label="Tab · Workouts" title="Routine list" sub="Browser of all 5 days with how many times each has been logged.">
+        <TabShell tab="workouts">
+          <WorkoutsList workoutLog={workoutLog} onOpenDay={noop} unit="kg" />
+        </TabShell>
+      </ScreenPage>
+
+      {/* SECTION 3 */}
+      <div className="section-page">
+        <div>
+          <div className="section-num">03</div>
+          <div className="section-title">Active<br/>workout</div>
+          <div className="section-desc">The most important screen — four explored layout variants. All include exercise GIF, muscle map, form cues, set tracking with ±/keypad, and the giant Complete Set CTA.</div>
+        </div>
+      </div>
+
+      <ScreenPage num="10" label="Workout · Variant A" title="Stacked layout" sub="Classic vertical scroll. GIF → name → muscle map → cues → set tracker.">
+        <WorkoutWithActivity dayIndex={0} layoutVariant="stacked" unit="kg" />
+      </ScreenPage>
+
+      <ScreenPage num="11" label="Workout · Variant B" title="Focus layout" sub="Huge numerals, minimal chrome. Cues hidden until expanded.">
+        <WorkoutWithActivity dayIndex={0} layoutVariant="focus" unit="kg" />
+      </ScreenPage>
+
+      <ScreenPage num="12" label="Workout · Variant C" title="Coach layout" sub="One form cue at a time, swipeable. For lifters who need form reminders mid-set.">
+        <WorkoutWithActivity dayIndex={0} layoutVariant="coach" unit="kg" />
+      </ScreenPage>
+
+      <ScreenPage num="13" label="Workout · Variant D" title="Compact layout" sub="Everything visible at once. For experienced lifters who just want to log fast.">
+        <WorkoutWithActivity dayIndex={0} layoutVariant="compact" unit="kg" />
+      </ScreenPage>
+
+      <ScreenPage num="14" label="Workout · End state" title="Workout complete" sub="Celebration of the day done. PRs + volume delta surfaced.">
+        <WorkoutComplete dayIndex={0} onDone={noop} />
+      </ScreenPage>
+
+      {/* SECTION 4 */}
+      <div className="section-page">
+        <div>
+          <div className="section-num">04</div>
+          <div className="section-title">Profile<br/>& metrics</div>
+          <div className="section-desc">Where the work pays off — line charts per exercise, bodyweight over time, consistency heatmap, recent PRs.</div>
+        </div>
+      </div>
+
+      <ScreenPage num="15" label="Tab · Profile" title="Metrics" sub="Exercise progression chart (switchable), bodyweight, 8-week consistency heatmap, PRs.">
+        <TabShell tab="profile">
+          <ProfileScreen unit="kg" />
+        </TabShell>
+      </ScreenPage>
+
+      <ScreenPage num="16" label="Tab · Settings" title="Settings" sub="Routine controls, workout preferences, units, theme, account.">
+        <TabShell tab="settings">
+          <SettingsScreen unit="kg" theme="dark" splitName="5 Day Illustrated" onEditRoutine={noop} onResetOnboarding={noop} />
+        </TabShell>
+      </ScreenPage>
+
+      {/* Final / closing */}
+      <div className="cover" style={{ pageBreakAfter: 'auto', breakAfter: 'auto' }}>
+        <div>
+          <div className="cover-eyebrow">End of reference</div>
+          <div className="cover-title" style={{ fontSize: 140 }}>
+            Now<br/>go <span className="cover-accent">lift.</span>
+          </div>
+        </div>
+        <div>
+          <div className="cover-tagline">17 screens · 4 workout-screen variants · live tweak panel for palette, theme, layout, and units.</div>
+          <div className="cover-meta">
+            <span>Get Gym Done · v1.0 (beta)</span>
+            <span>Generated May 16, 2026</span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+window.addEventListener('load', async () => {
+  // Wait for fonts to be ready before mounting + printing
+  try { await document.fonts.ready; } catch (e) {}
+  ReactDOM.createRoot(document.getElementById('print-root')).render(<PrintDeck />);
+  // Give the deck time to layout (React mount + DayOverviewWarmup tab-click effect)
+  setTimeout(() => {
+    window.print();
+  }, 1200);
+});
+</script>
+</body>
+</html>
