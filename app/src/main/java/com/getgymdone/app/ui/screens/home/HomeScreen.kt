@@ -7,6 +7,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -18,6 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -50,8 +54,11 @@ import androidx.compose.ui.draw.clipToBounds
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,6 +113,8 @@ data class HomeState(
     val bodyweightTrend: Trend = Trend.Flat,
     /** Completed sessions keyed by local epoch-day → the day number trained (latest wins). */
     val completedByEpochDay: Map<Long, Int> = emptyMap(),
+    /** Logged activities keyed by local epoch-day → activity type (latest wins), for days with no workout. */
+    val activityByEpochDay: Map<Long, String> = emptyMap(),
     /** Day numbers completed within the trailing 7 days. */
     val weekDoneDayNumbers: Set<Int> = emptySet(),
     /** True when today's scheduled day is a rest day (auto-logged to the calendar). */
@@ -154,7 +163,9 @@ class HomeViewModel @Inject constructor(
             val days = splitId?.let { splits.getDays(it) }.orEmpty()
 
             val lastSession = sessions.getLastCompleted()
-            val lastDayNumber = lastSession?.let { s -> days.firstOrNull { it.id == s.workoutDayId }?.dayNumber }
+            // Rotation follows the last logged *workout* (or rest day); activity logs don't advance it.
+            val lastWorkout = sessions.getLastCompletedWorkout()
+            val lastDayNumber = lastWorkout?.let { s -> days.firstOrNull { it.id == s.workoutDayId }?.dayNumber }
             // Rest days never spawn a session, so the "up next" card always points at the next
             // trainable day; the rotation skips rest days rather than stalling on them.
             val nextDay = nextWorkoutDay(days, lastDayNumber)
@@ -179,14 +190,21 @@ class HomeViewModel @Inject constructor(
             val weekCutoff = LocalDate.now().minusDays(6).toEpochDay()
             val completed = metrics.completedSessions()
             val completedByEpochDay = LinkedHashMap<Long, Int>()
+            val activityByEpochDay = LinkedHashMap<Long, String>()
             val weekDone = mutableSetOf<Int>()
             completed.forEach { s ->
                 val completedAt = s.completedAt ?: return@forEach
-                val dn = dayNumberById[s.workoutDayId] ?: return@forEach
                 val epochDay = Instant.ofEpochMilli(completedAt)
                     .atZone(zone).toLocalDate().toEpochDay()
-                completedByEpochDay[epochDay] = dn // later session on a day overrides
-                if (epochDay >= weekCutoff && s.workoutDayId in currentDayIds) weekDone += dn
+                // A session tied to a workout day counts as that day (even an activity logged "as
+                // today's workout"); a day-less activity gets its own tag.
+                val dn = s.workoutDayId?.let { dayNumberById[it] }
+                if (dn != null) {
+                    completedByEpochDay[epochDay] = dn // later session on a day overrides
+                    if (epochDay >= weekCutoff && s.workoutDayId in currentDayIds) weekDone += dn
+                } else if (s.activityType != null) {
+                    activityByEpochDay[epochDay] = s.activityType // later activity on a day overrides
+                }
             }
 
             // Workout counts exclude logged rest days so the "this week" tally and totals stay
@@ -250,10 +268,22 @@ class HomeViewModel @Inject constructor(
                 bodyweight = bwText,
                 bodyweightTrend = bwTrend,
                 completedByEpochDay = completedByEpochDay,
+                activityByEpochDay = activityByEpochDay,
                 weekDoneDayNumbers = weekDone,
                 todayIsRest = todayIsRest,
             )
         }
+    }
+
+    /**
+     * Log a non-gym activity (run, sport, etc.); always counts toward streak/calendar/consistency.
+     * When [asTodaysWorkout] is true it's logged against today's scheduled day, counting as that
+     * day's workout (advances the rotation); otherwise it's a standalone activity.
+     */
+    fun logActivity(type: String, durationMin: Int?, notes: String?, asTodaysWorkout: Boolean) = viewModelScope.launch {
+        val dayId = if (asTodaysWorkout) _state.value.nextDay?.id else null
+        sessions.logActivity(type, durationMin, notes, dayId)
+        refresh()
     }
 
     fun addDay() = viewModelScope.launch {
@@ -289,6 +319,7 @@ fun HomeScreen(
     var confirmReset by remember { mutableStateOf(false) }
     var editingRoutine by remember { mutableStateOf(false) }
     var showConfetti by remember { mutableStateOf(false) }
+    var showLogActivity by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(celebrate) {
@@ -374,11 +405,19 @@ fun HomeScreen(
             if (!state.loading) EmptyRoutineNote(Modifier.padding(horizontal = 22.dp))
         }
 
+        // Log a non-gym activity (run, sport, etc.) — counts toward streak/calendar/consistency.
+        Spacer(Modifier.height(10.dp))
+        LogActivityButton(
+            onClick = { showLogActivity = true },
+            modifier = Modifier.padding(horizontal = 22.dp),
+        )
+
         // Calendar
         if (state.days.isNotEmpty()) {
             Spacer(Modifier.height(22.dp))
             CalendarSection(
                 completedByEpochDay = state.completedByEpochDay,
+                activityByEpochDay = state.activityByEpochDay,
                 sessionCount = state.sessionCount,
                 isRestToday = state.todayIsRest,
                 onOpenToday = { state.nextDay?.let { onOpenDay(it.id) } },
@@ -452,6 +491,17 @@ fun HomeScreen(
             )
         }
 
+        if (showLogActivity) {
+            LogActivityDialog(
+                todayWorkoutLabel = state.nextDay?.let { "Day ${it.dayNumber} · ${it.name}" },
+                onDismiss = { showLogActivity = false },
+                onSave = { type, durationMin, notes, asTodaysWorkout ->
+                    vm.logActivity(type, durationMin, notes, asTodaysWorkout)
+                    showLogActivity = false
+                },
+            )
+        }
+
         if (showConfetti) {
             ConfettiOverlay(onFinished = { showConfetti = false })
         }
@@ -508,17 +558,18 @@ private fun ResetRoutineDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun DialogButton(label: String, filled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun DialogButton(label: String, filled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val shape = RoundedCornerShape(12.dp)
+    val bg = if (filled) MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.4f) else Color.Transparent
     Box(
         modifier = modifier
             .height(52.dp)
             .clip(shape)
             .then(
-                if (filled) Modifier.background(MaterialTheme.colorScheme.primary, shape)
+                if (filled) Modifier.background(bg, shape)
                 else Modifier.border(1.dp, MaterialTheme.colorScheme.outline, shape),
             )
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -689,11 +740,225 @@ private fun RestDayCard(modifier: Modifier = Modifier) {
     }
 }
 
+// ── Log activity ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun LogActivityButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Rounded.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text("LOG ACTIVITY", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+    }
+}
+
+private val ACTIVITY_PRESETS = listOf(
+    "Running", "Walking", "Cycling", "Swimming",
+    "Pickleball", "Tennis", "Table Tennis", "Basketball",
+    "Soccer", "Yoga", "Hiking",
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LogActivityDialog(
+    todayWorkoutLabel: String?,
+    onDismiss: () -> Unit,
+    onSave: (type: String, durationMin: Int?, notes: String?, asTodaysWorkout: Boolean) -> Unit,
+) {
+    var type by remember { mutableStateOf("") }
+    var duration by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
+    var asTodaysWorkout by remember { mutableStateOf(false) }
+    val canSave = type.isNotBlank()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable(enabled = false) {}
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+        ) {
+            Text("LOG ACTIVITY", style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Log a run or sport — it counts toward your streak, calendar, and consistency even on a skipped day.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(16.dp))
+
+            Text("ACTIVITY", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ACTIVITY_PRESETS.forEach { preset ->
+                    ActivityChip(label = preset, selected = type == preset, onClick = { type = preset })
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            DialogTextField(
+                value = type,
+                onValueChange = { type = it },
+                placeholder = "Activity name",
+                keyboardType = KeyboardType.Text,
+            )
+
+            Spacer(Modifier.height(14.dp))
+            Text("DURATION (MIN)", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            DialogTextField(
+                value = duration,
+                onValueChange = { new -> duration = new.filter { it.isDigit() }.take(4) },
+                placeholder = "e.g. 45",
+                keyboardType = KeyboardType.Number,
+            )
+
+            Spacer(Modifier.height(14.dp))
+            Text("NOTES (OPTIONAL)", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            DialogTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                placeholder = "Distance, score, how it felt…",
+                keyboardType = KeyboardType.Text,
+            )
+
+            // Offer to count this as today's scheduled workout (advances the rotation) — only when
+            // there's a day up next to stand in for.
+            if (todayWorkoutLabel != null) {
+                Spacer(Modifier.height(16.dp))
+                MarkAsWorkoutToggle(
+                    label = todayWorkoutLabel,
+                    checked = asTodaysWorkout,
+                    onToggle = { asTodaysWorkout = !asTodaysWorkout },
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                DialogButton(label = "Cancel", filled = false, onClick = onDismiss, modifier = Modifier.weight(1f))
+                DialogButton(
+                    label = "Save",
+                    filled = true,
+                    enabled = canSave,
+                    onClick = { onSave(type.trim(), duration.toIntOrNull(), notes.trim().ifBlank { null }, asTodaysWorkout) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MarkAsWorkoutToggle(label: String, checked: Boolean, onToggle: () -> Unit) {
+    val shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant, shape)
+            .border(1.dp, if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, shape)
+            .clickable(onClick = onToggle)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val boxShape = RoundedCornerShape(6.dp)
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(boxShape)
+                .background(if (checked) MaterialTheme.colorScheme.primary else Color.Transparent, boxShape)
+                .border(1.5.dp, if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, boxShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (checked) Icon(Icons.Rounded.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(15.dp))
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text("COUNT AS TODAY'S WORKOUT", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground)
+            Spacer(Modifier.height(2.dp))
+            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun ActivityChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(100.dp)
+    val bg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val fg = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+    Text(
+        label,
+        style = MaterialTheme.typography.labelMedium,
+        color = fg,
+        modifier = Modifier
+            .clip(shape)
+            .background(bg, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+    )
+}
+
+@Composable
+private fun DialogTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    keyboardType: KeyboardType,
+) {
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant, shape)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+    ) {
+        if (value.isEmpty()) {
+            Text(placeholder, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
 // ── Calendar ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun CalendarSection(
     completedByEpochDay: Map<Long, Int>,
+    activityByEpochDay: Map<Long, String>,
     sessionCount: Int,
     isRestToday: Boolean,
     onOpenToday: () -> Unit,
@@ -748,13 +1013,15 @@ private fun CalendarSection(
                             Spacer(Modifier.fillMaxWidth().aspectRatio(1f))
                         } else {
                             val dn = completedByEpochDay[date.toEpochDay()]
+                            val activity = activityByEpochDay[date.toEpochDay()]
                             CalendarCell(
                                 day = date.dayOfMonth,
                                 dayNumber = dn,
+                                activity = activity,
                                 isToday = date == today,
-                                // Only today's cell is actionable, and only when it isn't already
-                                // done and isn't a rest day. Done days are never clickable.
-                                clickable = date == today && dn == null && !isRestToday,
+                                // Only today's cell is actionable, and only when nothing is logged
+                                // and it isn't a rest day. Done days are never clickable.
+                                clickable = date == today && dn == null && activity == null && !isRestToday,
                                 onClick = onOpenToday,
                             )
                         }
@@ -774,8 +1041,8 @@ private fun CalendarSection(
 }
 
 @Composable
-private fun CalendarCell(day: Int, dayNumber: Int?, isToday: Boolean, clickable: Boolean, onClick: () -> Unit) {
-    val done = dayNumber != null
+private fun CalendarCell(day: Int, dayNumber: Int?, activity: String?, isToday: Boolean, clickable: Boolean, onClick: () -> Unit) {
+    val done = dayNumber != null || activity != null
     val shape = RoundedCornerShape(10.dp)
     val bg = when {
         done -> MaterialTheme.colorScheme.primary
@@ -803,8 +1070,14 @@ private fun CalendarCell(day: Int, dayNumber: Int?, isToday: Boolean, clickable:
                 style = if (done) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyMedium,
                 color = fg,
             )
-            if (done) {
-                Text("D$dayNumber", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp), color = fg.copy(alpha = 0.75f))
+            // Workout days show their D-number; activity-only days show a short type tag.
+            val tag = when {
+                dayNumber != null -> "D$dayNumber"
+                activity != null -> activity.take(3).uppercase()
+                else -> null
+            }
+            if (tag != null) {
+                Text(tag, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp), color = fg.copy(alpha = 0.75f))
             }
         }
     }

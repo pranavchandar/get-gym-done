@@ -30,6 +30,10 @@ interface SessionDao {
     @Query("SELECT * FROM session WHERE completedAt IS NOT NULL ORDER BY completedAt DESC LIMIT 1")
     suspend fun getLastCompleted(): Session?
 
+    /** Last completed session tied to a workout day — drives the rotation, ignoring activity logs. */
+    @Query("SELECT * FROM session WHERE completedAt IS NOT NULL AND workoutDayId IS NOT NULL ORDER BY completedAt DESC LIMIT 1")
+    suspend fun getLastCompletedWorkout(): Session?
+
     @Query("SELECT * FROM session")
     suspend fun getAll(): List<Session>
 

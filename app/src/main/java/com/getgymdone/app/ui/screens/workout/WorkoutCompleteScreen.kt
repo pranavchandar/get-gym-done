@@ -89,7 +89,7 @@ class WorkoutCompleteViewModel @Inject constructor(
             val unit = WeightUnit.fromStored(prefs.get().units)
             val session = sessions.getById(sessionId)
             val sets = sessions.getSetsForSession(sessionId)
-            val day = session?.let { splits.getDayById(it.workoutDayId) }
+            val day = session?.workoutDayId?.let { splits.getDayById(it) }
 
             val byExercise = sets.groupBy { it.exerciseId }
             // PR = this session's top weight beats every prior session for that lift.

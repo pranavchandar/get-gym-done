@@ -39,7 +39,7 @@ import com.getgymdone.app.data.db.entities.WorkoutDay
         ExerciseMedia::class,
         Friend::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -126,6 +126,33 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE user_prefs ADD COLUMN avatarPhoto TEXT")
                 db.execSQL("ALTER TABLE friend ADD COLUMN photo TEXT")
+            }
+        }
+
+        /**
+         * Makes Session.workoutDayId nullable and adds activityType/durationMin, so non-gym
+         * activities (running, sports) can be logged as completed sessions with no workout day.
+         * Requires recreating the table since SQLite can't drop a NOT NULL constraint in place.
+         */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `session_new` (`id` TEXT NOT NULL, " +
+                        "`workoutDayId` TEXT, `startedAt` INTEGER NOT NULL, `completedAt` INTEGER, " +
+                        "`notes` TEXT, `activityType` TEXT, `durationMin` INTEGER, PRIMARY KEY(`id`), " +
+                        "FOREIGN KEY(`workoutDayId`) REFERENCES `workout_day`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE NO ACTION )",
+                )
+                db.execSQL(
+                    "INSERT INTO `session_new` (`id`,`workoutDayId`,`startedAt`,`completedAt`,`notes`) " +
+                        "SELECT `id`,`workoutDayId`,`startedAt`,`completedAt`,`notes` FROM `session`",
+                )
+                db.execSQL("DROP TABLE `session`")
+                db.execSQL("ALTER TABLE `session_new` RENAME TO `session`")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_session_workoutDayId` " +
+                        "ON `session` (`workoutDayId`)",
+                )
             }
         }
     }

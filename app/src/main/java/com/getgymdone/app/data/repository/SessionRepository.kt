@@ -43,6 +43,27 @@ class SessionRepository @Inject constructor(
         return s
     }
 
+    /**
+     * Record a non-gym activity (running, a sport, etc.) as a completed session. It always counts
+     * toward the streak / calendar / consistency. When [workoutDayId] is null it's a standalone
+     * activity that never advances the rotation; passing today's day id instead counts it *as*
+     * that day's workout, so the rotation moves on and the day earns its checkmark.
+     */
+    suspend fun logActivity(activityType: String, durationMin: Int?, notes: String?, workoutDayId: String? = null) {
+        val now = System.currentTimeMillis()
+        sessionDao.insert(
+            Session(
+                id = UUID.randomUUID().toString(),
+                workoutDayId = workoutDayId,
+                startedAt = now,
+                completedAt = now,
+                notes = notes?.takeIf { it.isNotBlank() },
+                activityType = activityType,
+                durationMin = durationMin,
+            ),
+        )
+    }
+
     suspend fun completeSession(id: String) =
         sessionDao.complete(id, System.currentTimeMillis())
 
@@ -50,6 +71,7 @@ class SessionRepository @Inject constructor(
     suspend fun getInProgress(): Session? = sessionDao.getInProgress()
     suspend fun getInProgressForDay(workoutDayId: String): Session? = sessionDao.getInProgressForDay(workoutDayId)
     suspend fun getLastCompleted(): Session? = sessionDao.getLastCompleted()
+    suspend fun getLastCompletedWorkout(): Session? = sessionDao.getLastCompletedWorkout()
     fun observeHistory(): Flow<List<Session>> = sessionDao.observeHistory()
 
     /** Logs a completed set and returns the new row id so callers can undo it. */

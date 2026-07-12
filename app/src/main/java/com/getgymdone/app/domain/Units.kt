@@ -18,3 +18,13 @@ fun Double.displayToKg(unit: WeightUnit): Double = when (unit) {
     WeightUnit.Kg -> this
     WeightUnit.Lbs -> this * KG_PER_LB
 }
+
+/**
+ * The smallest natural plate jump in this unit's display terms — 2.5 kg or 5 lb. Drives both the
+ * in-workout ± weight stepper and the increment used for progressive-overload suggestions.
+ */
+val WeightUnit.displayStep: Double
+    get() = when (this) {
+        WeightUnit.Kg -> 2.5
+        WeightUnit.Lbs -> 5.0
+    }

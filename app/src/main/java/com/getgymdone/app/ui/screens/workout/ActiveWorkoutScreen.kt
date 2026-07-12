@@ -89,6 +89,7 @@ import com.getgymdone.app.data.repository.SplitRepository
 import com.getgymdone.app.data.repository.UserPrefsRepository
 import com.getgymdone.app.domain.WeightSuggestion
 import com.getgymdone.app.domain.WeightUnit
+import com.getgymdone.app.domain.displayStep
 import com.getgymdone.app.domain.displayToKg
 import com.getgymdone.app.domain.kgToDisplay
 import com.getgymdone.app.domain.weightIncreaseSuggestion
@@ -106,6 +107,9 @@ import kotlinx.coroutines.launch
 private const val REST_MIN_SECONDS = 30
 private const val REST_MAX_SECONDS = 600
 private const val REST_STEP_SECONDS = 30
+
+/** Fallback starting load (kg) for a set with no prior history to prefill from. */
+private const val DEFAULT_START_WEIGHT_KG = 20.0
 
 data class SetEntry(
     val weightKg: Double,
@@ -201,7 +205,7 @@ class ActiveWorkoutViewModel @Inject constructor(
                 .orEmpty()
 
             // Smallest natural plate jump in the user's unit, for progressive-overload advice.
-            val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
+            val incrementKg = unit.displayStep.displayToKg(unit)
 
             val active = items.mapNotNull { de ->
                 val ex = exercises.getById(de.exerciseId) ?: return@mapNotNull null
@@ -232,7 +236,7 @@ class ActiveWorkoutViewModel @Inject constructor(
                         } else {
                             val prev = prevByNumber[idx + 1] ?: prevFallback
                             SetEntry(
-                                weightKg = prev?.weightKg ?: 20.0,
+                                weightKg = prev?.weightKg ?: DEFAULT_START_WEIGHT_KG,
                                 reps = prev?.reps ?: de.prescribedRepsLow,
                             )
                         }
@@ -371,7 +375,7 @@ class ActiveWorkoutViewModel @Inject constructor(
             val ex = st.exercises.getOrNull(exIdx) ?: return@update st
             val template = ex.sets.lastOrNull()
             val newSet = SetEntry(
-                weightKg = template?.weightKg ?: 20.0,
+                weightKg = template?.weightKg ?: DEFAULT_START_WEIGHT_KG,
                 reps = template?.reps ?: ex.repsLow,
             )
             val newEx = st.exercises.toMutableList().also { it[exIdx] = ex.copy(sets = ex.sets + newSet) }
@@ -426,7 +430,7 @@ class ActiveWorkoutViewModel @Inject constructor(
         val prevFallback = prevSets.lastOrNull()
         val setCount = exercise.defaultSets.coerceAtLeast(1)
         val unit = _state.value.unit
-        val incrementKg = (if (unit == WeightUnit.Kg) 2.5 else 5.0).displayToKg(unit)
+        val incrementKg = unit.displayStep.displayToKg(unit)
         val suggestion = weightIncreaseSuggestion(
             history = sessions.getCompletedProgression(exercise.id),
             repsHigh = exercise.defaultRepsHigh,
@@ -440,7 +444,7 @@ class ActiveWorkoutViewModel @Inject constructor(
             sets = List(setCount) { idx ->
                 val prev = prevByNumber[idx + 1] ?: prevFallback
                 SetEntry(
-                    weightKg = prev?.weightKg ?: 20.0,
+                    weightKg = prev?.weightKg ?: DEFAULT_START_WEIGHT_KG,
                     reps = prev?.reps ?: exercise.defaultRepsLow,
                 )
             },
@@ -1242,7 +1246,7 @@ private fun SetRow(
         else -> MaterialTheme.colorScheme.outline
     }
     val bg = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface
-    val weightStep = if (unit == WeightUnit.Kg) 2.5 else 5.0
+    val weightStep = unit.displayStep
 
     Column(
         modifier = Modifier

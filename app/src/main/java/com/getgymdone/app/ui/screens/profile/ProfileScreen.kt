@@ -317,11 +317,12 @@ class ProfileViewModel @Inject constructor(
                 bodyFatInput = latestBf?.let { formatNum(it) }.orEmpty(),
                 muscleMassInput = latestMm?.let { formatNum(it.kgToDisplay(unit)) }.orEmpty(),
                 exerciseProgress = exerciseProgress,
-                // Both training (set timestamps) and logged rest days fill a consistency square;
-                // unlogged scheduled rest days between two active days bridge in too.
+                // Training (set timestamps), logged activities, and logged rest days all fill a
+                // consistency square; unlogged scheduled rest days between two active days bridge in.
                 heatmap = buildHeatmap(
                     sets.map { it.completedAt } +
-                        sessions.filter { it.notes == REST_SESSION_NOTE }.mapNotNull { it.completedAt },
+                        sessions.filter { it.notes == REST_SESSION_NOTE || it.activityType != null }
+                            .mapNotNull { it.completedAt },
                     restGap,
                 ),
                 prExercises = prExercises,
