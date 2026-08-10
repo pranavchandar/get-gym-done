@@ -9,6 +9,7 @@ import com.getgymdone.app.data.db.dao.BodyMetricDao
 import com.getgymdone.app.data.db.dao.DayExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseDao
 import com.getgymdone.app.data.db.dao.ExerciseMediaDao
+import com.getgymdone.app.data.db.dao.ExerciseNoteDao
 import com.getgymdone.app.data.db.dao.FriendDao
 import com.getgymdone.app.data.db.dao.SessionDao
 import com.getgymdone.app.data.db.dao.SetLogDao
@@ -19,6 +20,7 @@ import com.getgymdone.app.data.db.entities.BodyMetric
 import com.getgymdone.app.data.db.entities.DayExercise
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.ExerciseMedia
+import com.getgymdone.app.data.db.entities.ExerciseNote
 import com.getgymdone.app.data.db.entities.Friend
 import com.getgymdone.app.data.db.entities.Session
 import com.getgymdone.app.data.db.entities.SetLog
@@ -37,9 +39,10 @@ import com.getgymdone.app.data.db.entities.WorkoutDay
         BodyMetric::class,
         UserPrefs::class,
         ExerciseMedia::class,
+        ExerciseNote::class,
         Friend::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -53,6 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bodyMetricDao(): BodyMetricDao
     abstract fun userPrefsDao(): UserPrefsDao
     abstract fun exerciseMediaDao(): ExerciseMediaDao
+    abstract fun exerciseNoteDao(): ExerciseNoteDao
     abstract fun friendDao(): FriendDao
 
     companion object {
@@ -152,6 +156,26 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_session_workoutDayId` " +
                         "ON `session` (`workoutDayId`)",
+                )
+            }
+        }
+
+        /**
+         * Adds the exercise_note table: one free-text note per exercise. Kept out of the `exercise`
+         * table on purpose — SeedLoader updates exercise rows in place, which would wipe user notes.
+         */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `exercise_note` (" +
+                        "`exerciseId` TEXT NOT NULL, `text` TEXT NOT NULL, " +
+                        "`updatedAt` INTEGER NOT NULL, PRIMARY KEY(`exerciseId`), " +
+                        "FOREIGN KEY(`exerciseId`) REFERENCES `exercise`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_exercise_note_exerciseId` " +
+                        "ON `exercise_note` (`exerciseId`)",
                 )
             }
         }

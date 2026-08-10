@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import java.io.File
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,11 +69,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -82,6 +80,7 @@ import android.net.Uri
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.ExerciseMedia
 import com.getgymdone.app.data.repository.ExerciseMediaRepository
+import com.getgymdone.app.data.repository.ExerciseNoteRepository
 import com.getgymdone.app.data.repository.ExerciseRepository
 import com.getgymdone.app.data.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
@@ -93,6 +92,10 @@ import com.getgymdone.app.domain.displayStep
 import com.getgymdone.app.domain.displayToKg
 import com.getgymdone.app.domain.kgToDisplay
 import com.getgymdone.app.domain.weightIncreaseSuggestion
+import com.getgymdone.app.ui.components.ExerciseNotesSection
+import com.getgymdone.app.ui.components.HeroCircleButton
+import com.getgymdone.app.ui.components.MediaViewer
+import com.getgymdone.app.ui.components.MediaViewerItem
 import com.getgymdone.app.ui.components.StripedPlaceholder
 import com.getgymdone.app.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -161,6 +164,7 @@ class ActiveWorkoutViewModel @Inject constructor(
     private val sessions: SessionRepository,
     private val prefs: UserPrefsRepository,
     private val mediaRepo: ExerciseMediaRepository,
+    private val noteRepo: ExerciseNoteRepository,
 ) : ViewModel() {
 
     /** User-uploaded images/GIFs for an exercise (local only). */
@@ -169,6 +173,16 @@ class ActiveWorkoutViewModel @Inject constructor(
     fun addMedia(exerciseId: String, uri: Uri) = viewModelScope.launch { mediaRepo.add(exerciseId, uri) }
 
     fun removeMedia(mediaId: String) = viewModelScope.launch { mediaRepo.remove(mediaId) }
+
+    /**
+     * The user's own note for an exercise, live from Room — same per-exercise flow shape as
+     * [media], so the note survives process death and is read back rather than held in UI state.
+     */
+    fun note(exerciseId: String): Flow<String> = noteRepo.observe(exerciseId)
+
+    fun saveNote(exerciseId: String, text: String) = viewModelScope.launch {
+        noteRepo.save(exerciseId, text)
+    }
 
     private val workoutDayId = handle.toRoute<Route.ActiveWorkout>().workoutDayId
     private val _state = MutableStateFlow(ActiveWorkoutState())
@@ -668,6 +682,18 @@ fun ActiveWorkoutScreen(
                 if (current.exercise.formCues.isNotEmpty()) {
                     item("cues") { FormCuesCard(current.exercise.formCues) }
                 }
+                item("notes") {
+                    // key() by exercise so switching exercises disposes the editor — that's what
+                    // flushes an in-progress draft to the exercise it was written for.
+                    key(current.exercise.id) {
+                        val noteFlow = remember(current.exercise.id) { vm.note(current.exercise.id) }
+                        val note by noteFlow.collectAsState(initial = "")
+                        ExerciseNotesSection(
+                            note = note,
+                            onSave = { text -> vm.saveNote(current.exercise.id, text) },
+                        )
+                    }
+                }
                 current.weightSuggestion?.let { sug ->
                     // Hide once the remaining sets have been bumped to (or past) the suggested load.
                     val needed = current.sets.any { !it.done && it.weightKg < sug.suggestedWeightKg - 1e-3 }
@@ -970,8 +996,10 @@ private fun ExerciseHero(
             } else {
                 val pagerState = rememberPagerState(pageCount = { media.size })
                 HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+                    // Deleting from the viewer can shrink the list a frame before the pager knows.
+                    val item = media.getOrNull(page) ?: return@HorizontalPager
                     AsyncImage(
-                        model = File(media[page].filePath),
+                        model = File(item.filePath),
                         contentDescription = "Exercise media",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -1022,35 +1050,13 @@ private fun ExerciseHero(
             )
         }
         viewerIndex?.let { idx ->
-            media.getOrNull(idx)?.let { item ->
-                Dialog(
-                    onDismissRequest = { viewerIndex = null },
-                    properties = DialogProperties(usePlatformDefaultWidth = false),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.95f))
-                            .clickable { viewerIndex = null },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        AsyncImage(
-                            model = File(item.filePath),
-                            contentDescription = "Exercise media",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                        HeroCircleButton(
-                            icon = Icons.Rounded.Close,
-                            contentDescription = "Close",
-                            onClick = { viewerIndex = null },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(16.dp),
-                        )
-                    }
-                }
-            }
+            val viewerItems = remember(media) { media.map { MediaViewerItem(it.id, it.filePath) } }
+            MediaViewer(
+                items = viewerItems,
+                initialIndex = idx,
+                onDismiss = { viewerIndex = null },
+                onDelete = { item -> onRemoveMedia(item.id) },
+            )
         }
         Spacer(Modifier.height(14.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -1076,25 +1082,6 @@ private fun ExerciseHero(
                 Text("PRESCRIPTION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-    }
-}
-
-@Composable
-private fun HeroCircleButton(
-    icon: ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(100.dp))
-            .background(Color.Black.copy(alpha = 0.45f))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = contentDescription, tint = Color.White, modifier = Modifier.size(20.dp))
     }
 }
 

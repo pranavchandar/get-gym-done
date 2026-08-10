@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,27 +43,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.getgymdone.app.data.db.entities.Exercise
+import com.getgymdone.app.data.db.entities.ExerciseMedia
 import com.getgymdone.app.data.db.entities.WorkoutDay
 import com.getgymdone.app.data.repository.DayExerciseEdit
+import com.getgymdone.app.data.repository.ExerciseMediaRepository
+import com.getgymdone.app.data.repository.ExerciseNoteRepository
 import com.getgymdone.app.data.repository.ExerciseRepository
 import com.getgymdone.app.data.repository.SplitRepository
 import com.getgymdone.app.data.repository.UserPrefsRepository
 import com.getgymdone.app.ui.components.BigCta
 import com.getgymdone.app.ui.components.CustomExerciseForm
 import com.getgymdone.app.ui.components.CustomExerciseInput
+import com.getgymdone.app.ui.components.ExerciseNotesSection
+import com.getgymdone.app.ui.components.MediaViewer
+import com.getgymdone.app.ui.components.MediaViewerItem
 import com.getgymdone.app.ui.components.PillChip
 import com.getgymdone.app.ui.components.PillStyle
 import com.getgymdone.app.ui.components.StripedPlaceholder
 import com.getgymdone.app.ui.navigation.Route
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -99,7 +110,19 @@ class DayOverviewViewModel @Inject constructor(
     private val splits: SplitRepository,
     private val exercises: ExerciseRepository,
     private val prefs: UserPrefsRepository,
+    private val mediaRepo: ExerciseMediaRepository,
+    private val noteRepo: ExerciseNoteRepository,
 ) : ViewModel() {
+    /** User-uploaded images/GIFs for an exercise (local only) — same source as the workout hero. */
+    fun media(exerciseId: String): Flow<List<ExerciseMedia>> = mediaRepo.observe(exerciseId)
+
+    /** The user's own note for an exercise, live from Room. */
+    fun note(exerciseId: String): Flow<String> = noteRepo.observe(exerciseId)
+
+    fun saveNote(exerciseId: String, text: String) = viewModelScope.launch {
+        noteRepo.save(exerciseId, text)
+    }
+
     private val initialDayId = handle.toRoute<Route.DayOverview>().workoutDayId
     private val _state = MutableStateFlow(DayOverviewState())
     val state: StateFlow<DayOverviewState> = _state.asStateFlow()
@@ -251,13 +274,23 @@ fun DayOverviewScreen(
                 when (tab) {
                     DayTab.Exercises -> {
                         items(state.exercises.withIndex().toList(), key = { it.index }) { (idx, row) ->
-                            ExerciseCard(
-                                index = idx + 1,
-                                name = row.exercise.name,
-                                muscle = row.exercise.primaryMuscle,
-                                prescription = "${row.sets}×${row.repsLow}-${row.repsHigh}",
-                                illustration = row.exercise.illustrationFilename,
-                            )
+                            // key() by exercise: the list slot is keyed by position, so switching
+                            // days must dispose the note editor rather than hand its draft over.
+                            key(row.exercise.id) {
+                                val mediaFlow = remember(row.exercise.id) { vm.media(row.exercise.id) }
+                                val media by mediaFlow.collectAsState(initial = emptyList())
+                                val noteFlow = remember(row.exercise.id) { vm.note(row.exercise.id) }
+                                val note by noteFlow.collectAsState(initial = "")
+                                ExerciseCard(
+                                    index = idx + 1,
+                                    name = row.exercise.name,
+                                    muscle = row.exercise.primaryMuscle,
+                                    prescription = "${row.sets}×${row.repsLow}-${row.repsHigh}",
+                                    media = media,
+                                    note = note,
+                                    onSaveNote = { text -> vm.saveNote(row.exercise.id, text) },
+                                )
+                            }
                         }
                     }
                     DayTab.Warmup -> {
@@ -731,26 +764,91 @@ private fun SegmentedTabs(selected: DayTab, onSelect: (DayTab) -> Unit, modifier
     }
 }
 
+/**
+ * One exercise in the day plan: the prescription row, its uploaded media (tap to open the same
+ * full-screen [MediaViewer] the workout screen uses) and its notes — reachable here so notes can be
+ * written while planning, not only mid-workout.
+ */
 @Composable
-private fun ExerciseCard(index: Int, name: String, muscle: String, prescription: String, illustration: String) {
+private fun ExerciseCard(
+    index: Int,
+    name: String,
+    muscle: String,
+    prescription: String,
+    media: List<ExerciseMedia>,
+    note: String,
+    onSaveNote: (String) -> Unit,
+) {
+    var viewerIndex by remember { mutableStateOf<Int?>(null) }
     val shape = RoundedCornerShape(14.dp)
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface, shape)
             .border(1.dp, MaterialTheme.colorScheme.outline, shape)
             .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("$index", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(28.dp))
-        StripedPlaceholder(label = "gif", modifier = Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)))
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(name.uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
-            Text(muscle, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("$index", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(28.dp))
+            val thumbShape = RoundedCornerShape(10.dp)
+            val first = media.firstOrNull()
+            if (first == null) {
+                StripedPlaceholder(label = "gif", modifier = Modifier.size(48.dp).clip(thumbShape))
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(thumbShape)
+                        .clickable { viewerIndex = 0 },
+                ) {
+                    AsyncImage(
+                        model = File(first.filePath),
+                        contentDescription = "Exercise media",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    if (media.size > 1) {
+                        val badgeShape = RoundedCornerShape(6.dp)
+                        Text(
+                            "+${media.size - 1}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .clip(badgeShape)
+                                .background(Color.Black.copy(alpha = 0.45f), badgeShape)
+                                .padding(horizontal = 4.dp),
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(name.uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                Text(muscle, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(prescription, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
         }
-        Text(prescription, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.height(10.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.outline),
+        )
+        Spacer(Modifier.height(10.dp))
+        // Flat: this card is already outlined, so the notes section drops its own frame.
+        ExerciseNotesSection(note = note, onSave = onSaveNote, flat = true)
+    }
+
+    viewerIndex?.let { idx ->
+        val viewerItems = remember(media) { media.map { MediaViewerItem(it.id, it.filePath) } }
+        MediaViewer(
+            items = viewerItems,
+            initialIndex = idx,
+            onDismiss = { viewerIndex = null },
+        )
     }
 }
 

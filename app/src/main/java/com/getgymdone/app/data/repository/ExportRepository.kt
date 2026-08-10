@@ -8,6 +8,7 @@ import com.getgymdone.app.data.db.entities.BodyMetric
 import com.getgymdone.app.data.db.entities.DayExercise
 import com.getgymdone.app.data.db.entities.Exercise
 import com.getgymdone.app.data.db.entities.ExerciseMedia
+import com.getgymdone.app.data.db.entities.ExerciseNote
 import com.getgymdone.app.data.db.entities.Session
 import com.getgymdone.app.data.db.entities.SetLog
 import com.getgymdone.app.data.db.entities.Split
@@ -49,6 +50,8 @@ data class BackupFile(
     val bodyMetrics: List<BodyMetric>,
     val userPrefs: UserPrefs?,
     val exerciseMedia: List<BackupMedia> = emptyList(),
+    // Defaulted so backups written before per-exercise notes existed still parse.
+    val exerciseNotes: List<ExerciseNote> = emptyList(),
 )
 
 @Singleton
@@ -74,6 +77,8 @@ class ExportRepository @Inject constructor(
             )
         }
         val backup = BackupFile(
+            // Still v2: `exerciseNotes` is additive and defaulted, so v2 readers (including the
+            // web app, whose BackupFile type pins `version: 2`) keep round-tripping unchanged.
             version = 2,
             exportedAt = System.currentTimeMillis(),
             exercises = db.exerciseDao().getAll(),
@@ -85,6 +90,7 @@ class ExportRepository @Inject constructor(
             bodyMetrics = db.bodyMetricDao().getAll(),
             userPrefs = db.userPrefsDao().get(),
             exerciseMedia = media,
+            exerciseNotes = db.exerciseNoteDao().getAll(),
         )
         val text = json.encodeToString(BackupFile.serializer(), backup)
         context.contentResolver.openOutputStream(uri, "w")?.use { it.write(text.toByteArray()) }
@@ -106,6 +112,12 @@ class ExportRepository @Inject constructor(
         backup.setLogs.forEach { db.setLogDao().insert(it) }
         backup.bodyMetrics.forEach { db.bodyMetricDao().insert(it) }
         db.userPrefsDao().upsert(backup.userPrefs ?: UserPrefs())
+
+        // Notes go in after exercises so the foreign key holds. A note whose exercise is missing
+        // from the backup is skipped rather than failing the whole restore.
+        backup.exerciseNotes.forEach { note ->
+            runCatching { db.exerciseNoteDao().upsert(note) }
+        }
 
         // Restore media: write the bytes back into app storage and point the row at the new file.
         // The extension comes from an untrusted backup, so sanitize it and confirm the resulting
